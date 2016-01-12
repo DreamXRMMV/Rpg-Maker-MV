@@ -1,5 +1,5 @@
 /*:
- * @plugindesc Make sure to set the switch parameters.
+ * @plugindesc v1.1 Battle type depends on touch. Make sure to set the switch parameters.
  * <DreamX Touch Surprise Battles>
  * @author DreamX
  *
