@@ -22,15 +22,26 @@
  * @help
  Make sure to set the switches in the parameters or the script won't do 
  anything.
-Put <enemy:1> into an event so that when the player and it touches, it'll set the next battle type depending on how they touched (you touch their back = preemptive, they touch your back =  surprise, otherwise = normal). In addition, surprise battles may occur when the enemy touches the player from the side or preemptive battles if vice versa. Set the chance of this occuring in the parameters.
-
-The following plugin commands do not apply to random battle encounters you get from walking around on the map (it does apply to battle processing event commands that are "same as random encounter," though).
-Events labeled with <enemy:1> will ignore the plugin commands.
-
-Plugin Commands: 
-ForceSurpriseBattle - Forces the next battle to be surprise. 
-ForcePreemptiveBattle - Forces the next battle to be preemptive.
-ForceNormalBattle - Forces the next battle to be normal.
+ Put <enemy:1> into an event so that when the player and it touches, it'll 
+ set the next battle type depending on how they touched (you touch their 
+ back = preemptive, they touch your back =  surprise, otherwise = normal).
+ 
+ The following plugin commands do not apply to random battle encounters you 
+ get from walking around on the map (it does apply to battle processing event 
+ commands that are "same as random encounter," though). For events labeled with 
+ <enemy:1>, make sure to put the plugin command in their touch trigger event page 
+ if you want to prevent their direction from deciding the battle type.
+ 
+ Plugin Commands: 
+ ForceSurpriseBattle - Forces the next battle to be surprise. 
+ ForcePreemptiveBattle - Forces the next battle to be preemptive.
+ ForceNormalBattle - Forces the next battle to be normal.
+ * ============================================================================
+ * Patch Notes
+ * ============================================================================
+ * v1.1 (1/12/16): Fixed bug with maps that don't have all events sequentially
+ * ordered (for example, if you delete an event) and added compatibility for
+ * Sanshiro's Map Generator.
  * ============================================================================
  * Terms Of Use
  * ============================================================================
@@ -124,8 +135,16 @@ DreamX.TouchSurpriseBattles = DreamX.TouchSurpriseBattles || {};
     DreamX.TouchSurpriseBattles.Game_Interpreter_command301
             = Game_Interpreter.prototype.command301;
     Game_Interpreter.prototype.command301 = function () {
-        if ($dataMap.events[this.eventId()].meta.enemy) {
-            var event = $gameMap.events()[this.eventId() - 1];
+        var eventId = this.eventId();
+        var dataId = this.eventId();
+        if (Imported.SAN_MapGenerator && $gameMap._mapGenerator) {
+            dataId = $gameMap.events()[eventId]._dataEventId;
+        }
+        if ($dataMap.events[dataId].meta.enemy) {
+            var event = $gameMap.events().filter(function (event) {
+                return event.eventId() === eventId;
+            });
+            event = event[0];
             DreamX.TouchSurpriseBattles.SetBattleType(DreamX.TouchSurpriseBattles.CheckBattleType(event));
         }
         return DreamX.TouchSurpriseBattles.Game_Interpreter_command301.call(this);
@@ -177,7 +196,7 @@ DreamX.TouchSurpriseBattles = DreamX.TouchSurpriseBattles || {};
 
 
     DreamX.TouchSurpriseBattles.IsPlayerFacingEvent = function (playerDir, event) {
-					
+
         if (playerDir === 4) {
             if ($gamePlayer.x > event.x) {
                 return true;
