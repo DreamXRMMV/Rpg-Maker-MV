@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.1 Battle type depends on touch. Make sure to set the switch parameters.
+ * @plugindesc v1.2 Battle type depends on touch. Make sure to set the switch parameters.
  * <DreamX Touch Surprise Battles>
  * @author DreamX
  *
@@ -9,6 +9,10 @@
  *
  * @param Surprise Switch
  * @desc This switch decides whether the next battle will be surprise. You must set this in order to use the plugin.
+ * @default 
+ *
+ * @param Force Switch
+ * @desc This switch decides whether the next battle will be forced to be a certain way. You must set this in order to use the plugin.
  * @default 
  * 
  * @param Side Preemptive Chance
@@ -28,17 +32,18 @@
  
  The following plugin commands do not apply to random battle encounters you 
  get from walking around on the map (it does apply to battle processing event 
- commands that are "same as random encounter," though). For events labeled with 
- <enemy:1>, make sure to put the plugin command in their touch trigger event page 
- if you want to prevent their direction from deciding the battle type.
+ commands that are "same as random encounter," though). 
  
  Plugin Commands: 
  ForceSurpriseBattle - Forces the next battle to be surprise. 
  ForcePreemptiveBattle - Forces the next battle to be preemptive.
  ForceNormalBattle - Forces the next battle to be normal.
+ ResetBattleType - Removes the forced state. If the event is labeled <enemy:1>, 
+	the battle type will be decided by direction again.
  * ============================================================================
  * Patch Notes
  * ============================================================================
+ * v1.2 (1/14/16): Plugin commands now apply to touch <enemy:1> events.
  * v1.1 (1/12/16): Fixed bug with maps that don't have all events sequentially
  * ordered (for example, if you delete an event) and added compatibility for
  * Sanshiro's Map Generator.
@@ -72,6 +77,7 @@ DreamX.TouchSurpriseBattles = DreamX.TouchSurpriseBattles || {};
 
     var preSwitch = parseInt(parameters['Preemptive Switch'] || '-1');
     var surSwitch = parseInt(parameters['Surprise Switch'] || '-1');
+    var forceSwitch = parseInt(parameters['Force Switch'] || '-1');
     var sidePreChance = parseInt(parameters['Side Preemptive Chance'] || '0');
     var sideSurChance = parseInt(parameters['Side Surprise Chance'] || '0');
 
@@ -90,12 +96,15 @@ DreamX.TouchSurpriseBattles = DreamX.TouchSurpriseBattles || {};
                 case 'ForceNormalBattle':
                     DreamX.TouchSurpriseBattles.NormalOn();
                     break;
+                case 'ResetBattleType':
+                    DreamX.TouchSurpriseBattles.Reset();
+                    break;
             }
         }
     };
 
     DreamX.TouchSurpriseBattles.CorrectSwitches = function () {
-        if (parseInt(preSwitch) >= 1 && parseInt(surSwitch) >= 1) {
+        if (parseInt(preSwitch) >= 1 && parseInt(surSwitch) >= 1 && parseInt(forceSwitch) >= 1) {
             return true;
         }
         return false;
@@ -104,16 +113,25 @@ DreamX.TouchSurpriseBattles = DreamX.TouchSurpriseBattles || {};
     DreamX.TouchSurpriseBattles.SurpriseOn = function () {
         $gameSwitches.setValue(preSwitch, false);
         $gameSwitches.setValue(surSwitch, true);
+        $gameSwitches.setValue(forceSwitch, true);
     };
 
     DreamX.TouchSurpriseBattles.PreemptiveOn = function () {
         $gameSwitches.setValue(preSwitch, true);
         $gameSwitches.setValue(surSwitch, false);
+        $gameSwitches.setValue(forceSwitch, true);
     };
 
     DreamX.TouchSurpriseBattles.NormalOn = function () {
         $gameSwitches.setValue(preSwitch, false);
         $gameSwitches.setValue(surSwitch, false);
+        $gameSwitches.setValue(forceSwitch, true);
+    };
+
+    DreamX.TouchSurpriseBattles.Reset = function () {
+        $gameSwitches.setValue(preSwitch, false);
+        $gameSwitches.setValue(surSwitch, false);
+        $gameSwitches.setValue(forceSwitch, false);
     };
 
     DreamX.TouchSurpriseBattles.Game_Event_initMembers
@@ -135,17 +153,19 @@ DreamX.TouchSurpriseBattles = DreamX.TouchSurpriseBattles || {};
     DreamX.TouchSurpriseBattles.Game_Interpreter_command301
             = Game_Interpreter.prototype.command301;
     Game_Interpreter.prototype.command301 = function () {
-        var eventId = this.eventId();
-        var dataId = this.eventId();
-        if (Imported.SAN_MapGenerator && $gameMap._mapGenerator) {
-            dataId = $gameMap.events()[eventId]._dataEventId;
-        }
-        if ($dataMap.events[dataId].meta.enemy) {
-            var event = $gameMap.events().filter(function (event) {
-                return event.eventId() === eventId;
-            });
-            event = event[0];
-            DreamX.TouchSurpriseBattles.SetBattleType(DreamX.TouchSurpriseBattles.CheckBattleType(event));
+        if ($gameSwitches.value(forceSwitch) === false) {
+            var eventId = this.eventId();
+            var dataId = this.eventId();
+            if (Imported.SAN_MapGenerator && $gameMap._mapGenerator) {
+                dataId = $gameMap.events()[eventId]._dataEventId;
+            }
+            if ($dataMap.events[dataId].meta.enemy) {
+                var event = $gameMap.events().filter(function (event) {
+                    return event.eventId() === eventId;
+                });
+                event = event[0];
+                DreamX.TouchSurpriseBattles.SetBattleType(DreamX.TouchSurpriseBattles.CheckBattleType(event));
+            }
         }
         return DreamX.TouchSurpriseBattles.Game_Interpreter_command301.call(this);
     };
@@ -154,14 +174,12 @@ DreamX.TouchSurpriseBattles = DreamX.TouchSurpriseBattles || {};
             = BattleManager.initMembers;
     BattleManager.initMembers = function () {
         DreamX.TouchSurpriseBattles.BattleManager_initMembers.call(this);
-        this._preemptive = $gameSwitches.value(preSwitch);
-        this._surprise = $gameSwitches.value(surSwitch);
-        $gameSwitches.setValue(preSwitch, false);
-        $gameSwitches.setValue(surSwitch, false);
+            this._preemptive = $gameSwitches.value(preSwitch);
+            this._surprise = $gameSwitches.value(surSwitch);
+            DreamX.TouchSurpriseBattles.Reset();
     };
 
     DreamX.TouchSurpriseBattles.SetBattleType = function (type) {
-
         if (type === 'preemptive') {
             $gameSwitches.setValue(preSwitch, true);
             $gameSwitches.setValue(surSwitch, false);
@@ -175,7 +193,6 @@ DreamX.TouchSurpriseBattles = DreamX.TouchSurpriseBattles || {};
             $gameSwitches.setValue(preSwitch, false);
             $gameSwitches.setValue(surSwitch, false);
         }
-
     };
 
     DreamX.TouchSurpriseBattles.SideSurprise = function () {
