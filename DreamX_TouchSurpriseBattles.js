@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.2 Battle type depends on touch. Make sure to set the switch parameters.
+ * @plugindesc v1.3 Battle type depends on touch. Make sure to set the switch parameters.
  * <DreamX Touch Surprise Battles>
  * @author DreamX
  *
@@ -15,6 +15,14 @@
  * @desc This switch decides whether the next battle will be forced to be a certain way. You must set this in order to use the plugin.
  * @default 
  * 
+ * @param Back Preemptive Chance
+ * @desc The % chance to have a preemptive battle when the player touches the event from the back. Default: 100
+ * @default 100
+ *
+ * @param Back Surprise Chance
+ * @desc The % chance to have a surprise battle when the event touches the player from the back. Default: 100
+ * @default 100
+ *
  * @param Side Preemptive Chance
  * @desc The % chance to have a preemptive battle when the player touches the event from the side. Default: 0
  * @default 0
@@ -39,10 +47,11 @@
  ForcePreemptiveBattle - Forces the next battle to be preemptive.
  ForceNormalBattle - Forces the next battle to be normal.
  ResetBattleType - Removes the forced state. If the event is labeled <enemy:1>, 
-	the battle type will be decided by direction again.
+ the battle type will be decided by direction again.
  * ============================================================================
  * Patch Notes
  * ============================================================================
+ * v1.3 (1/16/16): Added parameters for back preemptive/surprise battles chance.
  * v1.2 (1/14/16): Plugin commands now apply to touch <enemy:1> events.
  * v1.1 (1/12/16): Fixed bug with maps that don't have all events sequentially
  * ordered (for example, if you delete an event) and added compatibility for
@@ -78,6 +87,8 @@ DreamX.TouchSurpriseBattles = DreamX.TouchSurpriseBattles || {};
     var preSwitch = parseInt(parameters['Preemptive Switch'] || '-1');
     var surSwitch = parseInt(parameters['Surprise Switch'] || '-1');
     var forceSwitch = parseInt(parameters['Force Switch'] || '-1');
+    var backPreChance = parseInt(parameters['Back Preemptive Chance'] || '100');
+    var backSurChance = parseInt(parameters['Back Surprise Chance'] || '100');
     var sidePreChance = parseInt(parameters['Side Preemptive Chance'] || '0');
     var sideSurChance = parseInt(parameters['Side Surprise Chance'] || '0');
 
@@ -174,9 +185,9 @@ DreamX.TouchSurpriseBattles = DreamX.TouchSurpriseBattles || {};
             = BattleManager.initMembers;
     BattleManager.initMembers = function () {
         DreamX.TouchSurpriseBattles.BattleManager_initMembers.call(this);
-            this._preemptive = $gameSwitches.value(preSwitch);
-            this._surprise = $gameSwitches.value(surSwitch);
-            DreamX.TouchSurpriseBattles.Reset();
+        this._preemptive = $gameSwitches.value(preSwitch);
+        this._surprise = $gameSwitches.value(surSwitch);
+        DreamX.TouchSurpriseBattles.Reset();
     };
 
     DreamX.TouchSurpriseBattles.SetBattleType = function (type) {
@@ -207,6 +218,22 @@ DreamX.TouchSurpriseBattles = DreamX.TouchSurpriseBattles || {};
         var diceRoll = Math.floor((Math.random() * 100) + 1);
         if (diceRoll <= sidePreChance) {
             return 'preemptive';
+        }
+        return 'normal';
+    };
+
+    DreamX.TouchSurpriseBattles.BackPreemptive = function () {
+        var diceRoll = Math.floor((Math.random() * 100) + 1);
+        if (diceRoll <= backPreChance) {
+            return 'preemptive';
+        }
+        return 'normal';
+    };
+
+    DreamX.TouchSurpriseBattles.BackSurprise = function () {
+        var diceRoll = Math.floor((Math.random() * 100) + 1);
+        if (diceRoll <= backSurChance) {
+            return 'surprise';
         }
         return 'normal';
     };
@@ -259,34 +286,34 @@ DreamX.TouchSurpriseBattles = DreamX.TouchSurpriseBattles || {};
         if (playerDir === prevEventDir) {
             if (playerDir === 4) {
                 if ($gamePlayer.x > event.x) {
-                    return 'preemptive';
+                    return DreamX.TouchSurpriseBattles.BackPreemptive();
                 }
                 else {
-                    return 'surprise';
+                    return DreamX.TouchSurpriseBattles.BackSurprise();
                 }
             }
             else if (playerDir === 6) {
                 if ($gamePlayer.x > event.x) {
-                    return 'surprise';
+                    return DreamX.TouchSurpriseBattles.BackSurprise();
                 }
                 else {
-                    return 'preemptive';
+                    return DreamX.TouchSurpriseBattles.BackPreemptive();
                 }
             }
             else if (playerDir === 2) {
                 if ($gamePlayer.y > event.y) {
-                    return 'surprise';
+                    return DreamX.TouchSurpriseBattles.BackSurprise();
                 }
                 else {
-                    return 'preemptive';
+                    return DreamX.TouchSurpriseBattles.BackPreemptive();
                 }
             }
             else if (playerDir === 8) {
                 if ($gamePlayer.y > event.y) {
-                    return 'preemptive';
+                    return DreamX.TouchSurpriseBattles.BackPreemptive();
                 }
                 else {
-                    return 'surprise';
+                    return DreamX.TouchSurpriseBattles.BackSurprise();
                 }
             }
         }
