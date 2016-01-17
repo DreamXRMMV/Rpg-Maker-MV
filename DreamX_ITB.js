@@ -12,7 +12,9 @@
  * ============================================================================
  * Patch Notes
  * ============================================================================
- * v1.02 - Troop events set to run on a certain turn or turn end now work.
+ * v1.02 - The battle system now needs to be set in Yanfly's Battle Engine Core. 
+ * Set the battle type as itb.  Troop events set to run on a certain turn or 
+ * turn end now work.
  * Battlers may now act more than once a turn after applying an action time
  * increase state to themselves. Compatibility with Yanfly's Instant Cast is 
  * no longer applicable. Use <free_itb_action:1> as a skill notetag to prevent
