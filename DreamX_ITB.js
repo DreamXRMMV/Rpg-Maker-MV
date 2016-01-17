@@ -1,15 +1,26 @@
 /*:
- * @plugindesc v1.01 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
+ * @plugindesc v1.02 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
  * @author DreamX
  * @help 
  * ============================================================================
+ * How To Use
+ * ============================================================================
+ * Use <free_itb_action:1> as a skill notetag to prevent
+ * that skill from consuming an action for the battler - they will be able to
+ * act again after the skill is used.
+ * ============================================================================
  * Patch Notes
  * ============================================================================
+ * v1.02 - Troop events set to run on a certain turn or turn end now work.
+ * Battlers may now act more than once a turn after applying an action time
+ * increase state to themselves. Compatibility with Yanfly's Instant Cast is 
+ * no longer applicable. Use <free_itb_action:1> as a skill notetag to prevent
+ * that skill from consuming an action for the battler - they will be able to
+ * act again after the skill is used.
  * v1.01 - Action time increases now work.
  * ============================================================================
  * Known Issues/Future Updates
  * ============================================================================
- -The script doesn't enact troop events set to occur at turn end.
  -The script doesn't check if it has been explicitely enabled - the battle 
  system will always turn on. This will be changed in the future. For now, use
  the script with only dtb.
@@ -35,7 +46,7 @@
  DreamX
  Yanfly - "Battle System - Charge Turn Battle" && "Battle Engine Core"
  */
- 
+
 var Imported = Imported || {};
 Imported.DreamX_ITB = true;
 
@@ -44,33 +55,85 @@ DreamX.ITB = DreamX.ITB || {};
 
 (function () {
 
-	Game_Battler.prototype.setITBActions = function() {
-		var actions = this.actionPlusSet().reduce(function(r, p) {
-			return Math.random() < p ? r + 1 : r;
-		}, 1);
-		this._ITBActions = actions;
-		this._checkNumActions = false;
-	};
+//=============================================================================
+// Game_Battler
+//=============================================================================
 
-	Game_Battler.prototype.numITBActions = function() {
-		return this._ITBActions;
-	};
-	
-	Game_Battler.prototype.resetCheckNumActions = function() {
-		this._checkNumActions = true;
-	};
-	
-	Game_Battler.prototype.decrementNumActions = function() {
-		this._ITBActions -= 1;
-	};
+    DreamX.ITB.Game_Battler_onTurnEnd = Game_Battler.prototype.onTurnEnd;
+    Game_Battler.prototype.onTurnEnd = function () {
+        DreamX.ITB.Game_Battler_onTurnEnd.call(this);
+        this.updateStateTurns();
+        this.updateBuffTurns();
+        this.removeBuffsAuto();
+        this.resetActionNum();
+    };
 
     DreamX.ITB.Game_Battler_initMembers = Game_Battler.prototype.initMembers;
     Game_Battler.prototype.initMembers = function () {
         DreamX.ITB.Game_Battler_initMembers.call(this);
-		this._ITBActions = 0;
-		this._checkNumActions = true;
+        this._ITBActions = 0;
+        this._previousTraitITBActions = 0;
     };
 
+    // Adds ITB actions to the battler.
+    Game_Battler.prototype.addITBActions = function (actions) {
+        this._ITBActions += actions;
+    };
+
+    // Adds ITB actions from traits to the battler.
+    Game_Battler.prototype.addTraitITBActions = function (actions) {
+        this._previousTraitITBActions += actions;
+        this.addITBActions(actions);
+    };
+
+    // Returns the previous number of actions added from traits.
+    Game_Battler.prototype.previousTraitITBActions = function (actions) {
+        return this._previousTraitITBActions;
+    };
+
+    // Returns extra actions from traits, plus the default one.
+    Game_Battler.prototype.traitITBActions = function () {
+        var actions = this.actionPlusSet().reduce(function (r, p) {
+            return Math.random() < p ? r + 1 : r;
+        }, 1);
+        return actions;
+    };
+
+    // Returns the current number of ITB actions left for the battler.
+    Game_Battler.prototype.numITBActions = function () {
+        return this._ITBActions;
+    };
+
+    // Resets the ITB action variables for the battler.
+    Game_Battler.prototype.resetActionNum = function () {
+        this._ITBActions = 0;
+        this._previousTraitITBActions = 0;
+    };
+
+    // Decides whether to add ITB actions from traits.
+    Game_Battler.prototype.decideITBTraitActions = function () {
+        // if there is a difference between the current number of trait actions
+        // and the previous number of them, add the difference to the battler's
+        // itb action number
+        var difference = this.traitITBActions() - this.previousTraitITBActions();
+        if (difference >= 1) {
+            this.addTraitITBActions(difference);
+        }
+    };
+
+    Game_Battler.prototype.endTurnAllITB = function () {
+        this.clearActions();
+        this.setActionState('undecided');
+        if (this.battler())
+            this.battler().refreshMotion();
+    };
+
+//=============================================================================
+// BattleManager
+//=============================================================================
+    //==========================================================================
+    // Alias Functions
+    //==========================================================================
     DreamX.BattleManager_initMembers = BattleManager.initMembers;
     BattleManager.initMembers = function () {
         DreamX.BattleManager_initMembers.call(this);
@@ -80,28 +143,103 @@ DreamX.ITB = DreamX.ITB || {};
     DreamX.ITB.battleManager_endTurn = BattleManager.endTurn;
     BattleManager.endTurn = function () {
         DreamX.ITB.battleManager_endTurn.call(this);
-		this.makeITBOrders();
-		$gameTroop.increaseTurn();
-        this.allBattleMembers().forEach(function (battler) {
-            battler.updateStateTurns();
-			battler.updateBuffTurns();
-			battler.removeBuffsAuto();
-			battler.resetCheckNumActions();
-        }, this);
+        this.makeITBOrders();
     };
 
-    BattleManager.getReadyITBBattler = function () {
-		this.sortITBOrders();
-        if (this._ITBBattlers.length <= 0) {
-            this.endTurn();
+    DreamX.ITB.BattleManager_update = BattleManager.update;
+    BattleManager.update = function () {
+        if (this.isITB()) {
+            if (this.isBusy()) {
+                return;
+            }
+
+            if (this.updateEvent()) {
+                return;
+            }
+
+            if (this._phase === 'battleEnd') {
+                return DreamX.ITB.BattleManager_update.call(this);
+            }
+            if (this.checkBattleEnd()) {
+                return;
+            }
+
+            if (this._phase === 'itb') {
+                this.updateITBPhase();
+            } else {
+                DreamX.ITB.BattleManager_update.call(this);
+            }
+        } else {
+            DreamX.ITB.BattleManager_update.call(this);
         }
-		firstBattler = this._ITBBattlers[0];
-		if (firstBattler._checkNumActions) firstBattler.setITBActions();
-		if (firstBattler.numITBActions() > 1) {
-			firstBattler.decrementNumActions();
-			return firstBattler;
-		}
-        return this._ITBBattlers.shift();
+    };
+
+    DreamX.BattleManager_startBattle = BattleManager.startBattle;
+    BattleManager.startBattle = function () {
+        DreamX.BattleManager_startBattle.call(this);
+        this.makeITBOrders();
+    };
+
+    DreamX.ITB.BattleManager_selectNextCommand = BattleManager.selectNextCommand;
+    BattleManager.selectNextCommand = function () {
+        if (this.isITB()) {
+            if (!this.actor())
+                return this.setITBPhase();
+            if (this.isValidITBActorAction()) {
+                this.startITBAction(this.actor());
+            }
+        } else {
+            DreamX.ITB.BattleManager_selectNextCommand.call(this);
+        }
+    };
+
+    DreamX.ITB.BattleManager_endAction = BattleManager.endAction;
+    BattleManager.endAction = function () {
+        if (this.isITB()) {
+            this.endITBAction();
+        } else {
+            DreamX.ITB.BattleManager_endAction.call(this);
+        }
+    };
+
+    DreamX.ITB.BattleManager_updateEventMain = BattleManager.updateEventMain;
+    BattleManager.updateEventMain = function () {
+        if (this.isITB()) {
+            $gameTroop.updateInterpreter();
+            $gameParty.requestMotionRefresh();
+            if ($gameTroop.isEventRunning()) {
+                return true;
+            }
+            $gameTroop.setupBattleEvent();
+            if ($gameTroop.isEventRunning() || SceneManager.isSceneChanging()) {
+                return true;
+            }
+            return false;
+        } else {
+            return DreamX.ITB.BattleManager_updateEventMain.call(this);
+        }
+    };
+    //==========================================================================
+    // Original Functions
+    //==========================================================================
+    BattleManager.getReadyITBBattler = function () {
+        this.sortITBOrders();
+        // if the pool of ITB Battlers is empty, start the turn
+        if (this._ITBBattlers.length <= 0) {
+            this.startTurn();
+            return;
+        }
+        firstBattler = this._ITBBattlers[0];
+        firstBattler.decideITBTraitActions();
+
+        if (firstBattler.numITBActions() >= 1) {
+            firstBattler.addITBActions(-1);
+            return firstBattler;
+        }
+        else {
+            this._ITBBattlers.shift();
+            return this.getReadyITBBattler();
+        }
     };
 
     BattleManager.breakITBPhase = function () {
@@ -147,48 +285,12 @@ DreamX.ITB = DreamX.ITB || {};
 
     };
 
-    DreamX.ITB.BattleManager_update = BattleManager.update;
-    BattleManager.update = function () {
-
-        if (this.isITB()) {
-            if (this.isBusy()) {
-                return;
-            }
-
-            if (this.updateEvent()) {
-                return;
-            }
-
-            if (this._phase === 'battleEnd') {
-                return DreamX.ITB.BattleManager_update.call(this);
-            }
-            if (this.checkBattleEnd()) {
-                return;
-            }
-
-            if (this._phase === 'itb') {
-                this.updateITBPhase();
-            } else {
-                DreamX.ITB.BattleManager_update.call(this);
-            }
-        } else {
-            DreamX.ITB.BattleManager_update.call(this);
-        }
-    };
-
-    DreamX.BattleManager_startBattle = BattleManager.startBattle;
-    BattleManager.startBattle = function () {
-        DreamX.BattleManager_startBattle.call(this);
-        this.makeITBOrders();
-    };
-
     BattleManager.setITBPhase = function () {
         this._phase = 'itb';
     };
 
-
     BattleManager.isITB = function () {
-        return true;
+        return this.isBattleSystem('itb');
     };
 
     BattleManager.isValidITBActorAction = function () {
@@ -206,19 +308,6 @@ DreamX.ITB = DreamX.ITB || {};
             this.startAction();
         } else {
             this.endAction();
-        }
-    };
-
-    DreamX.ITB.BattleManager_selectNextCommand = BattleManager.selectNextCommand;
-    BattleManager.selectNextCommand = function () {
-        if (this.isITB()) {
-            if (!this.actor())
-                return this.setITBPhase();
-            if (this.isValidITBActorAction()) {
-                this.startITBAction(this.actor());
-            }
-        } else {
-            DreamX.ITB.BattleManager_selectNextCommand.call(this);
         }
     };
 
@@ -240,41 +329,6 @@ DreamX.ITB = DreamX.ITB || {};
         });
     };
 
-
-    DreamX.ITB.BattleManager_endAction = BattleManager.endAction;
-    BattleManager.endAction = function () {
-        if (this.isITB()) {
-            this.endITBAction();
-        } else {
-            DreamX.ITB.BattleManager_endAction.call(this);
-        }
-    };
-
-    DreamX.ITB.BattleManager_updateEventMain = BattleManager.updateEventMain;
-    BattleManager.updateEventMain = function () {
-        if (this.isITB()) {
-            $gameTroop.updateInterpreter();
-            $gameParty.requestMotionRefresh();
-            if ($gameTroop.isEventRunning()) {
-                return true;
-            }
-            $gameTroop.setupBattleEvent();
-            if ($gameTroop.isEventRunning() || SceneManager.isSceneChanging()) {
-                return true;
-            }
-            return false;
-        } else {
-            return DreamX.ITB.BattleManager_updateEventMain.call(this);
-        }
-    };
-
-    Game_Battler.prototype.endTurnAllITB = function () {
-        this.clearActions();
-        this.setActionState('undecided');
-        if (this.battler())
-            this.battler().refreshMotion();
-    };
-
     BattleManager.endITBAction = function () {
         if (Imported.YEP_BattleEngineCore) {
             if (this._processingForcedAction)
@@ -291,39 +345,16 @@ DreamX.ITB = DreamX.ITB || {};
         this.setITBPhase();
     };
 
-//    BattleManager.updateBattlerITB = function () {
-//        $gameParty.updateTick();
-//        $gameTroop.updateTick();
-//    };
-//
-//    DreamX.ITB.Game_Battler_updateTick = Game_Battler.prototype.updateTick;
-//    Game_Battler.prototype.updateTick = function () {
-//        DreamX.ITB.Game_Battler_updateTick.call(this);
-//        if (BattleManager.isCTB())
-//            this.updateITB();
-//    };
-//
-//    Game_Battler.prototype.updateITB = function () {
-//        if (!this.canMove()) {
-//            this.updateITBStates();
-//            return;
-//        }
-//    };
-//
-//    Game_Battler.prototype.updateITBStates = function () {
-//        for (var i = 0; i < this._states.length; ++i) {
-//            var stateId = this._states[i];
-//            var state = $dataStates[stateId];
-//            if (!state)
-//                continue;
-//            if (!this._stateTurns[stateId])
-//                continue;
-//            if (state.restriction >= 4 && state.autoRemovalTiming !== 0) {
-//                this._stateTurns[stateId]--;
-//                if (this._stateTurns[stateId] <= 0)
-//                    this.removeState(stateId);
-//            }
-//        }
-//    };
+//=============================================================================
+// Game_Action
+//=============================================================================
+    DreamX.ITB.Game_Action_apply = Game_Action.prototype.apply;
+    Game_Action.prototype.apply = function (target) {
+        DreamX.ITB.Game_Action_apply.call(this, target);
+        var item = this.item();
+        if (item.meta.free_itb_action) {
+            this.subject().addITBActions(1);
+        }
+    };
 
 })();
