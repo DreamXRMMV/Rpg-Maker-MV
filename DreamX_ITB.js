@@ -1,7 +1,11 @@
 /*:
- * @plugindesc v1.0 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
+ * @plugindesc v1.01 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
  * @author DreamX
  * @help 
+ * ============================================================================
+ * Patch Notes
+ * ============================================================================
+ * v1.01 - Action time increases now work.
  * ============================================================================
  * Known Issues/Future Updates
  * ============================================================================
@@ -39,6 +43,33 @@ DreamX.ITB = DreamX.ITB || {};
 
 (function () {
 
+	Game_Battler.prototype.setITBActions = function() {
+		var actions = this.actionPlusSet().reduce(function(r, p) {
+			return Math.random() < p ? r + 1 : r;
+		}, 1);
+		this._ITBActions = actions;
+		this._checkNumActions = false;
+	};
+
+	Game_Battler.prototype.numITBActions = function() {
+		return this._ITBActions;
+	};
+	
+	Game_Battler.prototype.resetCheckNumActions = function() {
+		this._checkNumActions = true;
+	};
+	
+	Game_Battler.prototype.decrementNumActions = function() {
+		this._ITBActions -= 1;
+	};
+
+    DreamX.ITB.Game_Battler_initMembers = Game_Battler.prototype.initMembers;
+    Game_Battler.prototype.initMembers = function () {
+        DreamX.ITB.Game_Battler_initMembers.call(this);
+		this._ITBActions = 0;
+		this._checkNumActions = true;
+    };
+
     DreamX.BattleManager_initMembers = BattleManager.initMembers;
     BattleManager.initMembers = function () {
         DreamX.BattleManager_initMembers.call(this);
@@ -54,6 +85,7 @@ DreamX.ITB = DreamX.ITB || {};
             battler.updateStateTurns();
 			battler.updateBuffTurns();
 			battler.removeBuffsAuto();
+			battler.resetCheckNumActions();
         }, this);
     };
 
@@ -62,6 +94,12 @@ DreamX.ITB = DreamX.ITB || {};
         if (this._ITBBattlers.length <= 0) {
             this.endTurn();
         }
+		firstBattler = this._ITBBattlers[0];
+		if (firstBattler._checkNumActions) firstBattler.setITBActions();
+		if (firstBattler.numITBActions() > 1) {
+			firstBattler.decrementNumActions();
+			return firstBattler;
+		}
         return this._ITBBattlers.shift();
     };
 
@@ -172,7 +210,6 @@ DreamX.ITB = DreamX.ITB || {};
 
     DreamX.ITB.BattleManager_selectNextCommand = BattleManager.selectNextCommand;
     BattleManager.selectNextCommand = function () {
-        console.log($gameTroop.turnCount());
         if (this.isITB()) {
             if (!this.actor())
                 return this.setITBPhase();
@@ -231,13 +268,10 @@ DreamX.ITB = DreamX.ITB || {};
     };
 
     Game_Battler.prototype.endTurnAllITB = function () {
-
         this.clearActions();
         this.setActionState('undecided');
         if (this.battler())
             this.battler().refreshMotion();
-//        if (BattleManager.isTickBased())
-//            this.onTurnEnd();
     };
 
     BattleManager.endITBAction = function () {
