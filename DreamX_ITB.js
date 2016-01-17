@@ -5,6 +5,7 @@
  * ============================================================================
  * How To Use
  * ============================================================================
+ * Set the battle type to itb in Yanfly's Battle Engine Core.
  * Use <free_itb_action:1> as a skill notetag to prevent
  * that skill from consuming an action for the battler - they will be able to
  * act again after the skill is used.
