@@ -24,11 +24,6 @@
  * ============================================================================
  * Known Issues/Future Updates
  * ============================================================================
- -The script doesn't check if it has been explicitely enabled - the battle 
- system will always turn on. This will be changed in the future. For now, use
- the script with only dtb.
- -Not compatible with Yanfly's Instant Cast. This will changed in the future 
- if possible.
  -In the future, I would like have an option to give battlers an extra action 
  if they hit an opponent's weakness. The opponent will then optionally  have a 
  user-specified state applied to them, like paralysis. If the enemy is once 
