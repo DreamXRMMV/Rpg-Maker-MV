@@ -1,8 +1,12 @@
 /*:
- * @plugindesc v1.0 Swap states and/or buffs on skill.
+ * @plugindesc v1.1 Swap states and/or buffs on skill.
  * @author DreamX
  * @help Use <swapStates:1> as a skill notetag to swap states,
  * use <swapBuffs:1> as a skill notetag to swap buffs and debuffs
+ * ============================================================================
+ * Patch Notes
+ * ============================================================================
+ * 1.1 - Fixed buff bug.
  * ============================================================================
  * Terms Of Use
  * ============================================================================
@@ -26,6 +30,13 @@ DreamX.SwapStates = DreamX.SwapStates || {};
 
     Game_BattlerBase.prototype.DreamXSwapStateTurns = function (swapStateTurns) {
         this._stateTurns = swapStateTurns;
+    };
+	
+	Game_BattlerBase.prototype.DreamXSwapBuffs = function (buffs, buffTurns) {
+        this._buffs = buffs;
+		console.log(buffTurns);
+		this._buffTurns = buffTurns;
+		console.log(this._buffTurns);
     };
 
     Game_BattlerBase.prototype.DreamXGetBuffs = function (swapStateTurns) {
@@ -74,20 +85,9 @@ DreamX.SwapStates = DreamX.SwapStates || {};
         var targetBuffTurns = target.DreamXGetBuffTurns();
         subject.clearBuffs();
         target.clearBuffs();
-
-        for (i = 0; i < subjectBuffs.length; i++) {
-            if (subjectBuffTurns[i] >= 1) {
-                target.addBuff(subjectBuffs[i], subjectBuffTurns[i]);
-            }
-
-        }
-
-        for (i = 0; i < targetBuffs.length; i++) {
-            if (targetBuffTurns[i] >= 1) {
-                subject.addBuff(targetBuffs[i], targetBuffTurns[i]);
-            }
-
-        }
+		
+		subject.DreamXSwapBuffs(targetBuffs, targetBuffTurns);
+		target.DreamXSwapBuffs(subjectBuffs, subjectBuffTurns);
     };
 
 })();
