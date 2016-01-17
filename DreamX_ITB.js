@@ -9,6 +9,7 @@
  * ============================================================================
  * Known Issues/Future Updates
  * ============================================================================
+ -The script doesn't enact troop events set to occur at turn end.
  -The script doesn't check if it has been explicitely enabled - the battle 
  system will always turn on. This will be changed in the future. For now, use
  the script with only dtb.
