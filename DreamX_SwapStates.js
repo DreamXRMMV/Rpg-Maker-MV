@@ -1,5 +1,5 @@
 /*:
- * @plugindesc Swap states and/or buffs on skill.
+ * @plugindesc v1.0 Swap states and/or buffs on skill.
  * @author DreamX
  * @help Use <swapStates:1> as a skill notetag to swap states,
  * use <swapBuffs:1> as a skill notetag to swap buffs and debuffs
