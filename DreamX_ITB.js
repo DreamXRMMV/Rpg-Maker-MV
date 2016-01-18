@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.02 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
+ * @plugindesc v1.03 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
  * @author DreamX
  * @help 
  * ============================================================================
@@ -10,27 +10,10 @@
  * that skill from consuming an action for the battler - they will be able to
  * act again after the skill is used.
  * ============================================================================
- * Patch Notes
+ * Patch Notes/Known Issues/Future Updates
  * ============================================================================
- * v1.02 - The battle system now needs to be set in Yanfly's Battle Engine Core. 
- * Set the battle type as itb.  Troop events set to run on a certain turn or 
- * turn end now work.
- * Battlers may now act more than once a turn after applying an action time
- * increase state to themselves. Compatibility with Yanfly's Instant Cast is 
- * no longer applicable. Use <free_itb_action:1> as a skill notetag to prevent
- * that skill from consuming an action for the battler - they will be able to
- * act again after the skill is used.
- * v1.01 - Action time increases now work.
- * ============================================================================
- * Known Issues/Future Updates
- * ============================================================================
- -In the future, I would like have an option to give battlers an extra action 
- if they hit an opponent's weakness. The opponent will then optionally  have a 
- user-specified state applied to them, like paralysis. If the enemy is once 
- again hit on their weakness, another user-specified state may be applied. 
- There will be a limit to how many times this occur in a period, so as to not 
- have an infinite advantage for battlers. These hypothetical features are 
- modeled after Persona 4.
+ * See the forum thread for patch notes:
+ * http://forums.rpgmakerweb.com/index.php?/topic/54880-instant-turn-battle-system/
  * ============================================================================
  * Terms Of Use
  * ============================================================================
@@ -343,6 +326,20 @@ DreamX.ITB = DreamX.ITB || {};
         this.setITBPhase();
     };
 
+    //==========================================================================
+    // Overwrite Functions
+    //==========================================================================
+	 DreamX.ITB.BattleManager_selectPreviousCommand = BattleManager.selectPreviousCommand;
+BattleManager.selectPreviousCommand = function() {
+    if (this.isITB()) {
+		this.actor().addITBActions(1);
+    this.changeActor(-1, 'undecided');
+	}
+	else {
+	DreamX.ITB.BattleManager_selectPreviousCommand.call(this);
+	}
+
+};
 //=============================================================================
 // Game_Action
 //=============================================================================
