@@ -200,6 +200,16 @@ DreamX.ITB = DreamX.ITB || {};
             return DreamX.ITB.BattleManager_updateEventMain.call(this);
         }
     };
+	
+	DreamX.ITB.BattleManager_selectPreviousCommand = BattleManager.selectPreviousCommand;
+	BattleManager.selectPreviousCommand = function() {
+    if (this.isITB()) {
+		this.actor().addITBActions(1);
+    this.changeActor(-1, 'undecided');
+	}
+	else {
+	DreamX.ITB.BattleManager_selectPreviousCommand.call(this);
+	}
     //==========================================================================
     // Original Functions
     //==========================================================================
@@ -329,15 +339,7 @@ DreamX.ITB = DreamX.ITB || {};
     //==========================================================================
     // Overwrite Functions
     //==========================================================================
-	 DreamX.ITB.BattleManager_selectPreviousCommand = BattleManager.selectPreviousCommand;
-BattleManager.selectPreviousCommand = function() {
-    if (this.isITB()) {
-		this.actor().addITBActions(1);
-    this.changeActor(-1, 'undecided');
-	}
-	else {
-	DreamX.ITB.BattleManager_selectPreviousCommand.call(this);
-	}
+
 
 };
 //=============================================================================
