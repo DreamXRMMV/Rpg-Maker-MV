@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.03 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
+ * @plugindesc v1.04 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
  * @author DreamX
  * @help 
  * ============================================================================
@@ -115,6 +115,13 @@ DreamX.ITB = DreamX.ITB || {};
     //==========================================================================
     // Alias Functions
     //==========================================================================
+    DreamX.ITB.BattleManager_startTurn = BattleManager.startTurn;
+    BattleManager.startTurn = function () {
+        $gameTroop.clearActions();
+        $gameParty.clearActions();
+        DreamX.ITB.BattleManager_startTurn.call(this);
+    };
+
     DreamX.BattleManager_initMembers = BattleManager.initMembers;
     BattleManager.initMembers = function () {
         DreamX.BattleManager_initMembers.call(this);
@@ -200,16 +207,6 @@ DreamX.ITB = DreamX.ITB || {};
             return DreamX.ITB.BattleManager_updateEventMain.call(this);
         }
     };
-	
-	DreamX.ITB.BattleManager_selectPreviousCommand = BattleManager.selectPreviousCommand;
-	BattleManager.selectPreviousCommand = function() {
-    if (this.isITB()) {
-		this.actor().addITBActions(1);
-    this.changeActor(-1, 'undecided');
-	}
-	else {
-	DreamX.ITB.BattleManager_selectPreviousCommand.call(this);
-	}
     //==========================================================================
     // Original Functions
     //==========================================================================
@@ -339,9 +336,17 @@ DreamX.ITB = DreamX.ITB || {};
     //==========================================================================
     // Overwrite Functions
     //==========================================================================
+    DreamX.ITB.BattleManager_selectPreviousCommand = BattleManager.selectPreviousCommand;
+    BattleManager.selectPreviousCommand = function () {
+        if (this.isITB()) {
+            this.actor().addITBActions(1);
+            this.changeActor(-1, 'undecided');
+        }
+        else {
+            DreamX.ITB.BattleManager_selectPreviousCommand.call(this);
+        }
 
-
-};
+    };
 //=============================================================================
 // Game_Action
 //=============================================================================
@@ -353,5 +358,19 @@ DreamX.ITB = DreamX.ITB || {};
             this.subject().addITBActions(1);
         }
     };
+
+    //=============================================================================
+// Compatibility
+//=============================================================================
+    if (Imported.YEP_BattleAICore) {
+        DreamX.ITB.Game_Battler_setAIPattern = Game_Battler.prototype.setAIPattern;
+        Game_Battler.prototype.setAIPattern = function () {
+            if (BattleManager.isITB()) {
+                if (this.numITBActions() <= 0)
+                    return;
+            }
+            DreamX.ITB.Game_Battler_setAIPattern.call(this);
+        };
+    }
 
 })();
