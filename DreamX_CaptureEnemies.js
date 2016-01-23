@@ -5,7 +5,7 @@ var DreamX = DreamX || {};
 DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
 
 /*:
- * @plugindesc Capture enemies
+ * @plugindesc v0.1 Capture enemies
  * @author DreamX
  * @help
  * ============================================================================
