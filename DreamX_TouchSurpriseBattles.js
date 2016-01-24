@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.4 Battle type depends on touch. Make sure to set the switch parameters.
+ * @plugindesc v1.4a Battle type depends on touch. Make sure to set the switch parameters.
  * <DreamX Touch Surprise Battles>
  * @author DreamX
  *
@@ -51,6 +51,7 @@
  * ============================================================================
  * Patch Notes
  * ============================================================================
+ * v1.4a (1/23/16): Fixed compatibility for Orange Custom Events.
  * v1.4 (1/23/16): Added compatibility for Orange Custom Events.
  * v1.3 (1/16/16): Added parameters for back preemptive/surprise battles chance.
  * v1.2 (1/14/16): Plugin commands now apply to touch <enemy:1> events.
@@ -179,7 +180,10 @@ DreamX.TouchSurpriseBattles = DreamX.TouchSurpriseBattles || {};
                 dataId = event._dataEventId;
             }
             if (Imported["OrangeCustomEvents"] && event._eventData) {
-                if (event._eventData.meta.enemy) {
+                if (event._eventData.meta && event._eventData.meta.enemy) {
+                    isEnemy = true;
+                }
+                if (event._eventData.note && event._eventData.note.contains("\<enemy:1\>")) {
                     isEnemy = true;
                 }
             }
