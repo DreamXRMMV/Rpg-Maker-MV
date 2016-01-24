@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.3 Battle type depends on touch. Make sure to set the switch parameters.
+ * @plugindesc v1.4 Battle type depends on touch. Make sure to set the switch parameters.
  * <DreamX Touch Surprise Battles>
  * @author DreamX
  *
@@ -51,6 +51,7 @@
  * ============================================================================
  * Patch Notes
  * ============================================================================
+ * v1.4 (1/23/16): Added compatibility for Orange Custom Events.
  * v1.3 (1/16/16): Added parameters for back preemptive/surprise battles chance.
  * v1.2 (1/14/16): Plugin commands now apply to touch <enemy:1> events.
  * v1.1 (1/12/16): Fixed bug with maps that don't have all events sequentially
@@ -79,6 +80,7 @@ var DreamX = DreamX || {};
 DreamX.TouchSurpriseBattles = DreamX.TouchSurpriseBattles || {};
 
 (function () {
+
 
     var parameters = $plugins.filter(function (p) {
         return p.description.contains('<DreamX Touch Surprise Battles>');
@@ -167,14 +169,23 @@ DreamX.TouchSurpriseBattles = DreamX.TouchSurpriseBattles || {};
         if ($gameSwitches.value(forceSwitch) === false) {
             var eventId = this.eventId();
             var dataId = this.eventId();
+            var isEnemy = false;
+            var event = $gameMap.events().filter(function (event) {
+                return event.eventId() === eventId;
+            });
+            event = event[0];
+
             if (Imported.SAN_MapGenerator && $gameMap._mapGenerator) {
-                dataId = $gameMap.events()[eventId]._dataEventId;
+                dataId = event._dataEventId;
             }
-            if ($dataMap.events[dataId].meta.enemy) {
-                var event = $gameMap.events().filter(function (event) {
-                    return event.eventId() === eventId;
-                });
-                event = event[0];
+            if (Imported["OrangeCustomEvents"] && event._eventData) {
+                if (event._eventData.meta.enemy) {
+                    isEnemy = true;
+                }
+            }
+            if ($dataMap.events[dataId] && $dataMap.events[dataId].meta.enemy)
+                isEnemy = true;
+            if (isEnemy) {
                 DreamX.TouchSurpriseBattles.SetBattleType(DreamX.TouchSurpriseBattles.CheckBattleType(event));
             }
         }
