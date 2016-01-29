@@ -1,11 +1,13 @@
 /*:
- * @plugindesc v1.1 Swap states and/or buffs on skill.
+ * @plugindesc v1.2 Swap states and/or buffs on skill.
  * @author DreamX
  * @help Use <swapStates:1> as a skill notetag to swap states,
  * use <swapBuffs:1> as a skill notetag to swap buffs and debuffs
+ * use <noSwap:1> to prevent a state from being swapped.
  * ============================================================================
  * Patch Notes
  * ============================================================================
+ * 1.2 - Added option to exclude states from swapping.
  * 1.1 - Fixed buff bug.
  * ============================================================================
  * Terms Of Use
@@ -28,15 +30,18 @@ DreamX.SwapStates = DreamX.SwapStates || {};
         return this._stateTurns;
     };
 
-    Game_BattlerBase.prototype.DreamXSwapStateTurns = function (swapStateTurns) {
-        this._stateTurns = swapStateTurns;
+    Game_BattlerBase.prototype.DreamXSwapStates = function (states, stateTurns) {
+        var battler = this;
+        this.clearStates();
+        states.forEach(function (id) {
+            battler._stateTurns[id] = stateTurns;
+            battler.addState(id);
+        });
     };
-	
-	Game_BattlerBase.prototype.DreamXSwapBuffs = function (buffs, buffTurns) {
+
+    Game_BattlerBase.prototype.DreamXSwapBuffs = function (buffs, buffTurns) {
         this._buffs = buffs;
-		console.log(buffTurns);
-		this._buffTurns = buffTurns;
-		console.log(this._buffTurns);
+        this._buffTurns = buffTurns;
     };
 
     Game_BattlerBase.prototype.DreamXGetBuffs = function (swapStateTurns) {
@@ -60,22 +65,29 @@ DreamX.SwapStates = DreamX.SwapStates || {};
     };
 
     DreamX.SwapStates.SwapStates = function (subject, target) {
-        var subjectStates = subject.states();
-        var subjectStateTurns = subject.DreamXGetStateTurns();
-        var targetStates = target.states();
-        var targetStateTurns = target.DreamXGetStateTurns();
-        subject.clearStates();
-        target.clearStates();
+        var statesForSubject = [];
+        var statesForTarget = [];
+        var stateTurnsForSubject = target.DreamXGetStateTurns();
+        var stateTurnsForTarget = subject.DreamXGetStateTurns();
 
-        subjectStates.forEach(function (state) {
-            target.addState(state.id);
+        subject.states().forEach(function (state) {
+            if (!state.meta.noSwap) {
+                statesForTarget.push(state.id);
+            }
+            else {
+                statesForSubject.push(state.id);
+            }
         });
-        target.DreamXSwapStateTurns(subjectStateTurns);
-
-        targetStates.forEach(function (state) {
-            subject.addState(state.id);
+        target.states().forEach(function (state) {
+            if (!state.meta.noSwap) {
+                statesForSubject.push(state.id);
+            }
+            else {
+                statesForTarget.push(state.id);
+            }
         });
-        subject.DreamXSwapStateTurns(targetStateTurns);
+        subject.DreamXSwapStates(statesForSubject, stateTurnsForSubject);
+        target.DreamXSwapStates(statesForTarget, stateTurnsForTarget);
     };
 
     DreamX.SwapStates.SwapBuffsDebuffs = function (subject, target) {
@@ -85,9 +97,9 @@ DreamX.SwapStates = DreamX.SwapStates || {};
         var targetBuffTurns = target.DreamXGetBuffTurns();
         subject.clearBuffs();
         target.clearBuffs();
-		
-		subject.DreamXSwapBuffs(targetBuffs, targetBuffTurns);
-		target.DreamXSwapBuffs(subjectBuffs, subjectBuffTurns);
+
+        subject.DreamXSwapBuffs(targetBuffs, targetBuffTurns);
+        target.DreamXSwapBuffs(subjectBuffs, subjectBuffTurns);
     };
 
 })();
