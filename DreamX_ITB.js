@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.05 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
+ * @plugindesc v1.06 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
  * @author DreamX
  * @help 
  * ============================================================================
@@ -43,9 +43,6 @@ DreamX.ITB = DreamX.ITB || {};
     DreamX.ITB.Game_Battler_onTurnEnd = Game_Battler.prototype.onTurnEnd;
     Game_Battler.prototype.onTurnEnd = function () {
         DreamX.ITB.Game_Battler_onTurnEnd.call(this);
-        this.updateStateTurns();
-        this.updateBuffTurns();
-        this.removeBuffsAuto();
         this.resetActionNum();
 		this.regenerateAll();
     };
