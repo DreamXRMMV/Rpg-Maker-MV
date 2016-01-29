@@ -39,12 +39,18 @@ DreamX.ITB = DreamX.ITB || {};
 //=============================================================================
 // Game_Battler
 //=============================================================================
+    DreamX.ITB.BattleManager_isTurnBased = BattleManager.isTurnBased;
+    BattleManager.isTurnBased = function () {
+        if (this.isITB())
+            return true;
+        return DreamX.ITB.BattleManager_isTurnBased.call(this);
+    };
+
 
     DreamX.ITB.Game_Battler_onTurnEnd = Game_Battler.prototype.onTurnEnd;
     Game_Battler.prototype.onTurnEnd = function () {
         DreamX.ITB.Game_Battler_onTurnEnd.call(this);
         this.resetActionNum();
-		this.regenerateAll();
     };
 
     DreamX.ITB.Game_Battler_initMembers = Game_Battler.prototype.initMembers;
