@@ -1,33 +1,94 @@
+/*:
+ * @plugindesc v0.2 Capture enemies 
+ * 
+ * <DreamX Capture Enemies>
+ * @author DreamX
+ *
+ * @param Capture Success Message
+ * @desc Message to display to when player captures an enemy Default: %1 was captured!
+ * @default %1 was captured!
+ *
+ * @param Capture Fail Message
+ * @desc Message to display to when player fails to capture an enemy Default: %1 was not captured!
+ * @default %1 was not captured!
+ *
+ * @param Cannot Capture Message
+ * @desc Message after capture attempt in battle where capture disallowed. Default: %2 blocked the capture!
+ * @default %2 blocked the capture!
+ *
+ * @param Health Capture Rate Formula
+ * @desc The formula that adds to the capture rate based on enemy health. Default: 50 - ((enemy.hp/enemy.mhp) * 50)
+ * @default 50 - ((enemy.hp/enemy.mhp) * 50)
+ *
+ * @help 
+ * ============================================================================
+ * How To Use
+ * ============================================================================
+ Put <capture_actor_id:x> into the notetag of an enemy, with x as the actor id.
+ 
+ Put <capture:1> or <captureRate:x> into the notetag of a skill or item to 
+ enable capture. <capture:1> guarantees capture while <captureRate:x> adds 
+ x to the chance of capture.
+ 
+ Put <captureRate:x> in the notetag of an actor to add x to the chance of 
+ capture. Make sure this is the same actor id as you put in the enemy
+ notetag.
+ 
+ Put <captureRate:x> in the notetag of a state to add x to the chance of 
+ capture when the enemy has that state.
+ 
+ When you use the item or skill succesfully, the actor in that notetag will be 
+ added. You can have duplicates. You can manually add actors to your party by 
+ using the AddActor x plugin command with x being the actor id. You can still 
+ have duplicates.
+ 
+ Make a comment in the first page of a troop with <noCapture> to disable 
+ capture for that battle. Make sure the comment only consists of that.
+ 
+ Here are the text codes for the message parameters:
+ %1 - The name of the enemy in the capture attempt
+ %2 - The name of the troop in the database
+ * ============================================================================
+ * Terms Of Use
+ * ============================================================================
+ * Free to use and modify for commercial and noncommercial games, with credit.
+ * ============================================================================
+ * Credits
+ * ============================================================================
+ DreamX
+ */
+
 var Imported = Imported || {};
 Imported.DreamX_CaptureEnemy = true;
 
 var DreamX = DreamX || {};
 DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
 
-/*:
- * @plugindesc v0.1 Capture enemies
- * @author DreamX
- * @help
- * ============================================================================
- * How To Use
- * ============================================================================
- Put <capture:1> into the notetag of a skill or item. Put <capture_actor_id:x>
- into the notetag of an enemy, with x as the actor id. When you use the item
- or skill, the actor in that notetag will be added. You can have duplicates.
- You can manually add enemies to your party by using AddEnemy x with x being 
- the actor id. You can still have duplicates.
- * Credits: DreamX
- * Terms Of Use: Credit DreamX, may be modified & used for noncommercial and commercial games
- */
-
 (function () {
+
+//=============================================================================
+// Parameters
+//=============================================================================
+    var parameters = $plugins.filter(function (p) {
+        return p.description.contains
+                ('<DreamX Capture Enemies>');
+    })[0].parameters; //Thanks to Iavra
+
+    var parameterCaptureSuccessMsg = String(parameters['Capture Success Message']
+            || '%1 was captured!');
+    var parameterCaptureFailedMsg = String(parameters['Capture Fail Message']
+            || '%1 was not captured!');
+    var parameterCannotCaptureMsg = String(parameters['Cannot Capture Message']
+            || '%2 blocked the capture!');
+    var parameterHealthFormula = String(parameters['Health Capture Rate Formula']
+            || '50 - ((enemy.hp/enemy.mhp) * 50)');
 
     DreamX.CaptureEnemy.Game_Interpreter_pluginCommand =
             Game_Interpreter.prototype.pluginCommand;
     Game_Interpreter.prototype.pluginCommand = function (command, args) {
         DreamX.CaptureEnemy.Game_Interpreter_pluginCommand.call(this, command, args);
         switch (command) {
-            case 'AddEnemy':
+            case 'AddActor':
                 if (args[0]) {
                     DreamX.CaptureEnemy.captureEnemy(args[0]);
                 }
@@ -49,22 +110,89 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         this.capturedActors = [];
     };
 
-    DreamX.CaptureEnemy.Game_Action_apply = Game_Action.prototype.apply;
-    Game_Action.prototype.apply = function (target) {
-        DreamX.CaptureEnemy.Game_Action_apply.call(this, target);
+    DreamX.CaptureEnemy.isCaptureEnabled = function (list) {
+        var enabled = true;
+        list.forEach(function (cmd) {
+            if (cmd.code === 108 && cmd.parameters[0] === "<noCapture>") {
+                enabled = false;
+            }
+        });
+        return enabled;
+    };
+
+    DreamX.CaptureEnemy.Game_Action_applyItemUserEffect = Game_Action.prototype.applyItemUserEffect;
+    Game_Action.prototype.applyItemUserEffect = function (target) {
+        DreamX.CaptureEnemy.Game_Action_applyItemUserEffect.call(this, target);
+        if (!target.isEnemy())
+            return;
         var item = this.item();
-        if (item.meta.capture && target.isEnemy()
-                && $dataEnemies[target._enemyId].meta.capture_actor_id) {
-            DreamX.CaptureEnemy.captureEnemy($dataEnemies[target._enemyId].meta.capture_actor_id);
+        if (DreamX.CaptureEnemy.isCaptureEnabled($gameTroop.troop().pages[0].list)) {
+            if ((item.meta.captureRate || item.meta.capture) && $dataEnemies[target._enemyId].meta.capture_actor_id) {
+                if (DreamX.CaptureEnemy.decideCapture(item, target)) {
+                    DreamX.CaptureEnemy.captureEnemy
+                            ($dataEnemies[target._enemyId].meta.capture_actor_id);
+                    target._wasCaptured = true;
+                    target.die();
+                }
+                else {
+                    $gameMessage.add(parameterCaptureFailedMsg.format(target.originalName(), $gameTroop.troop().name));
+                }
+            }
+        }
+        else {
+            $gameMessage.add(parameterCannotCaptureMsg.format(target.originalName(), $gameTroop.troop().name));
         }
     };
 
-    DreamX.CaptureEnemy.captureEnemy = function (actorId) {
+    DreamX.CaptureEnemy.performCollapse = Game_Enemy.prototype.performCollapse;
+    Game_Enemy.prototype.performCollapse = function () {
+        DreamX.CaptureEnemy.performCollapse.call(this);
+        if (this._wasCaptured) {
+            $gameMessage.add(parameterCaptureSuccessMsg.format(this.originalName(), $gameTroop.troop().name));
+        }
+    };
+
+    DreamX.CaptureEnemy.stateCaptureRate = function (target) {
+        var rate = 0;
+        target.states().forEach(function (state) {
+            rate += parseInt(state.meta.captureRate) || 0;
+        });
+        return rate;
+    };
+
+    DreamX.CaptureEnemy.healthCaptureRate = function (enemy) {
+        return eval(parameterHealthFormula);
+    };
+
+    DreamX.CaptureEnemy.decideCapture = function (item, target) {
+        if (item.meta.capture)
+            return true;
+        var dataTarget = $dataEnemies[target._enemyId];
+        var dataTargetActor = $dataActors[dataTarget.meta.capture_actor_id];
+        var rateCaptureItem = parseInt(item.meta.captureRate) || 0;
+        var rateCaptureTarget = parseInt(dataTargetActor.meta.captureRate) || 0;
+        var likelihood = rateCaptureItem + rateCaptureTarget +
+                DreamX.CaptureEnemy.stateCaptureRate(target) 
+                + DreamX.CaptureEnemy.healthCaptureRate(target);
+
+        if (likelihood <= 0)
+            return false;
+        var diceRoll = Math.floor((Math.random() * 100) + 1);
+
+        if (diceRoll <= likelihood)
+            return true;
+
+        return false;
+    };
+
+    DreamX.CaptureEnemy.captureEnemy = function (actorId, level) {
+        // default to level 1 if level not defined
+        level = level || 1;
         var monsterType = $dataActors[actorId];
         CapturedEnemy = {
             "id": $dataActors.length,
             "traits": monsterType["traits"],
-            "initialLevel": 1,
+            "initialLevel": level,
             "maxLevel": monsterType["maxLevel"],
             "profile": monsterType["profile"],
             "battlerName": monsterType["battlerName"],
