@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v0.2 Capture enemies 
+ * @plugindesc v0.3 Capture enemies 
  * 
  * <DreamX Capture Enemies>
  * @author DreamX
@@ -39,8 +39,8 @@
  
  When you use the item or skill succesfully, the actor in that notetag will be 
  added. You can have duplicates. You can manually add actors to your party by 
- using the AddActor x plugin command with x being the actor id. You can still 
- have duplicates.
+ using the AddActor x y plugin command with x being the actor id and y being 
+ the level. You can still have duplicates.
  
  Make a comment in the first page of a troop with <noCapture> to disable 
  capture for that battle. Make sure the comment only consists of that.
@@ -90,7 +90,8 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         switch (command) {
             case 'AddActor':
                 if (args[0]) {
-                    DreamX.CaptureEnemy.captureEnemy(args[0]);
+                    var level = args[1] ? args[1] : 1;
+                    DreamX.CaptureEnemy.captureEnemy(args[0], level);
                 }
                 break;
         }
@@ -129,8 +130,13 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         if (DreamX.CaptureEnemy.isCaptureEnabled($gameTroop.troop().pages[0].list)) {
             if ((item.meta.captureRate || item.meta.capture) && $dataEnemies[target._enemyId].meta.capture_actor_id) {
                 if (DreamX.CaptureEnemy.decideCapture(item, target)) {
+                    var level = 1;
+                    if (target.level && target.level >= 1) {
+                        level = target.level;
+                    }
                     DreamX.CaptureEnemy.captureEnemy
-                            ($dataEnemies[target._enemyId].meta.capture_actor_id);
+                            ($dataEnemies[target._enemyId].meta.capture_actor_id,
+                                    level);
                     target._wasCaptured = true;
                     target.die();
                 }
@@ -172,7 +178,7 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         var rateCaptureItem = parseInt(item.meta.captureRate) || 0;
         var rateCaptureTarget = parseInt(dataTargetActor.meta.captureRate) || 0;
         var likelihood = rateCaptureItem + rateCaptureTarget +
-                DreamX.CaptureEnemy.stateCaptureRate(target) 
+                DreamX.CaptureEnemy.stateCaptureRate(target)
                 + DreamX.CaptureEnemy.healthCaptureRate(target);
 
         if (likelihood <= 0)
