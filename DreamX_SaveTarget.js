@@ -23,8 +23,9 @@
  Put <saveTarget:1> in the notetag for a skill or item. If you want to use a 
  variable other than what was set in the plugin parameters, use <actorIDVariable:x>
  or <enemyIDVariable:x> for actor or enemy targets respectively, with x being the
- variable id. If the skill or item is successful then the id of the target will
- be stored in their respective variable.
+ variable id. Put <enemySlotVariable:x> to save the enemy slot. If the skill or 
+ item is successful then the id/slot of the target will be stored in their 
+ respective variable. 
  * ============================================================================
  * Terms Of Use
  * ============================================================================
