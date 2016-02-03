@@ -1,14 +1,34 @@
 /*:
- * @plugindesc v1.07 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
+ * @plugindesc v1.08 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
+ * 
+ * <DreamX ITB>
  * @author DreamX
+ *
+ * @param Max Elemental Extra Actions
+ * @desc Eval. Max # extra actions battler can get in turn for hitting enemy weakness. 0 - none, -1: infinite. Default: 0
+ * @default 0
+ *
+ * @param Elemental Weakness State
+ * @desc Eval. State ID to apply to battler when they're hit in their elemental weakness. 0 - disable. Default: 0
+ * @default 0
+ *
  * @help 
  * ============================================================================
  * How To Use
  * ============================================================================
- * Set the battle type to itb in Yanfly's Battle Engine Core.
- * Use <free_itb_action:1> as a skill notetag to prevent
- * that skill from consuming an action for the battler - they will be able to
- * act again after the skill is used.
+ Set the battle type to itb in Yanfly's Battle Engine Core.
+ Use <free_itb_action:1> as a skill notetag to prevent
+ that skill from consuming an action for the battler - they will be able to act 
+ again after the skill is used. 
+ 
+ Make sure to set the parameters to your liking.
+ Put the <noExtraElemenWeaknessAction:1> notetag on a state to disallow opponents
+ from getting an extra action from hitting the battler in their weakness.
+ 
+ Put <elemWeaknessState:x> with x as the state id as a notetag for an actor or 
+ enemy to define which state is applied when they are hit in their weakness. 
+ This overrides the parameter setting for that actor or enemy. Use 0 to disable 
+ states from being applied from being hit in the weakness.
  * ============================================================================
  * Patch Notes/Known Issues/Future Updates
  * ============================================================================
@@ -25,9 +45,12 @@
  * Credits
  * ============================================================================
  DreamX
- Yanfly - "Battle System - Charge Turn Battle" && "Battle Engine Core"
+ Yanfly - "Battle System - Charge Turn Battle" & "Battle Engine Core"
  */
 
+//=============================================================================
+// Import
+//=============================================================================
 var Imported = Imported || {};
 Imported.DreamX_ITB = true;
 
@@ -37,16 +60,25 @@ DreamX.ITB = DreamX.ITB || {};
 (function () {
 
 //=============================================================================
+// Parameters
+//=============================================================================
+    var parameters = $plugins.filter(function (p) {
+        return p.description.contains
+                ('<DreamX ITB>');
+    })[0].parameters; //Thanks to Iavra
+
+    // store the parameter data in variables. The defaults are -1
+    var paramMaxElementExtraActions =
+            String(parameters['Max Elemental Extra Actions'] || '0');
+    var paramElementWeaknessState =
+            String(parameters['Elemental Weakness State'] || '0');
+
+//=============================================================================
 // Game_Battler
 //=============================================================================
-    DreamX.ITB.BattleManager_isTurnBased = BattleManager.isTurnBased;
-    BattleManager.isTurnBased = function () {
-        if (this.isITB())
-            return true;
-        return DreamX.ITB.BattleManager_isTurnBased.call(this);
-    };
-
-
+    //==========================================================================
+    // Alias Functions
+    //==========================================================================
     DreamX.ITB.Game_Battler_onTurnEnd = Game_Battler.prototype.onTurnEnd;
     Game_Battler.prototype.onTurnEnd = function () {
         DreamX.ITB.Game_Battler_onTurnEnd.call(this);
@@ -58,6 +90,32 @@ DreamX.ITB = DreamX.ITB || {};
         DreamX.ITB.Game_Battler_initMembers.call(this);
         this._ITBActions = 0;
         this._previousTraitITBActions = 0;
+        this._extraActionsFromWeakness = 0;
+    };
+
+    //==========================================================================
+    // Original Functions
+    //==========================================================================
+
+    // Checks if any states disallow elemental extra actions
+    Game_Battler.prototype.allowExtraElemWeaknessAction = function () {
+        var isAllowed = true;
+        this.states().forEach(function (state) {
+            if (state.meta.noExtraElemenWeaknessAction) {
+                isAllowed = false;
+            }
+        });
+        return isAllowed;
+    };
+
+    // Adds ITB actions to the battler from hitting elemental weakness.
+    Game_Battler.prototype.extraElementalWeaknessAction = function () {
+        if ((this._extraActionsFromWeakness
+                < eval(paramMaxElementExtraActions))
+                || eval(paramMaxElementExtraActions) === -1) {
+            this._extraActionsFromWeakness += 1;
+            this.addITBActions(1);
+        }
     };
 
     // Adds ITB actions to the battler.
@@ -93,6 +151,7 @@ DreamX.ITB = DreamX.ITB || {};
     Game_Battler.prototype.resetActionNum = function () {
         this._ITBActions = 0;
         this._previousTraitITBActions = 0;
+        this._extraActionsFromWeakness = 0;
     };
 
     // Decides whether to add ITB actions from traits.
@@ -210,6 +269,69 @@ DreamX.ITB = DreamX.ITB || {};
         } else {
             return DreamX.ITB.BattleManager_updateEventMain.call(this);
         }
+    };
+    // prevent escape from selecting previous actor
+    // issue: causes the windows to jitter when you select fight again
+    DreamX.ITB.BattleManager_selectPreviousCommand = BattleManager.selectPreviousCommand;
+    BattleManager.selectPreviousCommand = function () {
+        if (this.isITB()) {
+            this.actor().addITBActions(1);
+            this.changeActor(-1, 'undecided');
+        }
+        else {
+            DreamX.ITB.BattleManager_selectPreviousCommand.call(this);
+        }
+    };
+
+    // prevent surprise attacks from disallowing enemies to act
+    DreamX.ITB.BattleManager_startInput = BattleManager.startInput;
+    BattleManager.startInput = function () {
+        if (this.isITB()) {
+            this._phase = 'input';
+            $gameParty.makeActions();
+            $gameTroop.makeActions();
+            this.clearActor();
+        }
+        else {
+            DreamX.ITB.BattleManager_startInput.call(this);
+        }
+    };
+
+    // window position
+    DreamX.ITB.Scene_Battle_updateWindowPositions
+            = Scene_Battle.prototype.updateWindowPositions;
+    Scene_Battle.prototype.updateWindowPositions = function () {
+        if (BattleManager.isITB()) {
+            var statusX = 0;
+            if (BattleManager.normalWindowPosition()) {
+                statusX = this._partyCommandWindow.width;
+            } else {
+                statusX = this._partyCommandWindow.width / 2;
+            }
+            if (this._statusWindow.x < statusX) {
+                this._statusWindow.x += 16;
+                if (this._statusWindow.x > statusX) {
+                    this._statusWindow.x = statusX;
+                }
+            }
+            if (this._statusWindow.x > statusX) {
+                this._statusWindow.x -= 16;
+                if (this._statusWindow.x < statusX) {
+                    this._statusWindow.x = statusX;
+                }
+            }
+        }
+        else {
+            DreamX.ITB.Scene_Battle_updateWindowPositions.call(this);
+        }
+    };
+
+    // if itb the battle system is turn based
+    DreamX.ITB.BattleManager_isTurnBased = BattleManager.isTurnBased;
+    BattleManager.isTurnBased = function () {
+        if (this.isITB())
+            return true;
+        return DreamX.ITB.BattleManager_isTurnBased.call(this);
     };
     //==========================================================================
     // Original Functions
@@ -337,34 +459,14 @@ DreamX.ITB = DreamX.ITB || {};
         this.setITBPhase();
     };
 
-    DreamX.ITB.BattleManager_selectPreviousCommand = BattleManager.selectPreviousCommand;
-    BattleManager.selectPreviousCommand = function () {
-        if (this.isITB()) {
-            this.actor().addITBActions(1);
-            this.changeActor(-1, 'undecided');
-        }
-        else {
-            DreamX.ITB.BattleManager_selectPreviousCommand.call(this);
-        }
-    };
-
-    // prevent surprise attacks from disallowing enemies to act
-    DreamX.ITB.BattleManager_startInput = BattleManager.startInput;
-    BattleManager.startInput = function () {
-        if (this.isITB()) {
-            this._phase = 'input';
-            $gameParty.makeActions();
-            $gameTroop.makeActions();
-            this.clearActor();
-        }
-        else {
-            DreamX.ITB.BattleManager_startInput.call(this);
-        }
+    BattleManager.normalWindowPosition = function () {
+        return this._phase === 'input' || (this._phase === 'itb' && this._actorIndex === -1);
     };
 
 //=============================================================================
 // Game_Action
 //=============================================================================
+    // action is "free" if free_itb_action notetag present
     DreamX.ITB.Game_Action_apply = Game_Action.prototype.apply;
     Game_Action.prototype.apply = function (target) {
         DreamX.ITB.Game_Action_apply.call(this, target);
@@ -372,6 +474,34 @@ DreamX.ITB = DreamX.ITB || {};
         if (item.meta.free_itb_action) {
             this.subject().addITBActions(1);
         }
+    };
+
+    // extra actions for hitting enemy weakness
+    DreamX.ITB.Game_Action_makeDamageValue = Game_Action.prototype.makeDamageValue;
+    Game_Action.prototype.makeDamageValue = function (target, critical) {
+        // if param set to 0, it's disabled
+        if (BattleManager.isITB() && eval(paramMaxElementExtraActions) !== 0) {
+            var user = this.subject();
+            var dataTarget = target.isEnemy() ? $dataEnemies[target.enemyId()] :
+                    $dataActors[target.actorId()];
+
+            var weaknessStateID = dataTarget.meta.elemWeaknessState
+                    ? dataTarget.meta.elemWeaknessState
+                    : eval(paramElementWeaknessState);
+
+            if (this.calcElementRate(target) > 1) {
+                // add an extra action to user
+                if (target.allowExtraElemWeaknessAction()) {
+                    user.extraElementalWeaknessAction();
+                }
+
+                // apply state to target here
+                if (parseInt(weaknessStateID) >= 1) {
+                    target.addState(weaknessStateID);
+                }
+            }
+        }
+        return DreamX.ITB.Game_Action_makeDamageValue.call(this, target, critical);
     };
 
 //=============================================================================
