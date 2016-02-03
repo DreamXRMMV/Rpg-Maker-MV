@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.06 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
+ * @plugindesc v1.07 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
  * @author DreamX
  * @help 
  * ============================================================================
@@ -337,9 +337,6 @@ DreamX.ITB = DreamX.ITB || {};
         this.setITBPhase();
     };
 
-    //==========================================================================
-    // Overwrite Functions
-    //==========================================================================
     DreamX.ITB.BattleManager_selectPreviousCommand = BattleManager.selectPreviousCommand;
     BattleManager.selectPreviousCommand = function () {
         if (this.isITB()) {
@@ -349,14 +346,28 @@ DreamX.ITB = DreamX.ITB || {};
         else {
             DreamX.ITB.BattleManager_selectPreviousCommand.call(this);
         }
-
     };
+
+    // prevent surprise attacks from disallowing enemies to act
+    DreamX.ITB.BattleManager_startInput = BattleManager.startInput;
+    BattleManager.startInput = function () {
+        if (this.isITB()) {
+            this._phase = 'input';
+            $gameParty.makeActions();
+            $gameTroop.makeActions();
+            this.clearActor();
+        }
+        else {
+            DreamX.ITB.BattleManager_startInput.call(this);
+        }
+    };
+
 //=============================================================================
 // Game_Action
 //=============================================================================
-    DreamX.ITB.Game_Action_apply = Game_Action.prototype.apply;
-    Game_Action.prototype.apply = function (target) {
-        DreamX.ITB.Game_Action_apply.call(this, target);
+    DreamX.ITB.Game_Action_applyItemUserEffect = Game_Action.prototype.applyItemUserEffect;
+    Game_Action.prototype.applyItemUserEffect = function (target) {
+        DreamX.ITB.Game_Action_applyItemUserEffect.call(this, target);
         var item = this.item();
         if (item.meta.free_itb_action) {
             this.subject().addITBActions(1);
