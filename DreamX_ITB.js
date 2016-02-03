@@ -365,9 +365,9 @@ DreamX.ITB = DreamX.ITB || {};
 //=============================================================================
 // Game_Action
 //=============================================================================
-    DreamX.ITB.Game_Action_applyItemUserEffect = Game_Action.prototype.applyItemUserEffect;
-    Game_Action.prototype.applyItemUserEffect = function (target) {
-        DreamX.ITB.Game_Action_applyItemUserEffect.call(this, target);
+    DreamX.ITB.Game_Action_apply = Game_Action.prototype.apply;
+    Game_Action.prototype.apply = function (target) {
+        DreamX.ITB.Game_Action_apply.call(this, target);
         var item = this.item();
         if (item.meta.free_itb_action) {
             this.subject().addITBActions(1);
