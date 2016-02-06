@@ -5,13 +5,16 @@
  * ============================================================================
  * How To Use
  * ============================================================================
- Put <unequipWeapon:x> with x being the weapon id to equip when unequipping a 
+ Notetags go into an actor's notes.
+
+ Put <unequipWeapon:x> with x being the weapon id to equip when unequipping a
  weapon.
  Put <unequipArmor: x y> with x being the armor slot ID (see Equipment Types
  under Types in the database) and y being the id of the armor to equip when that
- armor slot ID is unequipped.
+ armor slot ID is unequipped. You can put more than one of these in the notes for
+ an actor, but be sure to do only one per line.
  
- The player cannot gain duplicates of the auto equipment by 
+ The player cannot gain duplicates of the auto equipment by
  equipping/unequipping.
  
  You will still need to choose an actor's initial equipment, this plugin only
