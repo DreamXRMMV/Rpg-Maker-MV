@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.08 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
+ * @plugindesc v1.09 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
  * 
  * <DreamX ITB>
  * @author DreamX
@@ -10,6 +10,10 @@
  *
  * @param Elemental Weakness State
  * @desc Eval. State ID to apply to battler when they're hit in their elemental weakness. 0 - disable. Default: 0
+ * @default 0 
+ *
+ * @param Elemental Weakness Animation
+ * @desc Animation ID to play on battler when they get an extra action from hitting enemy in weakness. 0 - disable. Default: 0
  * @default 0
  *
  * @help 
@@ -72,6 +76,8 @@ DreamX.ITB = DreamX.ITB || {};
             String(parameters['Max Elemental Extra Actions'] || '0');
     var paramElementWeaknessState =
             String(parameters['Elemental Weakness State'] || '0');
+    var paramElementWeaknessAnimation =
+            parseInt(parameters['Elemental Weakness Animation'] || 0);
 
 //=============================================================================
 // Game_Battler
@@ -113,6 +119,10 @@ DreamX.ITB = DreamX.ITB || {};
         if ((this._extraActionsFromWeakness
                 < eval(paramMaxElementExtraActions))
                 || eval(paramMaxElementExtraActions) === -1) {
+            
+            if (paramElementWeaknessAnimation >= 1) {
+                this.startAnimation(paramElementWeaknessAnimation, false, 0);
+            }
             this._extraActionsFromWeakness += 1;
             this.addITBActions(1);
         }
