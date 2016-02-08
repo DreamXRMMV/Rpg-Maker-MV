@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.09 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
+ * @plugindesc v1.09a Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
  * 
  * <DreamX ITB>
  * @author DreamX
@@ -121,7 +121,7 @@ DreamX.ITB = DreamX.ITB || {};
                 || eval(paramMaxElementExtraActions) === -1) {
             
             if (paramElementWeaknessAnimation >= 1) {
-                this.startAnimation(paramElementWeaknessAnimation, false, 0);
+                this.startAnimation(paramElementWeaknessAnimation, true, 0);
             }
             this._extraActionsFromWeakness += 1;
             this.addITBActions(1);
