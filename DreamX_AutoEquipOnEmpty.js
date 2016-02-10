@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.00 Auto equip an item on unequip.
+ * @plugindesc v1.01 Auto equip an item on unequip.
  * @author DreamX
  * @help
  * ============================================================================
@@ -9,7 +9,7 @@
 
  Put <unequipWeapon:x> with x being the weapon id to equip when unequipping a
  weapon.
- Put <unequipArmor: x y> with x being the armor slot ID (see Equipment Types
+ Put <UnequipArmor: x y> with x being the armor slot ID (see Equipment Types
  under Types in the database) and y being the id of the armor to equip when that
  armor slot ID is unequipped. You can put more than one of these in the notes for
  an actor, but be sure to do only one per line.
@@ -39,7 +39,7 @@ DreamX.AutoEquipOnEmpty = DreamX.AutoEquipOnEmpty || {};
 
     DreamX.AutoEquipOnEmpty.getAutoEquipArmorID = function (dataActor, slotID) {
         var correctTags = dataActor.note.split("\n").filter(function (note) {
-            return note.match("\<UnequipArmor: [0-9]{1,} [0-9]{1,}\>");
+            return note.match("\<unequipArmor: [0-9]{1,} [0-9]{1,}\>");
         });
 
         var map = {};
