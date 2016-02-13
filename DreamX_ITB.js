@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.09a Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
+ * @plugindesc v1.10 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
  * 
  * <DreamX ITB>
  * @author DreamX
@@ -13,7 +13,26 @@
  * @default 0 
  *
  * @param Elemental Weakness Animation
- * @desc Animation ID to play on battler when they get an extra action from hitting enemy in weakness. 0 - disable. Default: 0
+ * @desc Animation ID to play on battler when they get an extra action from hitting enemy in weakness. 0: disable. Default: 0
+ * @default 0
+ * 
+ * @param ---Sound---
+ * @default
+ *
+ * @param Ready Sound
+ * @desc This is the sound played when an actor is ready. Use -1 to disable. Default: -1 Example: Decision1
+ * @default -1
+ *
+ * @param Ready Volume
+ * @desc This is the volume of the ready sound. Default: 100
+ * @default 100
+ *
+ * @param Ready Pitch
+ * @desc This is the pitch of the ready sound. Default: 100
+ * @default 100
+ *
+ * @param Ready Pan
+ * @desc This is the pan of the ready sound. Default: 0
  * @default 0
  *
  * @help 
@@ -78,6 +97,17 @@ DreamX.ITB = DreamX.ITB || {};
             String(parameters['Elemental Weakness State'] || '0');
     var paramElementWeaknessAnimation =
             parseInt(parameters['Elemental Weakness Animation'] || 0);
+    var parameterReadySound =
+            String(parameters['Ready Sound'] || '-1');
+    var parameterReadyVolume =
+            parseInt(parameters['Ready Volume'] || '90');
+    var parameterReadyPitch =
+            parseInt(parameters['Ready Pitch'] || '100');
+    var parameterReadyPan =
+            parseInt(parameters['Ready Pan'] || '0');
+//    var parameterTurnSound =
+//            String(parameters['Turn Sound'] || '-1');
+
 
 //=============================================================================
 // Game_Battler
@@ -119,7 +149,7 @@ DreamX.ITB = DreamX.ITB || {};
         if ((this._extraActionsFromWeakness
                 < eval(paramMaxElementExtraActions))
                 || eval(paramMaxElementExtraActions) === -1) {
-            
+
             if (paramElementWeaknessAnimation >= 1) {
                 this.startAnimation(paramElementWeaknessAnimation, true, 0);
             }
@@ -199,6 +229,12 @@ DreamX.ITB = DreamX.ITB || {};
     BattleManager.initMembers = function () {
         DreamX.BattleManager_initMembers.call(this);
         this._ITBBattlers = [];
+        this._itbReadySound = {
+            name: parameterReadySound,
+            volume: parameterReadyVolume,
+            pitch: parameterReadyPitch,
+            pan: parameterReadyPan
+        };
     };
 
     DreamX.ITB.battleManager_endTurn = BattleManager.endTurn;
@@ -366,6 +402,10 @@ DreamX.ITB = DreamX.ITB || {};
         }
     };
 
+    BattleManager.playITBReadySound = function () {
+        AudioManager.playSe(this._itbReadySound);
+    };
+
     BattleManager.breakITBPhase = function () {
         if (this._victoryPhase)
             return true;
@@ -396,7 +436,9 @@ DreamX.ITB = DreamX.ITB || {};
             this.startITBAction(battler);
         } else if (battler.canInput()) {
             this._actorIndex = battler.index();
-            //this.playCTBReadySound();
+            if (parameterReadySound !== '-1') {
+                this.playITBReadySound();
+            }
             battler.setActionState('inputting');
             battler.spriteStepForward();
             this._phase = 'input';
