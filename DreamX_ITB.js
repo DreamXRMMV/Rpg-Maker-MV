@@ -52,6 +52,10 @@
  enemy to define which state is applied when they are hit in their weakness. 
  This overrides the parameter setting for that actor or enemy. Use 0 to disable 
  states from being applied from being hit in the weakness.
+ 
+ Use <reAddBattler:1> in a skill/item to readd a battler to the pool of battlers 
+ if they had already finished their previous actions. Must be used with a state 
+ that increases action times.
  * ============================================================================
  * Patch Notes/Known Issues/Future Updates
  * ============================================================================
