@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.10 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
+ * @plugindesc v1.11 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
  * 
  * <DreamX ITB>
  * @author DreamX
