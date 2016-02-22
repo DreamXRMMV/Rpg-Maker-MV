@@ -1,13 +1,16 @@
 /*:
- * @plugindesc v1.0 Random prefixes/affixes
+ * @plugindesc v1.1 Random prefixes/affixes
  * @author DreamX
  * @help The new item will be identical to the base item except for name, 
- * traits, params, note and meta.
+ * traits, params, note, price and meta.
+ 
  * The new item have the traits of both prefix and affix items and add their 
  * params. For example, if the prefix item has +10 ATK and the base item has 
  * +20 ATK, the new item wil have +30 ATK.
  * Meta will be the same except that the prefix and affix notetags will be 
  * removed.
+ * Price will be the original plus the prices of the prefix and affix item.
+ * Item note gets erased.
  * 
  */
 
@@ -49,6 +52,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         var newTraits = [];
         var newParams = [];
         var newName = item.name;
+		var newPrice = item.price;
 
         if (item.meta.prefix) {
             prefixChoices = item.meta.prefix.trim().split(",");
@@ -80,6 +84,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
             for (var i = 0; i < prefixItem.params.length; i++) {
                 newParams[i] += prefixItem.params[i];
             }
+			newPrice += prefixItem.price;
         }
         if (affixItem) {
             newName = newName + " " + affixItem.name;
@@ -87,12 +92,14 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
             for (var i = 0; i < affixItem.params.length; i++) {
                 newParams[i] += affixItem.params[i];
             }
+			newPrice += affixItem.price;
         }
 
         var newItem = item;
         newItem.name = newName;
         newItem.traits = newTraits;
         newItem.params = newParams;
+		newItem.price = newPrice;
 
         // remove the affixes and prefixes from meta. we don't want repeats
         delete newItem.meta.prefix;
@@ -115,7 +122,9 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
     Game_Party.prototype.gainItem = function (item, amount, includeEquip) {
         // must have one of the meta tags and be a weapon/armor
         if (item && (item.meta.prefix || item.meta.affix) && (item.wtypeId || item.atypeId)) {
+
             item = DreamX.RandomPrefixAffix.makeItem(item);
+						console.log(item);
         }
         DreamX.RandomPrefixAffix.Game_Party_gainItem.call(this, item, amount, includeEquip);
 
