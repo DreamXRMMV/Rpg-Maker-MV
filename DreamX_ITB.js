@@ -491,7 +491,29 @@ DreamX.ITB = DreamX.ITB || {};
 
     BattleManager.sortITBOrders = function () {
         this._ITBBattlers.sort(function (a, b) {
-            return b.agi - a.agi;
+			// if does not have same agi
+            if (b.agi !== a.agi) {
+                return b.agi - a.agi;
+            }
+            else {
+				// if has same agi
+				// if both actors then return one with higher id
+                if (a.isActor() && b.isActor()) {
+                    return b.actorId() - a.actorId();
+                }
+				// give enemy priority
+                else if (b.isActor() && a.isEnemy()) {
+                    return -1;
+                }
+				// give enemy priority
+                else if (b.isEnemy() && a.isActor()) {
+                    return 1;
+                }
+				// if both enemies then return one with higher id
+                else if (b.isEnemy() && a.isEnemy()) {
+                    return b.enemyId() - a.enemyId();
+                }
+            }
         });
     };
 
@@ -514,6 +536,13 @@ DreamX.ITB = DreamX.ITB || {};
     BattleManager.normalWindowPosition = function () {
         return this._phase === 'input' || (this._phase === 'itb' && this._actorIndex === -1);
     };
+	
+    BattleManager.addBattler = function (battler) {
+		if (this._ITBBattlers.indexOf(battler) == -1) {
+			this._ITBBattlers.push(battler);
+			this.sortITBOrders();
+		}
+    };
 
 //=============================================================================
 // Game_Action
@@ -526,6 +555,9 @@ DreamX.ITB = DreamX.ITB || {};
         if (item.meta.free_itb_action) {
             this.subject().addITBActions(1);
         }
+		if (item.meta.reAddBattler) {
+			BattleManager.addBattler(target);
+		}
     };
 
     // extra actions for hitting enemy weakness
