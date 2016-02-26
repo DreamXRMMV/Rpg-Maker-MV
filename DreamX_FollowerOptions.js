@@ -174,6 +174,7 @@ DreamX.FollowerOptions = DreamX.FollowerOptions || {};
     // DreamX.FollowerOptions
     //==========================================================================
     DreamX.FollowerOptions.getSwitchNum = function (actorId) {
+		if (!$dataActors[actorId]) return -1;
         var switchNum = $dataActors[actorId].meta.no_follow_switch
                 ? $dataActors[actorId].meta.no_follow_switch : -1;
         return switchNum;
