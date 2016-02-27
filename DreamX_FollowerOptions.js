@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.02 Choose which party members appear as followers or in battle.
+ * @plugindesc v1.04 Choose which party members appear as followers or in battle.
  *
  * <DreamX Follower and Battle Member Options>
  * @author DreamX
@@ -73,6 +73,7 @@
  * ============================================================================
  * DreamX
  * Thanks to Shaz and Liquidize on the Rpg Maker forum for assistance.
+ * Thanks to Gilles on Rpg Maker Forum for assistance.
  */
 
 //=============================================================================
@@ -158,11 +159,25 @@ DreamX.FollowerOptions = DreamX.FollowerOptions || {};
         });
         return members;
     };
-
-    Game_Party.prototype.battleMembers = function () {
+	
+	/*
+	    Game_Party.prototype.battleMembers = function () {
         var battleMembers = this.allMembers().filter(function (actor) {
             return actor.isAppeared()
                     && DreamX.FollowerOptions.isActorBattleEnabled(actor);
+        });
+        return battleMembers.slice(0, this.maxBattleMembers());
+    };
+	*/
+
+	Game_Party.prototype.battleMembers = function () {
+        var battleMembers = [];
+        this._actors.forEach(function (id) {
+            var actor = $gameActors.actor(id);
+            if (DreamX.FollowerOptions.isActorBattleEnabled
+              ($gameActors.actor(id)) && actor.isAppeared()) {
+                battleMembers.push(actor);
+            }
         });
         return battleMembers.slice(0, this.maxBattleMembers());
     };
