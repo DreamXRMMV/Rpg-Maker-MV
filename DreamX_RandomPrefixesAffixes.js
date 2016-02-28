@@ -112,7 +112,9 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
 
         if (prefixItem) {
             newName = prefixItem.name + " " + newName;
-            newTraits.concat(prefixItem.traits);
+			for (var i = 0; i < prefixItem.traits.length; i++) {
+				newTraits.push(prefixItem.traits[i]);
+			}
             for (var i = 0; i < prefixItem.params.length; i++) {
                 newParams[i] += prefixItem.params[i];
             }
@@ -129,7 +131,9 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         }
         if (affixItem) {
             newName = newName + " " + affixItem.name;
-            newTraits.concat(affixItem.traits);
+			for (var i = 0; i < affixItem.traits.length; i++) {
+				newTraits.push(affixItem.traits[i]);
+			}
             for (var i = 0; i < affixItem.params.length; i++) {
                 newParams[i] += affixItem.params[i];
             }
