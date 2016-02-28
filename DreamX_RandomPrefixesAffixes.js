@@ -1,17 +1,42 @@
 /*:
- * @plugindesc v1.1 Random prefixes/affixes
+ * @plugindesc v1.2 Random prefixes/affixes
  * @author DreamX
- * @help The new item will be identical to the base item except for name, 
- * traits, params, note, price and meta.
- 
+ * @help 
+ * Add <prefix:x,y,z> and/or <affix:x,y,z> to a weapon/armor's note 
+ * with the letters being weapon/armor ids. You can have as many ids
+ * as you want. The ids must be the same type as the base item, 
+ * ie. weapon ids for a weapon, etc.
+ * When the party gains that equipment, it'll randomly choose a prefix
+ * and/or affix and add the traits, params, price and meta to a new item, 
+ * also changing the name. The new item is then added instead of the 
+ * base item.
+ *
+ * Example: <prefix:2,4,8,12,26> <affix:7,2>
+ * If the base item is named "Sword", the prefix item is named "Strong"
+ * and the affix item is named "Of Fire"
+ * You would get Strong Sword Of Fire. 
+ *
+ * If a prefix or affix item has <prefixAffixReplaceAnim:1> then its
+ * anim will be used for the new item.
+ *
+ * If a prefix or affix item has <prefixAffixReplaceIcon:1> then its
+ * icon will be used for the new item.
+ *
  * The new item have the traits of both prefix and affix items and add their 
  * params. For example, if the prefix item has +10 ATK and the base item has 
  * +20 ATK, the new item wil have +30 ATK.
- * Meta will be the same except that the prefix and affix notetags will be 
- * removed.
+ * Meta will be a combination of the prefix and affix item meta, in other words,
+ * the notetags.
  * Price will be the original plus the prices of the prefix and affix item.
  * Item note gets erased.
- * 
+ * ============================================================================
+ * Terms Of Use
+ * ============================================================================
+ * Free to use and modify for commercial and noncommercial games, with credit.
+ * ============================================================================
+ * Credits
+ * ============================================================================
+ * DreamX
  */
 
 //=============================================================================
@@ -53,6 +78,9 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         var newParams = [];
         var newName = item.name;
 		var newPrice = item.price;
+		var newMeta = {};
+		var newAnimationId;
+		var newIconIndex;
 
         if (item.meta.prefix) {
             prefixChoices = item.meta.prefix.trim().split(",");
@@ -75,6 +103,10 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
             return item;
         }
 
+		// add base item's meta
+		for (notetag in item.meta) {
+			newMeta[notetag] = item.meta[notetag];
+		}
         newTraits = item.traits;
         newParams = item.params;
 
@@ -85,6 +117,15 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
                 newParams[i] += prefixItem.params[i];
             }
 			newPrice += prefixItem.price;
+			for (notetag in prefixItem.meta) {
+				newMeta[notetag] = prefixItem.meta[notetag];
+			}
+			if (prefixItem.meta.prefixAffixReplaceAnim) {
+				newAnimationId = prefixItem.animationId;
+			}
+			if (prefixItem.meta.prefixAffixReplaceIcon) {
+				newIconIndex = prefixItem.iconIndex;
+			}
         }
         if (affixItem) {
             newName = newName + " " + affixItem.name;
@@ -93,6 +134,15 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
                 newParams[i] += affixItem.params[i];
             }
 			newPrice += affixItem.price;
+			for (notetag in affixItem.meta) {
+				newMeta[notetag] = affixItem.meta[notetag];
+			}
+			if (affixItem.meta.prefixAffixReplaceAnim) {
+				newAnimationId = affixItem.animationId;
+			}
+			if (affixItem.meta.prefixAffixReplaceIcon) {
+				newIconIndex = affixItem.iconIndex;
+			}
         }
 
         var newItem = item;
@@ -100,6 +150,14 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         newItem.traits = newTraits;
         newItem.params = newParams;
 		newItem.price = newPrice;
+		newItem.note = "";
+		newItem.meta = newMeta;
+		if (item.wtypeId && newAnimationId) {
+			newItem.animationId = newAnimationId;
+		}
+		if (newIconIndex) {
+			newItem.iconIndex = newIconIndex;
+		}
 
         // remove the affixes and prefixes from meta. we don't want repeats
         delete newItem.meta.prefix;
@@ -122,7 +180,6 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
     Game_Party.prototype.gainItem = function (item, amount, includeEquip) {
         // must have one of the meta tags and be a weapon/armor
         if (item && (item.meta.prefix || item.meta.affix) && (item.wtypeId || item.atypeId)) {
-
             item = DreamX.RandomPrefixAffix.makeItem(item);
 						console.log(item);
         }
