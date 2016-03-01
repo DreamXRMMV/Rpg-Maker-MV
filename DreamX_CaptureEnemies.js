@@ -148,9 +148,9 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         if (!target.isEnemy())
             return;
         var item = this.item();
-		            if ((item.meta.captureRate || item.meta.capture) && $dataEnemies[target._enemyId].meta.capture_actor_id) {
-										this.makeSuccess(target);
-						        if (DreamX.CaptureEnemy.isCaptureEnabled($gameTroop.troop().pages[0].list)) {
+        if ((item.meta.captureRate || item.meta.capture) && $dataEnemies[target._enemyId].meta.capture_actor_id) {
+            this.makeSuccess(target);
+            if (DreamX.CaptureEnemy.isCaptureEnabled($gameTroop.troop().pages[0].list)) {
 
                 if (DreamX.CaptureEnemy.decideCapture(item, target)) {
                     var level = 1;
@@ -160,24 +160,21 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
                     DreamX.CaptureEnemy.captureEnemy
                             ($dataEnemies[target._enemyId].meta.capture_actor_id,
                                     level);
-					if (parameterCaptureAnim >= 1) {
-						target.startAnimation(parameterCaptureAnim, false, 0);	
-					}
+                    if (parameterCaptureAnim >= 1) {
+                        target.startAnimation(parameterCaptureAnim, false, 0);
+                    }
                     target._wasCaptured = true;
                     target.die();
+                } else {
+                    if (parameterCaptureFailAnim >= 1) {
+                        target.startAnimation(parameterCaptureFailAnim, false, 0);
+                    }
+                    DreamX.CaptureEnemy.displayMessage(parameterCaptureFailedMsg.format(target.originalName(), $gameTroop.troop().name));
                 }
-                else {
-					if (parameterCaptureFailAnim >= 1) {
-						target.startAnimation(parameterCaptureFailAnim, false, 0);	
-					}
-					DreamX.CaptureEnemy.displayMessage(parameterCaptureFailedMsg.format(target.originalName(), $gameTroop.troop().name));
-                }
-        }
-
             }
 
-        else {
-			DreamX.CaptureEnemy.displayMessage(parameterCannotCaptureMsg.format(target.originalName(), $gameTroop.troop().name));
+        } else {
+            DreamX.CaptureEnemy.displayMessage(parameterCannotCaptureMsg.format(target.originalName(), $gameTroop.troop().name));
         }
     };
 
@@ -185,18 +182,17 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
     Game_Enemy.prototype.performCollapse = function () {
         DreamX.CaptureEnemy.performCollapse.call(this);
         if (this._wasCaptured) {
-			DreamX.CaptureEnemy.displayMessage(parameterCaptureSuccessMsg.format(this.originalName(), $gameTroop.troop().name));
+            DreamX.CaptureEnemy.displayMessage(parameterCaptureSuccessMsg.format(this.originalName(), $gameTroop.troop().name));
         }
     };
-	
-	DreamX.CaptureEnemy.displayMessage = function(message) {
-		if (parameterShowText === true) {
-			$gameMessage.add(message);	
-		}
-		else {
-			SceneManager._scene._logWindow.push('addText', message);	
-		}
-	}
+
+    DreamX.CaptureEnemy.displayMessage = function (message) {
+        if (parameterShowText === true) {
+            $gameMessage.add(message);
+        } else {
+            SceneManager._scene._logWindow.push('addText', message);
+        }
+    }
 
     DreamX.CaptureEnemy.stateCaptureRate = function (target) {
         var rate = 0;
