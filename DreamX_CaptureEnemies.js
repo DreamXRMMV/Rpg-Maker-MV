@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v0.3 Capture enemies 
+ * @plugindesc v1.0 Capture enemies 
  * 
  * <DreamX Capture Enemies>
  * @author DreamX
@@ -18,12 +18,26 @@
  *
  * @param Health Capture Rate Formula
  * @desc The formula that adds to the capture rate based on enemy health. Default: 50 - ((enemy.hp/enemy.mhp) * 50)
- * @default 50 - ((enemy.hp/enemy.mhp) * 50)
+ * @default 50 - ((enemy.hp/enemy.mhp) * 50) 
+ *
+ * @param Capture Success Anim
+ * @desc Animation to play on capture success. 0 - disable. Default: 0
+ * @default 0
+ *
+ * @param Capture Fail Anim
+ * @desc Animation to play on capture failure. 0 - disable. Default: 0
+ * @default 0
+ *
+ * @param Message As Show Text
+ * @desc true: display messages as show text command. false: display messages in the battlelog.
+ * @default true
  *
  * @help 
  * ============================================================================
  * How To Use
  * ============================================================================
+ Must be used with Yanfly's Battle Engine Core to work properly.
+ 
  Put <capture_actor_id:x> into the notetag of an enemy, with x as the actor id.
  
  Put <capture:1> or <captureRate:x> into the notetag of a skill or item to 
@@ -53,9 +67,10 @@
  * ============================================================================
  * Free to use and modify for commercial and noncommercial games, with credit.
  * ============================================================================
- * Credits
+ * Credits & Thanks
  * ============================================================================
- DreamX
+ * DreamX
+ * Thanks to Jeremy Cannady for reference from his Monster Breeding System script.
  */
 
 var Imported = Imported || {};
@@ -82,6 +97,12 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
             || '%2 blocked the capture!');
     var parameterHealthFormula = String(parameters['Health Capture Rate Formula']
             || '50 - ((enemy.hp/enemy.mhp) * 50)');
+    var parameterCaptureAnim = parseInt(parameters['Capture Success Anim']
+            || 0);
+    var parameterCaptureFailAnim = parseInt(parameters['Capture Fail Anim']
+            || 0);
+    var parameterShowText = eval(parameters['Message As Show Text']
+            || true);
 
     DreamX.CaptureEnemy.Game_Interpreter_pluginCommand =
             Game_Interpreter.prototype.pluginCommand;
@@ -127,8 +148,10 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         if (!target.isEnemy())
             return;
         var item = this.item();
-        if (DreamX.CaptureEnemy.isCaptureEnabled($gameTroop.troop().pages[0].list)) {
-            if ((item.meta.captureRate || item.meta.capture) && $dataEnemies[target._enemyId].meta.capture_actor_id) {
+		            if ((item.meta.captureRate || item.meta.capture) && $dataEnemies[target._enemyId].meta.capture_actor_id) {
+										this.makeSuccess(target);
+						        if (DreamX.CaptureEnemy.isCaptureEnabled($gameTroop.troop().pages[0].list)) {
+
                 if (DreamX.CaptureEnemy.decideCapture(item, target)) {
                     var level = 1;
                     if (target.level && target.level >= 1) {
@@ -137,16 +160,24 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
                     DreamX.CaptureEnemy.captureEnemy
                             ($dataEnemies[target._enemyId].meta.capture_actor_id,
                                     level);
+					if (parameterCaptureAnim >= 1) {
+						target.startAnimation(parameterCaptureAnim, false, 0);	
+					}
                     target._wasCaptured = true;
                     target.die();
                 }
                 else {
-                    $gameMessage.add(parameterCaptureFailedMsg.format(target.originalName(), $gameTroop.troop().name));
+					if (parameterCaptureFailAnim >= 1) {
+						target.startAnimation(parameterCaptureFailAnim, false, 0);	
+					}
+					DreamX.CaptureEnemy.displayMessage(parameterCaptureFailedMsg.format(target.originalName(), $gameTroop.troop().name));
                 }
-            }
         }
+
+            }
+
         else {
-            $gameMessage.add(parameterCannotCaptureMsg.format(target.originalName(), $gameTroop.troop().name));
+			DreamX.CaptureEnemy.displayMessage(parameterCannotCaptureMsg.format(target.originalName(), $gameTroop.troop().name));
         }
     };
 
@@ -154,9 +185,18 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
     Game_Enemy.prototype.performCollapse = function () {
         DreamX.CaptureEnemy.performCollapse.call(this);
         if (this._wasCaptured) {
-            $gameMessage.add(parameterCaptureSuccessMsg.format(this.originalName(), $gameTroop.troop().name));
+			DreamX.CaptureEnemy.displayMessage(parameterCaptureSuccessMsg.format(this.originalName(), $gameTroop.troop().name));
         }
     };
+	
+	DreamX.CaptureEnemy.displayMessage = function(message) {
+		if (parameterShowText === true) {
+			$gameMessage.add(message);	
+		}
+		else {
+			SceneManager._scene._logWindow.push('addText', message);	
+		}
+	}
 
     DreamX.CaptureEnemy.stateCaptureRate = function (target) {
         var rate = 0;
@@ -217,5 +257,8 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         $gameParty.addActor(CapturedEnemy.id);
         $gameSystem.capturedActors.push(CapturedEnemy);
     };
+
+
+
 
 })();
