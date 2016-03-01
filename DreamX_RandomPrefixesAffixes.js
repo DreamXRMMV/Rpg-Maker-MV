@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.2 Random prefixes/affixes
+ * @plugindesc v1.3 Random prefixes/affixes
  * @author DreamX
  * @help 
  * Add <prefix:x,y,z> and/or <affix:x,y,z> to a weapon/armor's note 
@@ -176,18 +176,34 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
             $dataArmors.push(newItem);
             $gameSystem.randomGenArmors.push(newItem);
         }
+		
+
 
         return newItem;
     };
+	
+	DreamX.RandomPrefixAffix.GainPrefixAffixItem = function(item, amount, includeEquip) {
+		var itemArray = [];
+		for (var i = 0; i < amount; i++) {
+			// need a deep copy
+			itemArray[i] = JSON.parse(JSON.stringify(item));
+		}
+		for (var i = 0; i < amount; i++) {
+			$gameParty.gainItem(DreamX.RandomPrefixAffix.makeItem(itemArray[i]), 1, includeEquip);
+		}
+	}
 
     DreamX.RandomPrefixAffix.Game_Party_gainItem = Game_Party.prototype.gainItem;
     Game_Party.prototype.gainItem = function (item, amount, includeEquip) {
+
         // must have one of the meta tags and be a weapon/armor
         if (item && (item.meta.prefix || item.meta.affix) && (item.wtypeId || item.atypeId)) {
-            item = DreamX.RandomPrefixAffix.makeItem(item);
-						console.log(item);
+			DreamX.RandomPrefixAffix.GainPrefixAffixItem(item, amount, includeEquip);
         }
-        DreamX.RandomPrefixAffix.Game_Party_gainItem.call(this, item, amount, includeEquip);
+		else {
+			DreamX.RandomPrefixAffix.Game_Party_gainItem.call(this, item, amount, includeEquip);
+		}
+
 
     };
 
