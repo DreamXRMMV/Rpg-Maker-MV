@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.0 Capture enemies 
+ * @plugindesc v1.1 Capture enemies 
  * 
  * <DreamX Capture Enemies>
  * @author DreamX
@@ -172,9 +172,9 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
                     DreamX.CaptureEnemy.displayMessage(parameterCaptureFailedMsg.format(target.originalName(), $gameTroop.troop().name));
                 }
             }
-
-        } else {
-            DreamX.CaptureEnemy.displayMessage(parameterCannotCaptureMsg.format(target.originalName(), $gameTroop.troop().name));
+			else {
+			    DreamX.CaptureEnemy.displayMessage(parameterCannotCaptureMsg.format(target.originalName(), $gameTroop.troop().name));	
+			}
         }
     };
 
