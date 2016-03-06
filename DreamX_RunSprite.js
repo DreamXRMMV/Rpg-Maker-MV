@@ -13,6 +13,8 @@
  
  By default, if a run sprite could not be found, then the sprite for an actor is 
  simply not changed.
+ 
+ Use <NoRunSprite:1> for an actor to disable changing their image on dash.
  * ============================================================================
  * Compatibility
  * ============================================================================
