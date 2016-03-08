@@ -7,11 +7,11 @@
  * @param Frame Number
  * @desc Number of frames for each motion for actors. Default: 3
  * @default 3
- * 
+ *
  * @param Frame Speed
  * @desc Speed of motions for actors. Default: 12
  * @default 12
- * 
+ *
  * @param ---Compatibility---
  * @default
  * 
@@ -40,10 +40,10 @@
  */
 
 var Imported = Imported || {};
-Imported.DreamX_ActorSideviewFrames = true;
+Imported.DreamX_SideviewFrames = true;
 
 var DreamX = DreamX || {};
-DreamX.ActorSideviewFrames = DreamX.ActorSideviewFrames || {};
+DreamX.SideviewFrames = DreamX.SideviewFrames || {};
 
 (function () {
 //=============================================================================
@@ -58,68 +58,97 @@ DreamX.ActorSideviewFrames = DreamX.ActorSideviewFrames || {};
     var paramActorFrameSpeed = parseInt(parameters['Frame Speed'] || '12');
     var paramEnemyFrames = parseInt(parameters['Yanfly Enemy SV Frame Number'] || '3');
 
-    Sprite_Actor.prototype.updateFrame = function () {
+    DreamX.SideviewFrames.Sprite_Battler_initMembers
+            = Sprite_Battler.prototype.initMembers;
+    Sprite_Battler.prototype.initMembers = function () {
+        DreamX.SideviewFrames.Sprite_Battler_initMembers.call(this);
+        this._reverseFrame = false;
+    };
+
+    Sprite_Battler.prototype.DXNumFrames = function () {
+        var dataBattlerMeta = this._battler.isActor()
+                ? $dataActors[this._battler.actorId()].meta
+                : $dataEnemies[this._battler.enemyId()].meta;
+
+        if (dataBattlerMeta.SVFrames) {
+            battlerFrames = parseInt(dataBattlerMeta.SVFrames);
+        } else {
+            battlerFrames = this._battler.isActor() ? paramActorFrames
+                    : paramEnemyFrames;
+        }
+
+        return battlerFrames;
+    }
+
+
+    Sprite_Battler.prototype.DXUpdateFrame = function () {
         Sprite_Battler.prototype.updateFrame.call(this);
-        // change: check for notetag or param
-        var actorFrames = $dataActors[this._battler.actorId()].meta.SVFrames 
-            ? parseInt($dataActors[this._battler.actorId()].meta.SVFrames) 
-            : paramActorFrames;
-            
+
         var bitmap = this._mainSprite.bitmap;
         if (bitmap) {
             var motionIndex = this._motion ? this._motion.index : 0;
-            // change 3 to actorFrames
-            var pattern = this._pattern < actorFrames ? this._pattern : 1;
-            // change 9 to (actorFrames * 3)
-            var cw = bitmap.width / (actorFrames * 3);
+            var cw = bitmap.width / (this.DXNumFrames() * 3);
             var ch = bitmap.height / 6;
-            // change 3 to actorFrames
-            var cx = Math.floor(motionIndex / 6) * actorFrames + pattern;
+            var cx = this._pattern;
             var cy = motionIndex % 6;
             this._mainSprite.setFrame(cx * cw, cy * ch, cw, ch);
         }
     };
 
+    Sprite_Battler.prototype.DXupdateMotionCount = function () {
+        if (this._motion && ++this._motionCount >= this.motionSpeed()) {
+            if (this._motion.loop) {
+                if (this._reverseFrame === false) {
+                    this._pattern++;
+                } else {
+                    this._pattern--;
+                }
+
+                if (this.DXNumFrames() - 1 === this._pattern) {
+                    this._reverseFrame = true;
+                } else if (this._pattern === 0) {
+                    this._reverseFrame = false;
+                }
+            } else if (this._pattern < this.DXNumFrames() - 1) {
+                this._pattern++;
+            } else {
+                this.refreshMotion();
+            }
+            this._motionCount = 0;
+        }
+    };
+
+    Sprite_Actor.prototype.updateMotionCount = function () {
+        this.DXupdateMotionCount();
+    };
+
+    Sprite_Actor.prototype.updateFrame = function () {
+        this.DXUpdateFrame();
+    };
+
     Sprite_Actor.prototype.motionSpeed = function () {
         // change: check for notetag or param
-        var frameSpeed = $dataActors[this._battler.actorId()].meta.SVFrameSpeed 
-            ? parseInt($dataActors[this._battler.actorId()].meta.SVFrameSpeed) 
-            : paramActorFrameSpeed; 
+        var frameSpeed = $dataActors[this._battler.actorId()].meta.SVFrameSpeed
+                ? parseInt($dataActors[this._battler.actorId()].meta.SVFrameSpeed)
+                : paramActorFrameSpeed;
         return frameSpeed;
     };
 
     if (Imported.YEP_X_AnimatedSVEnemies) {
         Sprite_Enemy.prototype.updateSVFrame = function () {
-            Sprite_Battler.prototype.updateFrame.call(this);
-            // change: added check for param or notetag
-            var enemyFrames = $dataEnemies[this._battler.enemyId()].meta.SVFrames
-            ? parseInt($dataEnemies[this._battler.enemyId()].meta.SVFrames ) 
-            : paramEnemyFrames;  
-            
+            this.DXUpdateFrame();
             var bitmap = this._mainSprite.bitmap;
-            if (bitmap.width <= 0)
-                return;
-            this._effectTarget = this._mainSprite;
-            var motionIndex = this._motion ? this._motion.index : 0;
-            // change 3 to enemyFrames
-            var pattern = this._pattern < enemyFrames ? this._pattern : 1;
-            // change 9 to (enemyFrames * 3)
-            var cw = bitmap.width / (enemyFrames * 3);
-            var ch = bitmap.height / 6;
-            // change 3 to enemyFrames
-            var cx = Math.floor(motionIndex / 6) * enemyFrames + pattern;
-            var cy = motionIndex % 6;
-            var cdh = 0;
-            if (this._effectType === 'bossCollapse') {
-                cdh = ch - this._effectDuration;
+            if (bitmap) {
+                this.adjustMainBitmapSettings(bitmap);
+                this.adjustSVShadowSettings();
             }
-            this.setFrame(cx * cw, cy * ch, cw, ch);
-            this._mainSprite.setFrame(cx * cw, cy * ch, cw, ch - cdh);
-            this.adjustMainBitmapSettings(bitmap);
-            this.adjustSVShadowSettings();
+        };
+
+        Sprite_Enemy.prototype.updateMotionCount = function () {
+            if (!this._svBattlerEnabled)
+                return;
+            this.DXupdateMotionCount();
         };
     }
-
-
 
 })();
