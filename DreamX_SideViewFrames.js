@@ -12,10 +12,6 @@
  * @desc Speed of motions for actors. Default: 12
  * @default 12
  *
- * @param Holder's
- * @desc Speed of motions for actors. Default: 12
- * @default 12
- *
  * @param ---Compatibility---
  * @default
  * 
@@ -28,6 +24,8 @@
  * for an enemy or actor.
  * Use <SVFrameSpeed:x> with x as the number of frame speed to override the 
  * parameter for an actor.
+ * Use <holders:1> to configure the enemy or actor to use holder style 
+ * spritesheets(4 frames, 14 motions vertically).
  * ============================================================================
  * Terms Of Use
  * ============================================================================
