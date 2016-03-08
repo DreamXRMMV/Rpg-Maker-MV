@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.1 Capture enemies 
+ * @plugindesc v1.2 Capture enemies 
  * 
  * <DreamX Capture Enemies>
  * @author DreamX
@@ -171,10 +171,9 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
                     }
                     DreamX.CaptureEnemy.displayMessage(parameterCaptureFailedMsg.format(target.originalName(), $gameTroop.troop().name));
                 }
+            } else {
+                DreamX.CaptureEnemy.displayMessage(parameterCannotCaptureMsg.format(target.originalName(), $gameTroop.troop().name));
             }
-			else {
-			    DreamX.CaptureEnemy.displayMessage(parameterCannotCaptureMsg.format(target.originalName(), $gameTroop.troop().name));	
-			}
         }
     };
 
@@ -230,31 +229,22 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
     DreamX.CaptureEnemy.captureEnemy = function (actorId, level) {
         // default to level 1 if level not defined
         level = level || 1;
-        var monsterType = $dataActors[actorId];
-        CapturedEnemy = {
-            "id": $dataActors.length,
-            "traits": monsterType["traits"],
-            "initialLevel": level,
-            "maxLevel": monsterType["maxLevel"],
-            "profile": monsterType["profile"],
-            "battlerName": monsterType["battlerName"],
-            "characterIndex": monsterType["characterIndex"],
-            "characterName": monsterType["characterName"],
-            "faceIndex": monsterType["faceIndex"],
-            "faceName": monsterType["faceName"],
-            "meta": monsterType["meta"],
-            "name": monsterType["name"],
-            "nickname": monsterType["nickname"],
-            "note": monsterType["note"],
-            "classId": monsterType["classId"],
-            "equips": []
-        };
+        var dataActor = $dataActors[actorId];
+        // make a deep copy
+        var CapturedEnemy =  JSON.parse(JSON.stringify(dataActor));
+        
+        // give a new id
+        CapturedEnemy.id = $dataActors.length;
+        // give a new starting level
+        CapturedEnemy.initialLevel = level;
+
         $dataActors.push(CapturedEnemy);
         $gameParty.addActor(CapturedEnemy.id);
         $gameSystem.capturedActors.push(CapturedEnemy);
     };
 
-
-
+    //=============================================================================
+// Compatibility
+//=============================================================================
 
 })();
