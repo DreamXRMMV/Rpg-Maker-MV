@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.1 Configure the number of frames and frame speed for SV.
+ * @plugindesc v1.2 Configure the number of frames and frame speed for SV.
  *
  * <DreamX Actor Sideview Frames>
  * @author DreamX
@@ -89,8 +89,9 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
             var motionIndex = this._motion ? this._motion.index : 0;
             var cw = bitmap.width / (this.DXNumFrames() * 3);
             var ch = bitmap.height / 6;
-            var cx = this._pattern;
+            var cx = Math.floor(motionIndex / 6) * this.DXNumFrames() + this._pattern;
             var cy = motionIndex % 6;
+            console.log(motionIndex);
             this._mainSprite.setFrame(cx * cw, cy * ch, cw, ch);
         }
     };
