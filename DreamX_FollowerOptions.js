@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.04 Choose which party members appear as followers or in battle.
+ * @plugindesc v1.05 Choose which party members appear as followers or in battle.
  *
  * <DreamX Follower and Battle Member Options>
  * @author DreamX
@@ -24,6 +24,8 @@
  * ============================================================================
  * How To Use
  * ============================================================================
+ * Place this plugin BELOW Yanfly's Party System plugin if you're using it.
+ * 
  * Adjust parameters to your liking. Parameter "Max Index" is far the game looks
  * into your party for potential followers. For example, if you use 12, it'll 
  * look as far as party member #12. I recommend using the max possible size of 
@@ -159,23 +161,23 @@ DreamX.FollowerOptions = DreamX.FollowerOptions || {};
         });
         return members;
     };
-	
-	/*
-	    Game_Party.prototype.battleMembers = function () {
-        var battleMembers = this.allMembers().filter(function (actor) {
-            return actor.isAppeared()
-                    && DreamX.FollowerOptions.isActorBattleEnabled(actor);
-        });
-        return battleMembers.slice(0, this.maxBattleMembers());
-    };
-	*/
 
-	Game_Party.prototype.battleMembers = function () {
+    /*
+     Game_Party.prototype.battleMembers = function () {
+     var battleMembers = this.allMembers().filter(function (actor) {
+     return actor.isAppeared()
+     && DreamX.FollowerOptions.isActorBattleEnabled(actor);
+     });
+     return battleMembers.slice(0, this.maxBattleMembers());
+     };
+     */
+
+    Game_Party.prototype.battleMembers = function () {
         var battleMembers = [];
         this._actors.forEach(function (id) {
             var actor = $gameActors.actor(id);
             if (DreamX.FollowerOptions.isActorBattleEnabled
-              ($gameActors.actor(id)) && actor.isAppeared()) {
+                    ($gameActors.actor(id)) && actor.isAppeared()) {
                 battleMembers.push(actor);
             }
         });
@@ -189,7 +191,8 @@ DreamX.FollowerOptions = DreamX.FollowerOptions || {};
     // DreamX.FollowerOptions
     //==========================================================================
     DreamX.FollowerOptions.getSwitchNum = function (actorId) {
-		if (!$dataActors[actorId]) return -1;
+        if (!$dataActors[actorId])
+            return -1;
         var switchNum = $dataActors[actorId].meta.no_follow_switch
                 ? $dataActors[actorId].meta.no_follow_switch : -1;
         return switchNum;
@@ -198,8 +201,7 @@ DreamX.FollowerOptions = DreamX.FollowerOptions || {};
     DreamX.FollowerOptions.ToggleFollower = function (switchNum) {
         if ($gameSwitches.value(switchNum)) {
             DreamX.FollowerOptions.FollowerOff(switchNum);
-        }
-        else {
+        } else {
             DreamX.FollowerOptions.FollowerOn(switchNum);
         }
     };
@@ -275,13 +277,53 @@ DreamX.FollowerOptions = DreamX.FollowerOptions || {};
             followers = this.battleMembers().filter(function (actor) {
                 return DreamX.FollowerOptions.isFollowerOkay(actor);
             });
-        }
-        else {
+        } else {
             followers = this.allPartyMembers().filter(function (actor) {
                 return DreamX.FollowerOptions.isFollowerOkay(actor);
             });
         }
         return followers.slice(0, parseInt(eval(parameterMaxFollowers) + 1));
     };
+
+//=============================================================================
+// Compatibility
+//=============================================================================
+    //==========================================================================
+    // YEP_PartySystem
+    //==========================================================================
+    if (Imported.YEP_PartySystem) {
+        DreamX.FollowerOptions.isYanflyFormationEnabled = function (actor) {
+            if (DreamX.FollowerOptions.isActorMenuEnabled(actor) === false) {
+                return false;
+            }
+            if (DreamX.FollowerOptions.isActorBattleEnabled(actor) === false) {
+                return false;
+            }
+            return true;
+        }
+
+        Window_PartyList.prototype.createActorOrder = function () {
+            for (var i = 0; i < $gameParty._actors.length; ++i) {
+                var actorId = $gameParty._actors[i];
+                var actor = $gameActors.actor(actorId);
+                if (DreamX.FollowerOptions.isYanflyFormationEnabled(actor)) {
+                    this._data.push(actorId);
+                }
+            }
+        };
+
+        Window_PartySelect.prototype.makeItemList = function () {
+            var partySelectList = [];
+            for (var i = 0; i < $gameParty._actors.length; ++i) {
+                var actorId = $gameParty._actors[i];
+                var actor = $gameActors.actor(actorId);
+                if (DreamX.FollowerOptions.isYanflyFormationEnabled(actor)) {
+                    partySelectList.push(actorId);
+                }
+            }
+            this._data = partySelectList;
+        };
+
+    }
 
 })();
