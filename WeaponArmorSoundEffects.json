@@ -1,0 +1,13 @@
+{
+    "SWORD": {
+        "NONE": "Cow",
+        "CHAINMAIL": "Cat",
+        "CHITIN": "Dog",
+        "NULL": ""
+    },
+    "MACE": {
+        "NONE": "Fire1",
+        "PLATE": "Computer",
+        "NULL": ""
+    }
+}
