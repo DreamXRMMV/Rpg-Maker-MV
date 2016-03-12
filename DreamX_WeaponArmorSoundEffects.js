@@ -20,7 +20,7 @@
  (use the same case as the file names for them).
  
  Important! This plugin requires Yanfly's Battle Engine Core.
-
+ 
  Parameter "SEs to Replace" are the sound effects to replace globally when a 
  skill is set to 
  replace sound effects.
@@ -132,79 +132,80 @@ DreamX.WeaponArmorSoundEffects = DreamX.WeaponArmorSoundEffects || {};
 
     DreamX.WeaponArmorSoundEffects.Game_Battler_startAnimation = Game_Battler.prototype.startAnimation;
     Game_Battler.prototype.startAnimation = function (animationId, mirror, delay) {
-        // return if notetag isnt present
-        var item = this._DXWASE_item;
-        var itemMeta = item.meta;
-        if (!itemMeta.replaceSE) {
-            return DreamX.WeaponArmorSoundEffects.BattleManager_actionActionAnimation.call(this, actionArgs);
-        }
-
-        // get subject and weapon type
-        var subject = this._DXWASE_attacker;
-
-        var weaponTypeMeta;
-        if (subject.isActor()) {
-            if (!subject.weapons()[0]) {
-                // return if actor doesn't have a weapon in slot 1
+        if (this._DXWASE_item) {
+            var item = this._DXWASE_item;
+            var itemMeta = item.meta;
+            if (!itemMeta.replaceSE) {
                 return DreamX.WeaponArmorSoundEffects.BattleManager_actionActionAnimation.call(this, actionArgs);
             }
-            weaponTypeMeta = subject.weapons()[0].meta;
-        } else {
-            weaponTypeMeta = $dataEnemies[subject.enemyId()].meta;
-        }
-        if (!weaponTypeMeta.SEWeaponType) {
-            // return if weapon/enemy doesn't have a se weapon type
-            return;
-        }
-        var weaponType = weaponTypeMeta.SEWeaponType.trim().toUpperCase();
 
-        var armorTypeMeta;
-        var SETarget = this;
-        if (SETarget.isActor()) {
-            armorTypeMeta = $dataActors[SETarget.actorId()].meta;
-            for (var i = 0; i < SETarget.armors().length; i++) {
-                if (SETarget.armors()[i].etypeId === paramArmorTypeId) {
-                    if (SETarget.armors()[i].meta.SEArmorType) {
-                        armorTypeMeta = SETarget.armors()[i].meta;
-                    }
-                }
-            }
-        } else {
-            armorTypeMeta = $dataEnemies[SETarget.enemyId()].meta;
-        }
-        var armorType = armorTypeMeta.SEArmorType
-                ? armorTypeMeta.SEArmorType.trim().toUpperCase()
-                : "NONE";
+            // get subject and weapon type
+            var subject = this._DXWASE_attacker;
 
-        var animID = animationId;
-        var animation;
-
-        if (animID !== -1) {
-            animation = $dataAnimations[animID];
-        } else {
+            var weaponTypeMeta;
             if (subject.isActor()) {
-                animation = $dataAnimations[subject.attackAnimationId1()];
+                if (!subject.weapons()[0]) {
+                    // return if actor doesn't have a weapon in slot 1
+                    return DreamX.WeaponArmorSoundEffects.BattleManager_actionActionAnimation.call(this, actionArgs);
+                }
+                weaponTypeMeta = subject.weapons()[0].meta;
+            } else {
+                weaponTypeMeta = $dataEnemies[subject.enemyId()].meta;
             }
-        }
+            if (!weaponTypeMeta.SEWeaponType) {
+                // return if weapon/enemy doesn't have a se weapon type
+                return;
+            }
+            var weaponType = weaponTypeMeta.SEWeaponType.trim().toUpperCase();
 
-        if (animation) {
-            // make a deep copy
-            var newAnim = JSON.parse(JSON.stringify(animation));
-            newAnim.timings.forEach(function (timing) {
-                if (timing.se
-                        && DreamX.WeaponArmorSoundEffects.
-                        shouldReplaceSE(timing.se.name, weaponTypeMeta, itemMeta)) {
-                    if (DreamX.WeaponArmorSoundEffects.data[weaponType][armorType]) {
-                        timing.se.name = DreamX.WeaponArmorSoundEffects.data[weaponType][armorType];
+            var armorTypeMeta;
+            var SETarget = this;
+            if (SETarget.isActor()) {
+                armorTypeMeta = $dataActors[SETarget.actorId()].meta;
+                for (var i = 0; i < SETarget.armors().length; i++) {
+                    if (SETarget.armors()[i].etypeId === paramArmorTypeId) {
+                        if (SETarget.armors()[i].meta.SEArmorType) {
+                            armorTypeMeta = SETarget.armors()[i].meta;
+                        }
                     }
                 }
-            }, this);
-            newAnim.id = $dataAnimations.length - 1;
-            $dataAnimations.push(newAnim);
+            } else {
+                armorTypeMeta = $dataEnemies[SETarget.enemyId()].meta;
+            }
+            var armorType = armorTypeMeta.SEArmorType
+                    ? armorTypeMeta.SEArmorType.trim().toUpperCase()
+                    : "NONE";
 
-            animationId = $dataAnimations.length - 1;
+            var animID = animationId;
+            var animation;
+
+            if (animID !== -1) {
+                animation = $dataAnimations[animID];
+            } else {
+                if (subject.isActor()) {
+                    animation = $dataAnimations[subject.attackAnimationId1()];
+                }
+            }
+
+            if (animation) {
+                // make a deep copy
+                var newAnim = JSON.parse(JSON.stringify(animation));
+                newAnim.timings.forEach(function (timing) {
+                    if (timing.se
+                            && DreamX.WeaponArmorSoundEffects.
+                            shouldReplaceSE(timing.se.name, weaponTypeMeta, itemMeta)) {
+                        if (DreamX.WeaponArmorSoundEffects.data[weaponType][armorType]) {
+                            timing.se.name = DreamX.WeaponArmorSoundEffects.data[weaponType][armorType];
+                        }
+                    }
+                }, this);
+                newAnim.id = $dataAnimations.length - 1;
+                $dataAnimations.push(newAnim);
+
+                animationId = $dataAnimations.length - 1;
+            }
+            DreamX.WeaponArmorSoundEffects.Game_Battler_startAnimation.call(this, animationId, mirror, delay);
         }
-        DreamX.WeaponArmorSoundEffects.Game_Battler_startAnimation.call(this, animationId, mirror, delay);
         this._DXWASE_attacker = null;
         this._DXWASE_item = null;
     };
