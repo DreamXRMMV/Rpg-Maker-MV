@@ -44,9 +44,6 @@ plugin.
  * Terms Of Use
  * ===========================================================================
  Free to use and modify for commercial and noncommercial games, with credit.
- This script was based off of Yanfly's Battle System - Charge Turn Battle
- and was programmed using Yanfly's Battle Engine Core turned on. Please credit
- them for both scripts.
  * ===========================================================================
  * Compatibility
  * ===========================================================================
