@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.5b Random prefixes/affixes
+ * @plugindesc v1.6 Random prefixes/affixes
  * @author DreamX
  * @help 
  * Add <prefix:x,y,z> and/or <affix:x,y,z> to a weapon/armor's note 
@@ -69,20 +69,16 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
     };
 
     DreamX.RandomPrefixAffix.makeItem = function (item) {
+        // the new item
+        var newItem;
+
+        // arrays of choices of prefix/affix items
         var prefixChoices = [];
         var affixChoices = [];
 
+        // the prefix/affix item
         var prefixItem;
         var affixItem;
-
-        var newTraits = [];
-        var newParams = [];
-        var newName = item.name;
-        var newPrice = item.price;
-        var newNote = item.note;
-        var newMeta = {};
-        var newAnimationId;
-        var newIconIndex;
 
         if (item.meta.prefix) {
             prefixChoices = item.meta.prefix.trim().split(",");
@@ -105,68 +101,48 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
             return item;
         }
 
-        // add base item's meta
-        for (notetag in item.meta) {
-            newMeta[notetag] = item.meta[notetag];
-        }
-        newTraits = item.traits;
-        newParams = item.params;
+        newItem = JSON.parse(JSON.stringify(item));
 
         if (prefixItem) {
-            newName = prefixItem.name + " " + newName;
-            for (var i = 0; i < prefixItem.traits.length; i++) {
-                newTraits.push(prefixItem.traits[i]);
-            }
+            newItem.name = prefixItem.name + " " + newItem.name;
+            newItem.traits = newItem.traits.concat(prefixItem.traits);
             for (var i = 0; i < prefixItem.params.length; i++) {
-                newParams[i] += prefixItem.params[i];
+                newItem.params[i] += prefixItem.params[i];
             }
-            newPrice += prefixItem.price;
-            newNote += prefixItem.note;
+            newItem.price += prefixItem.price;
+            newItem.note += prefixItem.note;
             for (notetag in prefixItem.meta) {
-                newMeta[notetag] = prefixItem.meta[notetag];
+                newItem.meta[notetag] = prefixItem.meta[notetag];
             }
             if (prefixItem.meta.prefixAffixReplaceAnim) {
-                newAnimationId = prefixItem.animationId;
+                newItem.animationId = prefixItem.animationId;
             }
             if (prefixItem.meta.prefixAffixReplaceIcon) {
-                newIconIndex = prefixItem.iconIndex;
+                newItem.iconIndex = prefixItem.iconIndex;
             }
         }
         if (affixItem) {
-            newName = newName + " " + affixItem.name;
-            for (var i = 0; i < affixItem.traits.length; i++) {
-                newTraits.push(affixItem.traits[i]);
-            }
+            newItem.name = newItem.name + " " + affixItem.name;
+            newItem.traits = newItem.traits.concat(affixItem.traits);
             for (var i = 0; i < affixItem.params.length; i++) {
-                newParams[i] += affixItem.params[i];
+                newItem.params[i] += affixItem.params[i];
             }
-            newPrice += affixItem.price;
-            newNote += affixItem.note;
+            newItem.price += affixItem.price;
+            newItem.note += affixItem.note;
             for (notetag in affixItem.meta) {
-                newMeta[notetag] = affixItem.meta[notetag];
+                newItem.meta[notetag] = affixItem.meta[notetag];
             }
-            if (affixItem.meta.prefixAffixReplaceAnim) {
-                newAnimationId = affixItem.animationId;
+            if (affixItem.meta.affixAffixReplaceAnim) {
+                newItem.animationId = affixItem.animationId;
             }
-            if (affixItem.meta.prefixAffixReplaceIcon) {
-                newIconIndex = affixItem.iconIndex;
+            if (affixItem.meta.affixAffixReplaceIcon) {
+                newItem.iconIndex = affixItem.iconIndex;
             }
         }
 
-        var newItem = item;
-        newItem.name = newName;
-        newItem.traits = newTraits;
-        newItem.params = newParams;
-        newItem.price = newPrice;
-        newItem.note = newNote.replace(new RegExp("\<prefix:.+\>\\n?"), "")
+        // remove prefix and affix notetags from note
+        newItem.note = newItem.note.replace(new RegExp("\<prefix:.+\>\\n?"), "")
                 .replace(new RegExp("\<affix:.+\>\\n?"), "");
-        newItem.meta = newMeta;
-        if (item.wtypeId && newAnimationId) {
-            newItem.animationId = newAnimationId;
-        }
-        if (newIconIndex) {
-            newItem.iconIndex = newIconIndex;
-        }
 
         // remove the affixes and prefixes from meta. we don't want repeats
         delete newItem.meta.prefix;
@@ -197,25 +173,26 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
     };
 
     DreamX.RandomPrefixAffix.GainPrefixAffixItem = function (item, amount, includeEquip) {
-        var itemArray = [];
         for (var i = 0; i < amount; i++) {
-            // need a deep copy
-            itemArray[i] = JSON.parse(JSON.stringify(item));
-        }
-        for (var i = 0; i < amount; i++) {
-            $gameParty.gainItem(DreamX.RandomPrefixAffix.makeItem(itemArray[i]), 1, includeEquip);
+            $gameParty.gainItem(DreamX.RandomPrefixAffix.makeItem(JSON.parse(JSON.stringify(item))), 1, includeEquip);
         }
     }
 
     DreamX.RandomPrefixAffix.Game_Party_gainItem = Game_Party.prototype.gainItem;
     Game_Party.prototype.gainItem = function (item, amount, includeEquip) {
-//        console.log(amount);
         // must have one of the meta tags and be a weapon/armor
-        if (item && (item.meta.prefix || item.meta.affix) && (item.wtypeId || item.atypeId)) {
+        if (DreamX.RandomPrefixAffix.isConfiguredForPrefixAffix(item)) {
             DreamX.RandomPrefixAffix.GainPrefixAffixItem(item, amount, includeEquip);
         } else {
             DreamX.RandomPrefixAffix.Game_Party_gainItem.call(this, item, amount, includeEquip);
         }
+    };
+
+    DreamX.RandomPrefixAffix.isConfiguredForPrefixAffix = function (item) {
+        if (item && (item.meta.prefix || item.meta.affix) && (item.wtypeId || item.atypeId)) {
+            return true;
+        }
+        return false;
     };
 
     if (Imported.YEP_VictoryAftermath) {
@@ -228,6 +205,16 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
                 }
             }
             DreamX.RandomPrefixAffix.Window_VictoryDrop_extractDrops.call(this);
+        };
+    }
+
+    if (Imported.YEP_ItemCore) {
+        DreamX.RandomPrefixAffix.DataManager_isIndependent = DataManager.isIndependent;
+        DataManager.isIndependent = function (item) {
+            if (DreamX.RandomPrefixAffix.isConfiguredForPrefixAffix(item)) {
+                return false;
+            }
+            return DreamX.RandomPrefixAffix.DataManager_isIndependent.call(this, item);
         };
     }
 
