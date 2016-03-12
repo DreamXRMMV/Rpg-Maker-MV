@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.4 Random prefixes/affixes
+ * @plugindesc v1.5 Random prefixes/affixes
  * @author DreamX
  * @help 
  * Add <prefix:x,y,z> and/or <affix:x,y,z> to a weapon/armor's note 
@@ -28,7 +28,8 @@
  * Meta will be a combination of the prefix and affix item meta, in other words,
  * the notetags.
  * Price will be the original plus the prices of the prefix and affix item.
- * Item note gets erased.
+ * Note will be the notes of the original, the prefix and the affix items 
+ * except that the meta and prefix notetag portions will be removed.
  * ============================================================================
  * Terms Of Use
  * ============================================================================
@@ -78,6 +79,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         var newParams = [];
         var newName = item.name;
         var newPrice = item.price;
+        var newNote = item.note;
         var newMeta = {};
         var newAnimationId;
         var newIconIndex;
@@ -119,6 +121,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
                 newParams[i] += prefixItem.params[i];
             }
             newPrice += prefixItem.price;
+            newNote += prefixItem.note;
             for (notetag in prefixItem.meta) {
                 newMeta[notetag] = prefixItem.meta[notetag];
             }
@@ -138,6 +141,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
                 newParams[i] += affixItem.params[i];
             }
             newPrice += affixItem.price;
+            newNote += affixItem.note;
             for (notetag in affixItem.meta) {
                 newMeta[notetag] = affixItem.meta[notetag];
             }
@@ -154,7 +158,8 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         newItem.traits = newTraits;
         newItem.params = newParams;
         newItem.price = newPrice;
-        newItem.note = "";
+        newItem.note = newNote.replace(new RegExp("\<prefix:.+\>\\n?"), "")
+                .replace(new RegExp("\<affix:.+\>\\n?"), "");
         newItem.meta = newMeta;
         if (item.wtypeId && newAnimationId) {
             newItem.animationId = newAnimationId;
@@ -175,10 +180,9 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
             $dataArmors.push(newItem);
             $gameSystem.randomGenArmors.push(newItem);
         }
-        console.log(newItem);
         return newItem;
     };
-    
+
     // since the new item names don't show up by default, must alias this and 
     // make the new items before hand
     DreamX.RandomPrefixAffix.BattleManager_displayDropItems = BattleManager.displayDropItems;
@@ -205,15 +209,36 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
 
     DreamX.RandomPrefixAffix.Game_Party_gainItem = Game_Party.prototype.gainItem;
     Game_Party.prototype.gainItem = function (item, amount, includeEquip) {
-
+//        console.log(amount);
         // must have one of the meta tags and be a weapon/armor
         if (item && (item.meta.prefix || item.meta.affix) && (item.wtypeId || item.atypeId)) {
             DreamX.RandomPrefixAffix.GainPrefixAffixItem(item, amount, includeEquip);
         } else {
             DreamX.RandomPrefixAffix.Game_Party_gainItem.call(this, item, amount, includeEquip);
         }
-
-
     };
+
+    DreamX.RandomPrefixAffix.Game_Party_gainIndependentItem
+            = Game_Party.prototype.gainIndependentItem;
+    Game_Party.prototype.gainIndependentItem = function (item, amount, includeEquip) {
+        if (item && (item.meta.prefix || item.meta.affix) && (item.wtypeId || item.atypeId)) {
+            DreamX.RandomPrefixAffix.GainPrefixAffixItem(item, amount, includeEquip);
+        } else {
+            DreamX.RandomPrefixAffix.Game_Party_gainIndependentItem.call(this, item, amount, includeEquip);
+        }
+    };
+
+    if (Imported.YEP_VictoryAftermath) {
+        DreamX.RandomPrefixAffix.Window_VictoryDrop_extractDrops = Window_VictoryDrop.prototype.extractDrops;
+        Window_VictoryDrop.prototype.extractDrops = function () {
+            for (var i = 0; i < BattleManager._rewards.items.length; i++) {
+                var item = BattleManager._rewards.items[i];
+                if (item && (item.meta.prefix || item.meta.affix) && (item.wtypeId || item.atypeId)) {
+                    BattleManager._rewards.items[i] = DreamX.RandomPrefixAffix.makeItem(item);
+                }
+            }
+            DreamX.RandomPrefixAffix.Window_VictoryDrop_extractDrops.call(this);
+        };
+    }
 
 })();
