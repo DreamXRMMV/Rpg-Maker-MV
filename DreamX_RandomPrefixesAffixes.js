@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.5 Random prefixes/affixes
+ * @plugindesc v1.5a Random prefixes/affixes
  * @author DreamX
  * @help 
  * Add <prefix:x,y,z> and/or <affix:x,y,z> to a weapon/armor's note 
@@ -215,16 +215,6 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
             DreamX.RandomPrefixAffix.GainPrefixAffixItem(item, amount, includeEquip);
         } else {
             DreamX.RandomPrefixAffix.Game_Party_gainItem.call(this, item, amount, includeEquip);
-        }
-    };
-
-    DreamX.RandomPrefixAffix.Game_Party_gainIndependentItem
-            = Game_Party.prototype.gainIndependentItem;
-    Game_Party.prototype.gainIndependentItem = function (item, amount, includeEquip) {
-        if (item && (item.meta.prefix || item.meta.affix) && (item.wtypeId || item.atypeId)) {
-            DreamX.RandomPrefixAffix.GainPrefixAffixItem(item, amount, includeEquip);
-        } else {
-            DreamX.RandomPrefixAffix.Game_Party_gainIndependentItem.call(this, item, amount, includeEquip);
         }
     };
 
