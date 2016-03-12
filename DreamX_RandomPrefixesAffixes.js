@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.5a Random prefixes/affixes
+ * @plugindesc v1.5b Random prefixes/affixes
  * @author DreamX
  * @help 
  * Add <prefix:x,y,z> and/or <affix:x,y,z> to a weapon/armor's note 
