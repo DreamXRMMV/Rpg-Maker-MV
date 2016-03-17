@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.2 Capture enemies 
+ * @plugindesc v1.3 Capture enemies 
  * 
  * <DreamX Capture Enemies>
  * @author DreamX
@@ -31,6 +31,10 @@
  * @param Message As Show Text
  * @desc true: display messages as show text command. false: display messages in the battlelog.
  * @default true
+ * 
+ * @param EXP From Capture
+ * @desc Whether to give exp from enemies that were captured. Default: false
+ * @default false
  *
  * @help 
  * ============================================================================
@@ -103,6 +107,16 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
             || 0);
     var parameterShowText = eval(parameters['Message As Show Text']
             || true);
+    var paramEXPFromCapture = eval(parameters['EXP From Capture']
+            || false);
+
+    DreamX.CaptureEnemy.Game_Enemy_exp = Game_Enemy.prototype.exp;
+    Game_Enemy.prototype.exp = function () {
+        if (paramEXPFromCapture === false && this._wasCaptured === true) {
+            return 0;
+        }
+        return DreamX.CaptureEnemy.Game_Enemy_exp.call(this);
+    };
 
     DreamX.CaptureEnemy.Game_Interpreter_pluginCommand =
             Game_Interpreter.prototype.pluginCommand;
@@ -231,8 +245,8 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         level = level || 1;
         var dataActor = $dataActors[actorId];
         // make a deep copy
-        var CapturedEnemy =  JSON.parse(JSON.stringify(dataActor));
-        
+        var CapturedEnemy = JSON.parse(JSON.stringify(dataActor));
+
         // give a new id
         CapturedEnemy.id = $dataActors.length;
         // give a new starting level
