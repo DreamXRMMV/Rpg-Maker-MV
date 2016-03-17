@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.6 Random prefixes/affixes
+ * @plugindesc v1.7 Random prefixes/affixes
  * @author DreamX
  * @help 
  * Add <prefix:x,y,z> and/or <affix:x,y,z> to a weapon/armor's note 
@@ -102,6 +102,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         }
 
         newItem = JSON.parse(JSON.stringify(item));
+        newItem.note += "\n";
 
         if (prefixItem) {
             newItem.name = prefixItem.name + " " + newItem.name;
@@ -110,7 +111,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
                 newItem.params[i] += prefixItem.params[i];
             }
             newItem.price += prefixItem.price;
-            newItem.note += prefixItem.note;
+            newItem.note += prefixItem.note + "\n";
             for (notetag in prefixItem.meta) {
                 newItem.meta[notetag] = prefixItem.meta[notetag];
             }
@@ -128,7 +129,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
                 newItem.params[i] += affixItem.params[i];
             }
             newItem.price += affixItem.price;
-            newItem.note += affixItem.note;
+            newItem.note += affixItem.note + "\n";
             for (notetag in affixItem.meta) {
                 newItem.meta[notetag] = affixItem.meta[notetag];
             }
@@ -148,6 +149,10 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         delete newItem.meta.prefix;
         delete newItem.meta.affix;
 
+        if (Imported.YEP_ItemCore) {
+            DreamX.RandomPrefixAffix.RescanItemCoreNote(newItem);
+        }
+
         newItem.id = item.wtypeId ? $dataWeapons.length : $dataArmors.length;
         if (item.wtypeId) {
             $dataWeapons.push(newItem);
@@ -156,6 +161,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
             $dataArmors.push(newItem);
             $gameSystem.randomGenArmors.push(newItem);
         }
+        console.log(newItem);
         return newItem;
     };
 
@@ -216,6 +222,62 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
             }
             return DreamX.RandomPrefixAffix.DataManager_isIndependent.call(this, item);
         };
+
+        DreamX.RandomPrefixAffix.RescanItemCoreNote = function (item) {
+            var note1 = /<(?:RANDOM VARIANCE):[ ](\d+)>/i;
+            var note2 = /<(?:NONINDEPENDENT ITEM|not independent item)>/i;
+            var note3 = /<(?:PRIORITY NAME)>/i;
+
+            var obj = item;
+            var notedata = obj.note.split(/[\r\n]+/);
+
+            obj.randomVariance = Yanfly.Param.ItemRandomVariance;
+            obj.textColor = 0;
+            if (Imported.YEP_CoreEngine)
+                obj.textColor = Yanfly.Param.ColorNormal;
+            obj.nonIndepdent = false;
+            obj.setPriorityName = false;
+            obj.infoEval = '';
+            obj.infoTextTop = '';
+            obj.infoTextBottom = '';
+            var evalMode = 'none';
+
+            for (var i = 0; i < notedata.length; i++) {
+                var line = notedata[i];
+                if (line.match(note1)) {
+                    obj.randomVariance = parseInt(RegExp.$1);
+                } else if (line.match(note2)) {
+                    obj.nonIndepdent = true;
+                } else if (line.match(note3)) {
+                    obj.setPriorityName = true;
+                } else if (line.match(/<(?:INFO EVAL)>/i)) {
+                    evalMode = 'info eval';
+                } else if (line.match(/<\/(?:INFO EVAL)>/i)) {
+                    evalMode = 'none';
+                } else if (line.match(/<(?:INFO TEXT TOP)>/i)) {
+                    evalMode = 'info text top';
+                } else if (line.match(/<\/(?:INFO TEXT TOP)>/i)) {
+                    evalMode = 'none';
+                } else if (line.match(/<(?:INFO TEXT BOTTOM)>/i)) {
+                    evalMode = 'info text bottom';
+                } else if (line.match(/<\/(?:INFO TEXT BOTTOM)>/i)) {
+                    evalMode = 'none';
+                } else if (evalMode === 'info eval') {
+                    obj.infoEval = obj.infoEval + line + '\n';
+                } else if (evalMode === 'info text top') {
+                    if (obj.infoTextTop !== '')
+                        obj.infoTextTop += '\n';
+                    obj.infoTextTop = obj.infoTextTop + line;
+                } else if (evalMode === 'info text bottom') {
+                    if (obj.infoTextBottom !== '')
+                        obj.infoTextBottom += '\n';
+                    obj.infoTextBottom = obj.infoTextBottom + line;
+                } else if (line.match(/<(?:TEXT COLOR):[ ](\d+)>/i)) {
+                    obj.textColor = parseInt(RegExp.$1);
+                }
+            }
+        };
+
     }
 
 })();
