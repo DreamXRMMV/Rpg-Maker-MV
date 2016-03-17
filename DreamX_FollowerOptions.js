@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.05 Choose which party members appear as followers or in battle.
+ * @plugindesc v1.06 Choose which party members appear as followers or in battle.
  *
  * <DreamX Follower and Battle Member Options>
  * @author DreamX
@@ -284,6 +284,12 @@ DreamX.FollowerOptions = DreamX.FollowerOptions || {};
         }
         return followers.slice(0, parseInt(eval(parameterMaxFollowers) + 1));
     };
+    
+    DreamX.FollowerOptions.Game_Party_setupBattleTestMembers = Game_Party.prototype.setupBattleTestMembers;
+    Game_Party.prototype.setupBattleTestMembers = function() {
+        DreamX.FollowerOptions.Game_Party_setupBattleTestMembers.call(this);
+        this._actors.slice(0,this.maxBattleMembers());
+};
 
 //=============================================================================
 // Compatibility
