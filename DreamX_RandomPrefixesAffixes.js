@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.7 Random prefixes/affixes
+ * @plugindesc v1.8 Random prefixes/affixes
  * @author DreamX
  * @help 
  * Add <prefix:x,y,z> and/or <affix:x,y,z> to a weapon/armor's note 
@@ -152,6 +152,12 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         if (Imported.YEP_ItemCore) {
             DreamX.RandomPrefixAffix.RescanItemCoreNote(newItem);
         }
+        if (Imported.YEP_AutoPassiveStates) {
+            DreamX.RandomPrefixAffix.RescanAutoPassiveStatesNote(newItem);
+        }
+        if (Imported.YEP_BuffsStatesCore) {
+            DreamX.RandomPrefixAffix.RescanBuffsStatesCoreNote(newItem);
+        }
 
         newItem.id = item.wtypeId ? $dataWeapons.length : $dataArmors.length;
         if (item.wtypeId) {
@@ -277,7 +283,88 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
                 }
             }
         };
-
     }
 
+    if (Imported.YEP_AutoPassiveStates) {
+        DreamX.RandomPrefixAffix.RescanAutoPassiveStatesNote = function (item) {
+            var note1 = /<(?:PASSIVE STATE):[ ]*(\d+(?:\s*,\s*\d+)*)>/i;
+            var note2 = /<(?:PASSIVE STATE):[ ](\d+)[ ](?:THROUGH|to)[ ](\d+)>/i;
+            var obj = item;
+            var notedata = obj.note.split(/[\r\n]+/);
+
+            obj.passiveStates = [];
+
+            for (var i = 0; i < notedata.length; i++) {
+                var line = notedata[i];
+                if (line.match(note1)) {
+                    var array = JSON.parse('[' + RegExp.$1.match(/\d+/g) + ']');
+                    obj.passiveStates = obj.passiveStates.concat(array);
+                } else if (line.match(note2)) {
+                    var range = Yanfly.Util.getRange(parseInt(RegExp.$1),
+                            parseInt(RegExp.$2));
+                    obj.passiveStates = obj.passiveStates.concat(range);
+                }
+            }
+        };
+    }
+
+    if (Imported.YEP_BuffsStatesCore) {
+        DreamX.RandomPrefixAffix.RescanBuffsStatesCoreNote = function (item) {
+            var obj = item;
+            var notedata = obj.note.split(/[\r\n]+/);
+
+            obj.maxBuff = [0, 0, 0, 0, 0, 0, 0, 0];
+            obj.maxDebuff = [0, 0, 0, 0, 0, 0, 0, 0];
+
+            for (var i = 0; i < notedata.length; i++) {
+                var line = notedata[i];
+                if (line.match(/<(?:MAX)[ ](.*)[ ](?:BUFF):[ ]([\+\-]\d+)>/i)) {
+                    var paramId = 8;
+                    var stat = String(RegExp.$1).toUpperCase();
+                    var limit = parseInt(RegExp.$2);
+                    if (['MAXHP', 'MAX HP', 'MHP', 'HP'].contains(stat)) {
+                        paramId = 0;
+                    } else if (['MAXMP', 'MAX MP', 'MMP', 'MP'].contains(stat)) {
+                        paramId = 1;
+                    } else if (['ATK', 'STR'].contains(stat)) {
+                        paramId = 2;
+                    } else if (['DEF'].contains(stat)) {
+                        paramId = 3;
+                    } else if (['MAT', 'INT'].contains(stat)) {
+                        paramId = 4;
+                    } else if (['MDF', 'RES'].contains(stat)) {
+                        paramId = 5;
+                    } else if (['AGI', 'SPD'].contains(stat)) {
+                        paramId = 6;
+                    } else if (['LUK'].contains(stat)) {
+                        paramId = 7;
+                    }
+                    obj.maxBuff[paramId] = limit;
+                } else if (line.match(/<(?:MAX)[ ](.*)[ ](?:DEBUFF):[ ]([\+\-]\d+)>/i)) {
+                    var paramId = 8;
+                    var stat = String(RegExp.$1).toUpperCase();
+                    var limit = parseInt(RegExp.$2);
+                    if (['MAXHP', 'MAX HP', 'MHP', 'HP'].contains(stat)) {
+                        paramId = 0;
+                    } else if (['MAXMP', 'MAX MP', 'MMP', 'MP'].contains(stat)) {
+                        paramId = 1;
+                    } else if (['ATK', 'STR'].contains(stat)) {
+                        paramId = 2;
+                    } else if (['DEF'].contains(stat)) {
+                        paramId = 3;
+                    } else if (['MAT', 'INT'].contains(stat)) {
+                        paramId = 4;
+                    } else if (['MDF', 'RES'].contains(stat)) {
+                        paramId = 5;
+                    } else if (['AGI', 'SPD'].contains(stat)) {
+                        paramId = 6;
+                    } else if (['LUK'].contains(stat)) {
+                        paramId = 7;
+                    }
+                    obj.maxDebuff[paramId] = limit;
+                }
+            }
+        };
+    }
+    
 })();
