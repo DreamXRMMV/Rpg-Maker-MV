@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.8 Random prefixes/affixes
+ * @plugindesc v1.9 Random prefixes/affixes
  * @author DreamX
  * @help 
  * Add <prefix:x,y,z> and/or <affix:x,y,z> to a weapon/armor's note 
@@ -101,6 +101,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
             return item;
         }
 
+        // make a deep copy
         newItem = JSON.parse(JSON.stringify(item));
         newItem.note += "\n";
 
@@ -111,6 +112,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
                 newItem.params[i] += prefixItem.params[i];
             }
             newItem.price += prefixItem.price;
+            newItem.description += prefixItem.description;
             newItem.note += prefixItem.note + "\n";
             for (notetag in prefixItem.meta) {
                 newItem.meta[notetag] = prefixItem.meta[notetag];
@@ -129,6 +131,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
                 newItem.params[i] += affixItem.params[i];
             }
             newItem.price += affixItem.price;
+            newItem.description += affixItem.description;
             newItem.note += affixItem.note + "\n";
             for (notetag in affixItem.meta) {
                 newItem.meta[notetag] = affixItem.meta[notetag];
@@ -148,6 +151,8 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         // remove the affixes and prefixes from meta. we don't want repeats
         delete newItem.meta.prefix;
         delete newItem.meta.affix;
+        
+        //console.log(newItem.description);
 
         if (Imported.YEP_ItemCore) {
             DreamX.RandomPrefixAffix.RescanItemCoreNote(newItem);
