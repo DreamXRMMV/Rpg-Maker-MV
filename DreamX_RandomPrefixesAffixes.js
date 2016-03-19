@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.9 Random prefixes/affixes
+ * @plugindesc v1.10 Random prefixes/affixes
  * @author DreamX
  * @help 
  * Add <prefix:x,y,z> and/or <affix:x,y,z> to a weapon/armor's note 
@@ -65,6 +65,24 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         }
         for (var i = 0; i < $gameSystem.randomGenArmors.length; i++) {
             $dataArmors.push($gameSystem.randomGenArmors[i]);
+        }
+        if (Imported.YEP_ItemCore) {
+            if (Yanfly.Param.ItemMaxWeapons > 0) {
+                var sortedWeaponPart = $dataWeapons.splice(Yanfly.Param.ItemStartingId + 1, $dataWeapons.length);
+                sortedWeaponPart.sort(function (a, b) {
+                    return a.id - b.id;
+                });
+
+                $dataWeapons = $dataWeapons.concat(sortedWeaponPart);
+            } else {
+                var sortedArmorPart = $dataArmors.splice(Yanfly.Param.ItemStartingId + 1, $dataArmors.length);
+                sortedArmorPart.sort(function (a, b) {
+                    return a.id - b.id;
+                });
+
+                $dataArmors = $dataArmors.concat(sortedArmorPart);
+            }
+
         }
     };
 
@@ -151,7 +169,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         // remove the affixes and prefixes from meta. we don't want repeats
         delete newItem.meta.prefix;
         delete newItem.meta.affix;
-        
+
         //console.log(newItem.description);
 
         if (Imported.YEP_ItemCore) {
@@ -371,5 +389,5 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
             }
         };
     }
-    
+
 })();
