@@ -1,20 +1,28 @@
 /*:
- * @plugindesc v1.10 Random prefixes/affixes
+ * @plugindesc v1.11 Random prefixes/affixes
  * @author DreamX
- * @help 
- * Add <prefix:x,y,z> and/or <affix:x,y,z> to a weapon/armor's note 
+ *
+ * @param Default Chance
+ * @desc If using chances for the prefix/affix, this is the default chance.
+ * @default 10
+ *
+ * @help
+ * This plugin must be named DreamX_RandomPrefixesAffixes in order for
+ * parameters to work properly.
+ *
+ * Add <prefix:x,y,z> and/or <affix:x,y,z> to a weapon/armor's note
  * with the letters being weapon/armor ids. You can have as many ids
- * as you want. The ids must be the same type as the base item, 
+ * as you want. The ids must be the same type as the base item,
  * ie. weapon ids for a weapon, etc.
  * When the party gains that equipment, it'll randomly choose a prefix
- * and/or affix and add the traits, params, price and meta to a new item, 
- * also changing the name. The new item is then added instead of the 
+ * and/or affix and add the traits, params, price and meta to a new item,
+ * also changing the name. The new item is then added instead of the
  * base item.
  *
  * Example: <prefix:2,4,8,12,26> <affix:7,2>
  * If the base item is named "Sword", the prefix item is named "Strong"
  * and the affix item is named "Of Fire"
- * You would get Strong Sword Of Fire. 
+ * You would get Strong Sword Of Fire.
  *
  * If a prefix or affix item has <prefixAffixReplaceAnim:1> then its
  * anim will be used for the new item.
@@ -22,14 +30,44 @@
  * If a prefix or affix item has <prefixAffixReplaceIcon:1> then its
  * icon will be used for the new item.
  *
- * The new item have the traits of both prefix and affix items and add their 
- * params. For example, if the prefix item has +10 ATK and the base item has 
+ * The new item have the traits of both prefix and affix items and add their
+ * params. For example, if the prefix item has +10 ATK and the base item has
  * +20 ATK, the new item wil have +30 ATK.
  * Meta will be a combination of the prefix and affix item meta, in other words,
  * the notetags.
  * Price will be the original plus the prices of the prefix and affix item.
- * Note will be the notes of the original, the prefix and the affix items 
+ * Note will be the notes of the original, the prefix and the affix items
  * except that the meta and prefix notetag portions will be removed.
+ *
+ * If you use the wrong notetags for the prefix/affix (like IDs that don't
+ * exist), the player simply doesn't get an item instead of the game crashing.
+ *
+ * Use <prefixAffixChance:x> with x being the percent chance of getting that
+ * prefix or affix.
+ * Example: <prefixAffixChance:25> for a 25% chance.
+ *
+ * Every prefix/affix with the same percentage gets added to the same percentage
+ * pool.
+ * A random number between 1 and 100 will be generated and the lowest
+ * percentage pool that the random number is less than or equal to will be
+ * chosen.
+ *
+ * For example, if the pools are 10%, 20% and 30% and the random number was 15,
+ * you get a prefix/affix from the pool with percentage 20%.
+ *
+ * If you get over the highest percentage, you will get one of the
+ * prefixes/affixes from the highest percentage pool. Having a combined
+ * percentage (total of all chances for all prefix/affix choices for a base
+ * item) of 100 is recommended but not required.
+ *
+ * If none of the prefix or affix items for the base item have a chance notetag,
+ * then the item will be randomly chosen as normal with each prefix or affix
+ * having an equal probability.
+ *
+ * If at least one but not all of the prefix/affix items for the base item has
+ * a chance notetag, then the prefix/affixes that don't have a percent notetag
+ * will be assigned the default chance specified in the parameter for this
+ * plugin.
  * ============================================================================
  * Terms Of Use
  * ============================================================================
@@ -50,7 +88,17 @@ var DreamX = DreamX || {};
 DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
 
 (function () {
-    DreamX.RandomPrefixAffix.Game_System_initialize = Game_System.prototype.initialize;
+
+    //==========================================================================
+    // Parameter Variables
+    //==========================================================================
+
+    var parameters = PluginManager.parameters('DreamX_RandomPrefixesAffixes');
+
+    var paramDefaultChance = parseInt(parameters['Default Chance'] || 10);
+
+    DreamX.RandomPrefixAffix.Game_System_initialize
+            = Game_System.prototype.initialize;
     Game_System.prototype.initialize = function () {
         DreamX.RandomPrefixAffix.Game_System_initialize.call(this);
         this.randomGenWeapons = [];
@@ -74,7 +122,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
                 });
 
                 $dataWeapons = $dataWeapons.concat(sortedWeaponPart);
-            } else {
+            } else if (Yanfly.Param.ItemMaxArmors > 0) {
                 var sortedArmorPart = $dataArmors.splice(Yanfly.Param.ItemStartingId + 1, $dataArmors.length);
                 sortedArmorPart.sort(function (a, b) {
                     return a.id - b.id;
@@ -84,6 +132,72 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
             }
 
         }
+    };
+
+
+    DreamX.RandomPrefixAffix.makeChoices = function (arrayOfIDs, dataType) {
+        var mapArray = [];
+        var percentMap = new Map();
+        var diceRoll;
+        var choseIDPool = false;
+        var poolIndex;
+
+        // get rid of bad ids
+        for (var i = 0; i < arrayOfIDs.length; i++) {
+            if (!dataType[ arrayOfIDs[i] ]) {
+                arrayOfIDs.splice(i, 1);
+                i--;
+            }
+        }
+
+        // first test if there are any percents among the ids
+        var hasPercent = arrayOfIDs.some(function (id) {
+            return dataType[id].meta.prefixAffixChance;
+        });
+
+        // if no percents, just return the array
+        if (hasPercent === false) {
+            return arrayOfIDs;
+        }
+
+        for (var i = 0; i < arrayOfIDs.length; i++) {
+            var percent = dataType[ arrayOfIDs[i] ].meta.prefixAffixChance
+                    ? dataType[ arrayOfIDs[i] ].meta.prefixAffixChance : paramDefaultChance;
+            if (percentMap.has(percent)) {
+                // push into array
+                percentMap.get(percent).push(arrayOfIDs[i]);
+            } else {
+                // put in an array
+                percentMap.set(percent, [arrayOfIDs[i]]);
+            }
+        }
+
+        // get everything from the map
+        percentMap.forEach(function (value, key, map) {
+            // push an object with the percent and ids
+            mapArray.push({percent: key, ids: value});
+        });
+
+        // sort the array from lowest percent to highest
+        mapArray.sort(function (a, b) {
+            return a.percent - b.percent;
+        });
+
+        //roll the dice
+        diceRoll = Math.floor((Math.random() * 100) + 1);
+
+        if (diceRoll <= mapArray[mapArray.length - 1].percent) {
+            for (i = 0; i < mapArray.length && !choseIDPool; i++) {
+                if (mapArray[i].percent >= diceRoll) {
+                    poolIndex = i;
+                    choseIDPool = true;
+                }
+            }
+        } else {
+            poolIndex = mapArray.length - 1;
+        }
+
+        return mapArray[poolIndex].ids;
     };
 
     DreamX.RandomPrefixAffix.makeItem = function (item) {
@@ -98,25 +212,34 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         var prefixItem;
         var affixItem;
 
+        // weapon or armor
+        var dataType = item.wtypeId ? $dataWeapons : $dataArmors;
+
         if (item.meta.prefix) {
-            prefixChoices = item.meta.prefix.trim().split(",");
-            var prefixID = prefixChoices[Math.floor(Math.random() * prefixChoices.length)];
-            if ($dataWeapons[prefixID] || $dataArmors[prefixID]) {
+            prefixSplit = item.meta.prefix.trim().split(",");
+            prefixChoices = this.makeChoices(prefixSplit, item.wtypeId
+                    ? $dataWeapons : $dataArmors);
+
+            if (prefixChoices.length >= 1) {
+                var prefixID = prefixChoices[Math.floor(Math.random() * prefixChoices.length)];
                 prefixItem = item.wtypeId ? $dataWeapons[prefixID] : $dataArmors[prefixID];
             }
-
         }
         if (item.meta.affix) {
-            affixChoices = item.meta.affix.trim().split(",");
-            var affixID = affixChoices[Math.floor(Math.random() * affixChoices.length)];
-            if ($dataWeapons[affixID] || $dataArmors[affixID]) {
+            affixSplit = item.meta.affix.trim().split(",");
+            affixChoices = this.makeChoices(affixSplit, item.wtypeId
+                    ? $dataWeapons : $dataArmors);
+
+            if (affixChoices.length >= 1) {
+                var affixID = affixChoices[Math.floor(Math.random() * affixChoices.length)];
                 affixItem = item.wtypeId ? $dataWeapons[affixID] : $dataArmors[affixID];
             }
         }
 
-        // if incorrect notetag configuration, just return original item
+        // if incorrect notetag configuration, return undefined
+        // (player doesn't get an item)
         if (!prefixItem && !affixItem) {
-            return item;
+            return undefined;
         }
 
         // make a deep copy
@@ -170,18 +293,6 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         delete newItem.meta.prefix;
         delete newItem.meta.affix;
 
-        //console.log(newItem.description);
-
-        if (Imported.YEP_ItemCore) {
-            DreamX.RandomPrefixAffix.RescanItemCoreNote(newItem);
-        }
-        if (Imported.YEP_AutoPassiveStates) {
-            DreamX.RandomPrefixAffix.RescanAutoPassiveStatesNote(newItem);
-        }
-        if (Imported.YEP_BuffsStatesCore) {
-            DreamX.RandomPrefixAffix.RescanBuffsStatesCoreNote(newItem);
-        }
-
         newItem.id = item.wtypeId ? $dataWeapons.length : $dataArmors.length;
         if (item.wtypeId) {
             $dataWeapons.push(newItem);
@@ -190,11 +301,163 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
             $dataArmors.push(newItem);
             $gameSystem.randomGenArmors.push(newItem);
         }
-        console.log(newItem);
+
+        if (Imported.YEP_AbsorptionBarrier) {
+            DataManager.processABRNotetags2(dataType);
+        }
+        if (Imported.YEP_AutoPassiveStates) {
+            DataManager.processAPSNotetags1(dataType);
+        }
+        if (Imported.YEP_BattleEngineCore) {
+            DataManager.processBECNotetags4(dataType);
+            DataManager.processBECNotetags5(dataType);
+        }
+        if (Imported.YEP_BuffsStatesCore) {
+            DataManager.processBSCNotetags2(dataType);
+        }
+        if (Imported.YEP_CoreEngine) {
+            DataManager.processCORENotetags1(dataType);
+        }
+        if (Imported.YEP_DamageCore) {
+            DataManager.processDMGNotetags2(dataType);
+        }
+        if (Imported.YEP_DashToggle) {
+            DataManager.processDashNotetags1(dataType);
+        }
+        if (Imported.YEP_ElementAbsorb) {
+            DataManager.processEleAbsNotetags1(dataType);
+        }
+        if (Imported.YEP_ElementReflect) {
+            DataManager.processEleRefNotetags1(dataType);
+        }
+        if (Imported.YEP_EquipCore) {
+            DataManager.processEquipNotetags2(dataType);
+        }
+        if (Imported.YEP_ExtraEnemyDrops) {
+            if (item.wtypeId) {
+                DataManager.processEEDNotetagsW($dataWeapons);
+            } else {
+                DataManager.processEEDNotetagsA($dataArmors);
+            }
+        }
+        if (Imported.YEP_ExtraParamFormula) {
+            DataManager.processXParamNotetags(dataType);
+        }
+        if (Imported.YEP_InstantCast) {
+            DataManager.processInstantNotetags2(dataType);
+        }
+        if (Imported.YEP_ItemCore) {
+            DataManager.processItemCoreNotetags(dataType);
+        }
+        if (Imported.YEP_ItemSynthesis) {
+            if (item.wtypeId) {
+                DataManager.processISNotetagsW($dataWeapons);
+            } else {
+                DataManager.processISNotetagsA($dataArmors);
+            }
+        }
+        if (Imported.YEP_JobPoints) {
+            DataManager.processJPNotetags4(dataType);
+        }
+        if (Imported.YEP_LifeSteal) {
+            DataManager.processLSNotetags1(dataType);
+        }
+        if (Imported.YEP_RowFormation) {
+            DataManager.processRowNotetags3(dataType);
+        }
+        if (Imported.YEP_ShopMenuCore) {
+            DataManager.processShopNotetags(dataType);
+        }
+        if (Imported.YEP_SkillCore) {
+            DataManager.processGSCNotetags2(dataType);
+        }
+        if (Imported.YEP_SkillLearnSystem) {
+            if (item.wtypeId) {
+                DataManager.processSLSNotetagsW($dataWeapons);
+            } else {
+                DataManager.processSLSNotetagsA($dataArmors);
+            }
+        }
+        if (Imported.YEP_SpecialParamFormula) {
+            DataManager.processSParamNotetags(dataType);
+        }
+        if (Imported.YEP_Template) {
+            DataManager.processStealNotetags3(dataType);
+            DataManager.processStealNotetags4(dataType);
+            if (item.wtypeId) {
+                DataManager.processStealNotetagsW($dataWeapons);
+            } else {
+                DataManager.processStealNotetagsA($dataArmors);
+            }
+        }
+        if (Imported.YEP_Taunt) {
+            DataManager.processTauntNotetags1(dataType);
+        }
+        if (Imported.YEP_WeaponAnimation) {
+            DataManager.processWANotetags1(dataType);
+        }
+        if (Imported.YEP_WeaponUnleash) {
+            DataManager.processWULNotetags1(dataType);
+        }
+        if (Imported.YEP_X_ArmorScaling) {
+            DataManager.processARSNotetags2(dataType);
+        }
+        if (Imported.YEP_X_BattleSysATB) {
+            DataManager.processATBNotetags2(dataType);
+        }
+        if (Imported.YEP_X_BattleSysCTB) {
+            DataManager.processCTBNotetags2(dataType);
+        }
+        if (Imported.YEP_X_ChangeBattleEquip) {
+            DataManager.processCBENotetags(dataType);
+        }
+        if (Imported.YEP_X_CounterControl) {
+            DataManager.processCounterNotetags2(dataType);
+            if (item.wtypeId) {
+                DataManager.processCounterNotetagsW($dataWeapons);
+            } else {
+                DataManager.processCounterNotetagsA($dataArmors);
+            }
+        }
+        if (Imported.YEP_X_CriticalControl) {
+            DataManager.processCritNotetags2(dataType);
+        }
+        if (Imported.YEP_X_EquipRequirements) {
+            DataManager.processEqReqNotetags1(dataType);
+        }
+        if (Imported.YEP_X_ItemDurability) {
+            DataManager.processIDurNotetags1(dataType);
+            DataManager.processIDurNotetags2(dataType);
+        }
+        if (Imported.YEP_X_ItemUpgrades) {
+            DataManager.processUpgradeNotetags1(dataType);
+        }
+        if (Imported.YEP_X_LimitedSkillUses) {
+            DataManager.processLSUNotetags3(dataType);
+        }
+        if (Imported.YEP_X_MoreCurrencies) {
+            if (item.wtypeId) {
+                DataManager.processMCNotetags1($dataWeapons, 1);
+            } else {
+                DataManager.processMCNotetags1($dataArmors, 2);
+            }
+        }
+        if (Imported.YEP_X_PartyLimitGauge) {
+            DataManager.processPLGNotetags2(dataType);
+        }
+        if (Imported.YEP_X_SkillCostItems) {
+            DataManager.processSCINotetags2(dataType);
+            DataManager.processSCINotetags3(dataType);
+        }
+        if (Imported.YEP_X_SkillCooldowns) {
+            DataManager.processSCDNotetags2(dataType);
+            DataManager.processSCDNotetags3(dataType);
+        }
+
         return newItem;
     };
 
-    // since the new item names don't show up by default, must alias this and 
+    // since the new item names don't show up by default, must alias this and
     // make the new items before hand
     DreamX.RandomPrefixAffix.BattleManager_displayDropItems = BattleManager.displayDropItems;
     BattleManager.displayDropItems = function () {
@@ -252,142 +515,6 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
             return DreamX.RandomPrefixAffix.DataManager_isIndependent.call(this, item);
         };
 
-        DreamX.RandomPrefixAffix.RescanItemCoreNote = function (item) {
-            var note1 = /<(?:RANDOM VARIANCE):[ ](\d+)>/i;
-            var note2 = /<(?:NONINDEPENDENT ITEM|not independent item)>/i;
-            var note3 = /<(?:PRIORITY NAME)>/i;
-
-            var obj = item;
-            var notedata = obj.note.split(/[\r\n]+/);
-
-            obj.randomVariance = Yanfly.Param.ItemRandomVariance;
-            obj.textColor = 0;
-            if (Imported.YEP_CoreEngine)
-                obj.textColor = Yanfly.Param.ColorNormal;
-            obj.nonIndepdent = false;
-            obj.setPriorityName = false;
-            obj.infoEval = '';
-            obj.infoTextTop = '';
-            obj.infoTextBottom = '';
-            var evalMode = 'none';
-
-            for (var i = 0; i < notedata.length; i++) {
-                var line = notedata[i];
-                if (line.match(note1)) {
-                    obj.randomVariance = parseInt(RegExp.$1);
-                } else if (line.match(note2)) {
-                    obj.nonIndepdent = true;
-                } else if (line.match(note3)) {
-                    obj.setPriorityName = true;
-                } else if (line.match(/<(?:INFO EVAL)>/i)) {
-                    evalMode = 'info eval';
-                } else if (line.match(/<\/(?:INFO EVAL)>/i)) {
-                    evalMode = 'none';
-                } else if (line.match(/<(?:INFO TEXT TOP)>/i)) {
-                    evalMode = 'info text top';
-                } else if (line.match(/<\/(?:INFO TEXT TOP)>/i)) {
-                    evalMode = 'none';
-                } else if (line.match(/<(?:INFO TEXT BOTTOM)>/i)) {
-                    evalMode = 'info text bottom';
-                } else if (line.match(/<\/(?:INFO TEXT BOTTOM)>/i)) {
-                    evalMode = 'none';
-                } else if (evalMode === 'info eval') {
-                    obj.infoEval = obj.infoEval + line + '\n';
-                } else if (evalMode === 'info text top') {
-                    if (obj.infoTextTop !== '')
-                        obj.infoTextTop += '\n';
-                    obj.infoTextTop = obj.infoTextTop + line;
-                } else if (evalMode === 'info text bottom') {
-                    if (obj.infoTextBottom !== '')
-                        obj.infoTextBottom += '\n';
-                    obj.infoTextBottom = obj.infoTextBottom + line;
-                } else if (line.match(/<(?:TEXT COLOR):[ ](\d+)>/i)) {
-                    obj.textColor = parseInt(RegExp.$1);
-                }
-            }
-        };
-    }
-
-    if (Imported.YEP_AutoPassiveStates) {
-        DreamX.RandomPrefixAffix.RescanAutoPassiveStatesNote = function (item) {
-            var note1 = /<(?:PASSIVE STATE):[ ]*(\d+(?:\s*,\s*\d+)*)>/i;
-            var note2 = /<(?:PASSIVE STATE):[ ](\d+)[ ](?:THROUGH|to)[ ](\d+)>/i;
-            var obj = item;
-            var notedata = obj.note.split(/[\r\n]+/);
-
-            obj.passiveStates = [];
-
-            for (var i = 0; i < notedata.length; i++) {
-                var line = notedata[i];
-                if (line.match(note1)) {
-                    var array = JSON.parse('[' + RegExp.$1.match(/\d+/g) + ']');
-                    obj.passiveStates = obj.passiveStates.concat(array);
-                } else if (line.match(note2)) {
-                    var range = Yanfly.Util.getRange(parseInt(RegExp.$1),
-                            parseInt(RegExp.$2));
-                    obj.passiveStates = obj.passiveStates.concat(range);
-                }
-            }
-        };
-    }
-
-    if (Imported.YEP_BuffsStatesCore) {
-        DreamX.RandomPrefixAffix.RescanBuffsStatesCoreNote = function (item) {
-            var obj = item;
-            var notedata = obj.note.split(/[\r\n]+/);
-
-            obj.maxBuff = [0, 0, 0, 0, 0, 0, 0, 0];
-            obj.maxDebuff = [0, 0, 0, 0, 0, 0, 0, 0];
-
-            for (var i = 0; i < notedata.length; i++) {
-                var line = notedata[i];
-                if (line.match(/<(?:MAX)[ ](.*)[ ](?:BUFF):[ ]([\+\-]\d+)>/i)) {
-                    var paramId = 8;
-                    var stat = String(RegExp.$1).toUpperCase();
-                    var limit = parseInt(RegExp.$2);
-                    if (['MAXHP', 'MAX HP', 'MHP', 'HP'].contains(stat)) {
-                        paramId = 0;
-                    } else if (['MAXMP', 'MAX MP', 'MMP', 'MP'].contains(stat)) {
-                        paramId = 1;
-                    } else if (['ATK', 'STR'].contains(stat)) {
-                        paramId = 2;
-                    } else if (['DEF'].contains(stat)) {
-                        paramId = 3;
-                    } else if (['MAT', 'INT'].contains(stat)) {
-                        paramId = 4;
-                    } else if (['MDF', 'RES'].contains(stat)) {
-                        paramId = 5;
-                    } else if (['AGI', 'SPD'].contains(stat)) {
-                        paramId = 6;
-                    } else if (['LUK'].contains(stat)) {
-                        paramId = 7;
-                    }
-                    obj.maxBuff[paramId] = limit;
-                } else if (line.match(/<(?:MAX)[ ](.*)[ ](?:DEBUFF):[ ]([\+\-]\d+)>/i)) {
-                    var paramId = 8;
-                    var stat = String(RegExp.$1).toUpperCase();
-                    var limit = parseInt(RegExp.$2);
-                    if (['MAXHP', 'MAX HP', 'MHP', 'HP'].contains(stat)) {
-                        paramId = 0;
-                    } else if (['MAXMP', 'MAX MP', 'MMP', 'MP'].contains(stat)) {
-                        paramId = 1;
-                    } else if (['ATK', 'STR'].contains(stat)) {
-                        paramId = 2;
-                    } else if (['DEF'].contains(stat)) {
-                        paramId = 3;
-                    } else if (['MAT', 'INT'].contains(stat)) {
-                        paramId = 4;
-                    } else if (['MDF', 'RES'].contains(stat)) {
-                        paramId = 5;
-                    } else if (['AGI', 'SPD'].contains(stat)) {
-                        paramId = 6;
-                    } else if (['LUK'].contains(stat)) {
-                        paramId = 7;
-                    }
-                    obj.maxDebuff[paramId] = limit;
-                }
-            }
-        };
     }
 
 })();
