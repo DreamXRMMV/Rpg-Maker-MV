@@ -42,6 +42,16 @@
  *   - x is the tone to change to. It uses the current bgm. For example, if the 
  *   currently playing bgm is Temple-Normal and you used the plugin command 
  *   ChangeMusicTone Combat, the bgm will be changed to Temple-Combat.
+ * ============================================================================
+ * Terms Of Use
+ * ============================================================================
+ * Free to use and modify for commercial and noncommercial games, with credit.
+ * ============================================================================
+ * Credits
+ * ============================================================================
+ * DreamX
+ * Thanks to Zalerinian on Rpg Maker Web forums for code on how to check if a 
+ * file exists.
  */
 
 var Imported = Imported || {};
