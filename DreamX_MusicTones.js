@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v0.1
+ * @plugindesc v0.2
  * 
  * @param Battle Start Tone
  * @desc The tone to use when the battle starts.
@@ -35,6 +35,15 @@
  * for another audio file.
  * 
  * These files should have the same length and same loop points.
+ * 
+ *  This plugin requires Preload Manager and Web Audio Cache
+ *  
+ *  Within the Preload Manager JS file, you should also preload the BGM tones, 
+ *  like this (read the documentation for the js file for more information):
+ *  TDDP.bootPreloadBGM = [
+ *  "Field-Normal",
+ *  "Field-Combat"
+ *  ] 
  * ============================================================================
  * Plugin Commands
  * ============================================================================
@@ -62,6 +71,8 @@ DreamX.MusicTones = DreamX.MusicTones || {};
 
 (function () {
 
+
+
     DreamX.Parameters = PluginManager.parameters('DreamX_MusicTones');
     DreamX.Param = DreamX.Param || {};
 
@@ -83,6 +94,13 @@ DreamX.MusicTones = DreamX.MusicTones || {};
                 AudioManager.ChangeTone(args[0]);
                 break;
         }
+    };
+
+    DreamX.MusicTones.DataManager_loadDatabase = DataManager.loadDatabase;
+    DataManager.loadDatabase = function () {
+        DreamX.MusicTones.DataManager_loadDatabase.call(this);
+        if (!Imported.TDDP_PreloadManager)
+            throw "DreamX Music Tones requires PreloadManager";
     };
 
     DreamX.MusicTones.battleStartToneOn = function () {
