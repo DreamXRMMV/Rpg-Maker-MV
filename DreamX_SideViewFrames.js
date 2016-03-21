@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.3 Configure the number of frames and frame speed for SV.
+ * @plugindesc v1.4 Configure the number of frames and frame speed for SV.
  *
  * <DreamX Actor Sideview Frames>
  * @author DreamX
@@ -11,6 +11,10 @@
  * @param Frame Speed
  * @desc Speed of motions for actors. Default: 12
  * @default 12
+ * 
+ * @param Straight Loop
+ * @desc If frames go 1-2-3-1-2-3 instead of 1-2-3-2-1. Default: false
+ * @default false
  *
  * @param ---Compatibility---
  * @default
@@ -26,6 +30,14 @@
  * parameter for an actor.
  * Use <holders:1> to configure the enemy or actor to use holder style 
  * spritesheets(4 frames, 14 motions vertically).
+ * 
+ * Use <SVStraightLoop:true> on an actor or enemy to have a battler's frames 
+ * loop from 1-2-3-1-2-3 instead of 1-2-3-2-1, if the parameter Straight Loop 
+ * is false. This will override the parameter setting for that battler.
+ * Use <SVStraightLoop:false> on an actor or enemy to have a battler's frames 
+ * loop from 1-2-3-2-1,if the parameter Straight Loop is true. This will 
+ * override the parameter setting for battler.
+ * 
  * ============================================================================
  * Terms Of Use
  * ============================================================================
@@ -59,6 +71,8 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
     var paramActorFrames = parseInt(parameters['Frame Number'] || '3');
     var paramActorFrameSpeed = parseInt(parameters['Frame Speed'] || '12');
     var paramEnemyFrames = parseInt(parameters['Yanfly Enemy SV Frame Number'] || '3');
+    var paramStraightLoop = eval(parameters['Straight Loop'] || false);
+
     var holdersFrameCount = 4;
     var holdersMotionCount = 14;
 
@@ -98,6 +112,17 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
 
     Sprite_Battler.prototype.DXisHolders = function () {
         return this.DXBattlerMeta().holders ? true : false;
+    };
+
+    Sprite_Battler.prototype.DXIsStraightLoop = function () {
+        if (this.DXBattlerMeta().straightLoop) {
+            if (this.DXBattlerMeta().straightLoop.trim().match("true")) {
+                return true;
+            } else if (this.DXBattlerMeta().straightLoop.trim().match("false")) {
+                return false;
+            }
+        }
+        return paramStraightLoop;
     };
 
     Sprite_Battler.prototype.motions = function () {
@@ -164,16 +189,26 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
     Sprite_Battler.prototype.DXupdateMotionCount = function () {
         if (this._motion && ++this._motionCount >= this.motionSpeed()) {
             if (this._motion.loop) {
-                if (this._reverseFrame === false) {
-                    this._pattern++;
-                } else if (this._pattern >= 1) {
-                    this._pattern--;
-                }
+                if (this.DXIsStraightLoop() === false) {
+                    if (this._reverseFrame === false) {
+                        this._pattern++;
+                    } else if (this._pattern >= 1) {
+                        this._pattern--;
+                    }
 
-                if (this.DXNumFrames() - 1 === this._pattern) {
-                    this._reverseFrame = true;
-                } else if (this._pattern === 0) {
-                    this._reverseFrame = false;
+                    if (this.DXNumFrames() - 1 === this._pattern) {
+                        this._reverseFrame = true;
+                    } else if (this._pattern === 0) {
+                        this._reverseFrame = false;
+                    }
+                }
+                else {
+                    if (this._pattern === this.DXNumFrames() - 1) {
+                        this._pattern = 0;
+                    }
+                    else {
+                        this._pattern++;
+                    }
                 }
             } else if (this._pattern < this.DXNumFrames() - 1) {
                 this._pattern++;
