@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.4b Capture enemies 
+ * @plugindesc v1.4c Capture enemies 
  * 
  * <DreamX Capture Enemies>
  * @author DreamX
@@ -41,8 +41,12 @@
  * when capturing the same type. Default: false
  * @default false
  * 
+ * @param Use Standard Level Up Message
+ * @desc Whether to use the standard level up message instead of a custom one. Default: true
+ * @default true
+ * 
  * @param Level Up Message
- * @desc The message to display if an actor leveled up instead of being 
+ * @desc The custom message to display if an actor leveled up instead of being 
  * duplicated on capture. Default: %3 leveled up!
  * @default %3 leveled up!
  *
@@ -124,6 +128,8 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
             || false);
     var paramLevelUpNoDuplicate = eval(parameters['Level Up Instead of Duplicates']
             || false);
+    var paramDefaultLevelUpMsg = eval(parameters['Use Standard Level Up Message']
+            || true);
 
     DreamX.CaptureEnemy.Game_Interpreter_pluginCommand =
             Game_Interpreter.prototype.pluginCommand;
@@ -227,10 +233,10 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
             var actor = $gameParty.allMembers()[i];
             if (actor.actorId() === actorId || actor.baseActorId() === actorId) {
                 var newExp = actor.currentExp() + actor.nextRequiredExp();
-                actor.changeExp(newExp);
+                actor.changeExp(newExp, paramDefaultLevelUpMsg);
             }
         }
-        
+
     };
 
     DreamX.CaptureEnemy.Game_Action_applyItemUserEffect = Game_Action.prototype.applyItemUserEffect;
@@ -266,7 +272,10 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
             case "CaptureSuccess":
                 if (DreamX.CaptureEnemy.shouldLevelUpAnActor(newActorId)) {
                     DreamX.CaptureEnemy.levelUpDuplicateActors(newActorId);
-                    DreamX.CaptureEnemy.displayMessage(paramLvlUpMsg.format(targetName, troopName, actorName));
+                    if (paramDefaultLevelUpMsg === false) {
+                        DreamX.CaptureEnemy.displayMessage(paramLvlUpMsg.format(targetName, troopName, actorName));
+                    }
+
                     target._wasLevelUpCaptured = true;
                 } else {
                     var level = 1;
