@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.4 Capture enemies 
+ * @plugindesc v1.4a Capture enemies 
  * 
  * <DreamX Capture Enemies>
  * @author DreamX
@@ -160,6 +160,8 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
 
     DreamX.CaptureEnemy.Game_Enemy_exp = Game_Enemy.prototype.exp;
     Game_Enemy.prototype.exp = function () {
+        console.log("this._wasCaptured " + this._wasCaptured);
+        console.log("this._wasLevelUpCaptured " + this._wasLevelUpCaptured);
         if ((paramEXPFromCapture === false)
                 && (this._wasCaptured === true
                         || this._wasLevelUpCaptured === true)) {
@@ -267,7 +269,7 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
                 if (DreamX.CaptureEnemy.shouldLevelUpAnActor(newActorId)) {
                     DreamX.CaptureEnemy.levelUpDuplicateActors(newActorId);
                     DreamX.CaptureEnemy.displayMessage(paramLvlUpMsg.format(targetName, troopName, actorName));
-                    target._wasLevelUpCaptured;
+                    target._wasLevelUpCaptured = true;
                 } else {
                     var level = 1;
                     if (target.level && target.level >= 1) {
