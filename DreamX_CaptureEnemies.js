@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.4c Capture enemies 
+ * @plugindesc v1.4d Capture enemies 
  * 
  * <DreamX Capture Enemies>
  * @author DreamX
@@ -298,12 +298,12 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
     DreamX.CaptureEnemy.performCollapse = Game_Enemy.prototype.performCollapse;
     Game_Enemy.prototype.performCollapse = function () {
         DreamX.CaptureEnemy.performCollapse.call(this);
-        var enemyName = this.originalName();
-        var troopName = $gameTroop.troop().name;
-        var actorId = this.enemy().meta.capture_actor_id;
-        var actorName = $dataActors[actorId].name;
 
         if (this._wasCaptured) {
+            var enemyName = this.originalName();
+            var troopName = $gameTroop.troop().name;
+            var actorId = this.enemy().meta.capture_actor_id;
+            var actorName = $dataActors[actorId].name;
             DreamX.CaptureEnemy.displayMessage(parameterCaptureSuccessMsg.format(enemyName, troopName, actorName));
         }
     };
