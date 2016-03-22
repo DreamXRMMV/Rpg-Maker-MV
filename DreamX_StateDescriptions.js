@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.0
+ * @plugindesc v1.01
  * @author DreamX
  *
  * @param Command Name
@@ -13,6 +13,8 @@
  * @help
  * This plugin requires Yanfly Status Menu Core. Place this plugin under it.
  * Use <stateDescription:x> with x as the description as a notetag for a state.
+ * Use <stateDescriptionHide:1> to prevent the state and it description from 
+ * appearing.
  * ============================================================================
  * Terms Of Use
  * ============================================================================
@@ -54,7 +56,7 @@ DreamX.StateDescriptions = DreamX.StateDescriptions || {};
     };
 
 
-    //=============================================================================
+//=============================================================================
 // Window_StatusInfo
 //=============================================================================
     DreamX.StateDescriptions.Window_StatusInfo_drawInfoContents =
@@ -70,7 +72,7 @@ DreamX.StateDescriptions = DreamX.StateDescriptions || {};
     DreamX.StateDescriptions.Window_StatusInfo_maxItems = Window_StatusInfo.prototype.maxItems;
     Window_StatusInfo.prototype.maxItems = function () {
         if (this._symbol === 'passives') {
-            return this._actor.states().length;
+            return this._actor.statusMenuDescriptionStates().length;
         }
         return DreamX.StateDescriptions.Window_StatusInfo_maxItems.call(this);
     };
@@ -79,7 +81,7 @@ DreamX.StateDescriptions = DreamX.StateDescriptions || {};
     Window_StatusInfo.prototype.drawItem = function (index) {
         DreamX.StateDescriptions.Window_StatusInfo_drawItem.call(this);
         if (this._symbol === 'passives') {
-            var state = this._actor.states()[index];
+            var state = this._actor.statusMenuDescriptionStates()[index];
 
             var iconBoxWidth = Window_Base._iconWidth + 4;
 
@@ -96,7 +98,7 @@ DreamX.StateDescriptions = DreamX.StateDescriptions || {};
     Window_StatusInfo.prototype.select = function (index) {
         DreamX.StateDescriptions.Window_StatusInfo_select.call(this, index);
         if (this._symbol === 'passives' && index >= 0) {
-            var meta = this._actor.states()[index].meta;
+            var meta = this._actor.statusMenuDescriptionStates()[index].meta;
             var text = meta.stateDescription ? meta.stateDescription : "";
             SceneManager._scene._helpWindow.setText(text);
         }
@@ -134,6 +136,15 @@ DreamX.StateDescriptions = DreamX.StateDescriptions || {};
         DreamX.StateDescriptions.Scene_Status_onInfoCancel.call(this);
         var actor = this.actor();
         this._helpWindow.setText(actor.profile());
+    };
+
+//=============================================================================
+// Game_Actor
+//=============================================================================
+    Game_Actor.prototype.statusMenuDescriptionStates = function () {
+        return this.states().filter(function (state) {
+            return !state.meta.stateDescriptionHide;
+        });
     };
 
 })();
