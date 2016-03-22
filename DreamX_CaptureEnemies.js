@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.4a Capture enemies 
+ * @plugindesc v1.4b Capture enemies 
  * 
  * <DreamX Capture Enemies>
  * @author DreamX
@@ -160,8 +160,6 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
 
     DreamX.CaptureEnemy.Game_Enemy_exp = Game_Enemy.prototype.exp;
     Game_Enemy.prototype.exp = function () {
-        console.log("this._wasCaptured " + this._wasCaptured);
-        console.log("this._wasLevelUpCaptured " + this._wasLevelUpCaptured);
         if ((paramEXPFromCapture === false)
                 && (this._wasCaptured === true
                         || this._wasLevelUpCaptured === true)) {
@@ -228,10 +226,11 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         for (var i = 0; i < $gameParty.allMembers().length; i++) {
             var actor = $gameParty.allMembers()[i];
             if (actor.actorId() === actorId || actor.baseActorId() === actorId) {
-                actor.levelUp();
-                return;
+                var newExp = actor.currentExp() + actor.nextRequiredExp();
+                actor.changeExp(newExp);
             }
         }
+        
     };
 
     DreamX.CaptureEnemy.Game_Action_applyItemUserEffect = Game_Action.prototype.applyItemUserEffect;
@@ -265,7 +264,6 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
                 DreamX.CaptureEnemy.displayMessage(parameterCaptureFailedMsg.format(targetName, troopName, actorName));
                 break;
             case "CaptureSuccess":
-                DreamX.CaptureEnemy.levelUpDuplicateActors(newActorId);
                 if (DreamX.CaptureEnemy.shouldLevelUpAnActor(newActorId)) {
                     DreamX.CaptureEnemy.levelUpDuplicateActors(newActorId);
                     DreamX.CaptureEnemy.displayMessage(paramLvlUpMsg.format(targetName, troopName, actorName));
