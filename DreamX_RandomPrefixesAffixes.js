@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.11 Random prefixes/affixes
+ * @plugindesc v1.12 Random prefixes/affixes
  * @author DreamX
  *
  * @param Default Chance
@@ -130,7 +130,6 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
 
                 $dataArmors = $dataArmors.concat(sortedArmorPart);
             }
-
         }
     };
 
@@ -200,7 +199,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         return mapArray[poolIndex].ids;
     };
 
-    DreamX.RandomPrefixAffix.makeItem = function (item) {
+    DreamX.RandomPrefixAffix.makeItem = function (item, presetPrefixId, presetAffixId) {
         // the new item
         var newItem;
 
@@ -215,24 +214,30 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         // weapon or armor
         var dataType = item.wtypeId ? $dataWeapons : $dataArmors;
 
-        if (item.meta.prefix) {
+        if (presetPrefixId && dataType[presetPrefixId]) {
+            prefixItem = dataType[presetPrefixId];
+        }
+        if (!prefixItem && item.meta.prefix) {
             prefixSplit = item.meta.prefix.trim().split(",");
             prefixChoices = this.makeChoices(prefixSplit, item.wtypeId
                     ? $dataWeapons : $dataArmors);
 
             if (prefixChoices.length >= 1) {
                 var prefixID = prefixChoices[Math.floor(Math.random() * prefixChoices.length)];
-                prefixItem = item.wtypeId ? $dataWeapons[prefixID] : $dataArmors[prefixID];
+                prefixItem = dataType[prefixID];
             }
         }
-        if (item.meta.affix) {
+        if (presetAffixId && dataType[presetAffixId]) {
+            affixItem = dataType[presetAffixId];
+        }
+        if (!affixItem && item.meta.affix) {
             affixSplit = item.meta.affix.trim().split(",");
             affixChoices = this.makeChoices(affixSplit, item.wtypeId
                     ? $dataWeapons : $dataArmors);
 
             if (affixChoices.length >= 1) {
                 var affixID = affixChoices[Math.floor(Math.random() * affixChoices.length)];
-                affixItem = item.wtypeId ? $dataWeapons[affixID] : $dataArmors[affixID];
+                affixItem = dataType[affixID];
             }
         }
 
@@ -302,138 +307,140 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
             $gameSystem.randomGenArmors.push(newItem);
         }
 
+        var processArray = ["", dataType[newItem.id]];
+
         if (Imported.YEP_AbsorptionBarrier) {
-            DataManager.processABRNotetags2(dataType);
+            DataManager.processABRNotetags2(processArray);
         }
         if (Imported.YEP_AutoPassiveStates) {
-            DataManager.processAPSNotetags1(dataType);
+            DataManager.processAPSNotetags1(processArray);
         }
         if (Imported.YEP_BattleEngineCore) {
-            DataManager.processBECNotetags4(dataType);
-            DataManager.processBECNotetags5(dataType);
+            DataManager.processBECNotetags4(processArray);
+            DataManager.processBECNotetags5(processArray);
         }
         if (Imported.YEP_BuffsStatesCore) {
-            DataManager.processBSCNotetags2(dataType);
+            DataManager.processBSCNotetags2(processArray);
         }
         if (Imported.YEP_CoreEngine) {
-            DataManager.processCORENotetags1(dataType);
+            DataManager.processCORENotetags1(processArray);
         }
         if (Imported.YEP_DamageCore) {
-            DataManager.processDMGNotetags2(dataType);
+            DataManager.processDMGNotetags2(processArray);
         }
         if (Imported.YEP_DashToggle) {
-            DataManager.processDashNotetags1(dataType);
+            DataManager.processDashNotetags1(processArray);
         }
         if (Imported.YEP_ElementAbsorb) {
-            DataManager.processEleAbsNotetags1(dataType);
+            DataManager.processEleAbsNotetags1(processArray);
         }
         if (Imported.YEP_ElementReflect) {
-            DataManager.processEleRefNotetags1(dataType);
+            DataManager.processEleRefNotetags1(processArray);
         }
         if (Imported.YEP_EquipCore) {
-            DataManager.processEquipNotetags2(dataType);
+            DataManager.processEquipNotetags2(processArray);
         }
         if (Imported.YEP_ExtraEnemyDrops) {
             if (item.wtypeId) {
-                DataManager.processEEDNotetagsW($dataWeapons);
+                DataManager.processEEDNotetagsW(processArray);
             } else {
-                DataManager.processEEDNotetagsA($dataArmors);
+                DataManager.processEEDNotetagsA(processArray);
             }
         }
         if (Imported.YEP_ExtraParamFormula) {
-            DataManager.processXParamNotetags(dataType);
+            DataManager.processXParamNotetags(processArray);
         }
         if (Imported.YEP_InstantCast) {
-            DataManager.processInstantNotetags2(dataType);
+            DataManager.processInstantNotetags2(processArray);
         }
         if (Imported.YEP_ItemCore) {
-            DataManager.processItemCoreNotetags(dataType);
+            DataManager.processItemCoreNotetags(processArray);
         }
         if (Imported.YEP_ItemSynthesis) {
             if (item.wtypeId) {
-                DataManager.processISNotetagsW($dataWeapons);
+                DataManager.processISNotetagsW(processArray);
             } else {
-                DataManager.processISNotetagsA($dataArmors);
+                DataManager.processISNotetagsA(processArray);
             }
         }
         if (Imported.YEP_JobPoints) {
-            DataManager.processJPNotetags4(dataType);
+            DataManager.processJPNotetags4(processArray);
         }
         if (Imported.YEP_LifeSteal) {
-            DataManager.processLSNotetags1(dataType);
+            DataManager.processLSNotetags1(processArray);
         }
         if (Imported.YEP_RowFormation) {
-            DataManager.processRowNotetags3(dataType);
+            DataManager.processRowNotetags3(processArray);
         }
         if (Imported.YEP_ShopMenuCore) {
-            DataManager.processShopNotetags(dataType);
+            DataManager.processShopNotetags(processArray);
         }
         if (Imported.YEP_SkillCore) {
-            DataManager.processGSCNotetags2(dataType);
+            DataManager.processGSCNotetags2(processArray);
         }
         if (Imported.YEP_SkillLearnSystem) {
             if (item.wtypeId) {
-                DataManager.processSLSNotetagsW($dataWeapons);
+                DataManager.processSLSNotetagsW(processArray);
             } else {
-                DataManager.processSLSNotetagsA($dataArmors);
+                DataManager.processSLSNotetagsA(processArray);
             }
         }
         if (Imported.YEP_SpecialParamFormula) {
-            DataManager.processSParamNotetags(dataType);
+            DataManager.processSParamNotetags(processArray);
         }
-        if (Imported.YEP_Template) {
-            DataManager.processStealNotetags3(dataType);
-            DataManager.processStealNotetags4(dataType);
+        if (Imported.YEP_StealSnatch) {
+            DataManager.processStealNotetags3(processArray);
+            DataManager.processStealNotetags4(processArray);
             if (item.wtypeId) {
-                DataManager.processStealNotetagsW($dataWeapons);
+                DataManager.processStealNotetagsW(processArray);
             } else {
-                DataManager.processStealNotetagsA($dataArmors);
+                DataManager.processStealNotetagsA(processArray);
             }
         }
         if (Imported.YEP_Taunt) {
-            DataManager.processTauntNotetags1(dataType);
+            DataManager.processTauntNotetags1(processArray);
         }
         if (Imported.YEP_WeaponAnimation) {
-            DataManager.processWANotetags1(dataType);
+            DataManager.processWANotetags1(processArray);
         }
         if (Imported.YEP_WeaponUnleash) {
-            DataManager.processWULNotetags1(dataType);
+            DataManager.processWULNotetags1(processArray);
         }
         if (Imported.YEP_X_ArmorScaling) {
-            DataManager.processARSNotetags2(dataType);
+            DataManager.processARSNotetags2(processArray);
         }
         if (Imported.YEP_X_BattleSysATB) {
-            DataManager.processATBNotetags2(dataType);
+            DataManager.processATBNotetags2(processArray);
         }
         if (Imported.YEP_X_BattleSysCTB) {
-            DataManager.processCTBNotetags2(dataType);
+            DataManager.processCTBNotetags2(processArray);
         }
         if (Imported.YEP_X_ChangeBattleEquip) {
-            DataManager.processCBENotetags(dataType);
+            DataManager.processCBENotetags(processArray);
         }
         if (Imported.YEP_X_CounterControl) {
-            DataManager.processCounterNotetags2(dataType);
+            DataManager.processCounterNotetags2(processArray);
             if (item.wtypeId) {
-                DataManager.processCounterNotetagsW($dataWeapons);
+                DataManager.processCounterNotetagsW(processArray);
             } else {
-                DataManager.processCounterNotetagsA($dataArmors);
+                DataManager.processCounterNotetagsA(processArray);
             }
         }
         if (Imported.YEP_X_CriticalControl) {
-            DataManager.processCritNotetags2(dataType);
+            DataManager.processCritNotetags2(processArray);
         }
         if (Imported.YEP_X_EquipRequirements) {
-            DataManager.processEqReqNotetags1(dataType);
+            DataManager.processEqReqNotetags1(processArray);
         }
         if (Imported.YEP_X_ItemDurability) {
-            DataManager.processIDurNotetags1(dataType);
-            DataManager.processIDurNotetags2(dataType);
+            DataManager.processIDurNotetags1(processArray);
+            DataManager.processIDurNotetags2(processArray);
         }
         if (Imported.YEP_X_ItemUpgrades) {
-            DataManager.processUpgradeNotetags1(dataType);
+            DataManager.processUpgradeNotetags1(processArray);
         }
         if (Imported.YEP_X_LimitedSkillUses) {
-            DataManager.processLSUNotetags3(dataType);
+            DataManager.processLSUNotetags3(processArray);
         }
         if (Imported.YEP_X_MoreCurrencies) {
             if (item.wtypeId) {
@@ -443,15 +450,15 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
             }
         }
         if (Imported.YEP_X_PartyLimitGauge) {
-            DataManager.processPLGNotetags2(dataType);
+            DataManager.processPLGNotetags2(processArray);
         }
         if (Imported.YEP_X_SkillCostItems) {
-            DataManager.processSCINotetags2(dataType);
-            DataManager.processSCINotetags3(dataType);
+            DataManager.processSCINotetags2(processArray);
+            DataManager.processSCINotetags3(processArray);
         }
         if (Imported.YEP_X_SkillCooldowns) {
-            DataManager.processSCDNotetags2(dataType);
-            DataManager.processSCDNotetags3(dataType);
+            DataManager.processSCDNotetags2(processArray);
+            DataManager.processSCDNotetags3(processArray);
         }
 
         return newItem;
