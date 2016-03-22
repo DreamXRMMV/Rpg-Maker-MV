@@ -41,7 +41,7 @@ DreamX.StateDescriptions = DreamX.StateDescriptions || {};
     DataManager.loadDatabase = function () {
         DreamX.StateDescriptions.DataManager_loadDatabase.call(this);
         if (!Imported.YEP_StatusMenuCore)
-            throw "DreamX Status Descriptions requires Yanfly Status Menu Core.";
+            throw "DreamX State Descriptions requires Yanfly Status Menu Core.";
     };
 
     DreamX.StateDescriptions.Window_StatusCommand_addCustomCommands = Window_StatusCommand.prototype.addCustomCommands;
