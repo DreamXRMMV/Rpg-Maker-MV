@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.11 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
+ * @plugindesc v1.12 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
  * 
  * <DreamX ITB>
  * @author DreamX
@@ -15,6 +15,26 @@
  * @param Elemental Weakness Animation
  * @desc Animation ID to play on battler when they get an extra action from hitting enemy in weakness. 0: disable. Default: 0
  * @default 0
+ * 
+ * @param Ready Overlay
+ * @desc Whether to have a looping overlay on actor when they are ready to act. Default: false
+ * @default false
+ * 
+ * @param Ready Overlay Name
+ * @desc Name of file in img/system that has ready animation. Default: States
+ * @default States
+ * 
+ * @param Ready Overlay Index
+ * @desc Index of ready overlay image to use, starting at 0.
+ * @default 0
+ * 
+ * @param Ready Overlay Anchor X
+ * @desc Anchor x position of ready overlay on sprite. Default: 0.5
+ * @default 0.5
+ * 
+ * @param Ready Overlay Anchor Y
+ * @desc Anchor y position of ready overlay on sprite. Default: 1
+ * @default 1
  * 
  * @param ---Sound---
  * @default
@@ -56,6 +76,10 @@
  Use <reAddBattler:1> in a skill/item to readd a battler to the pool of battlers 
  if they had already finished their previous actions. Must be used with a state 
  that increases action times.
+
+ To use a custom ready overlay, use a file in the same folder and same style as 
+ States.png in img/system, make sure the parameter is set to the custom file 
+ name.
  * ============================================================================
  * Patch Notes/Known Issues/Future Updates
  * ============================================================================
@@ -109,9 +133,18 @@ DreamX.ITB = DreamX.ITB || {};
             parseInt(parameters['Ready Pitch'] || '100');
     var parameterReadyPan =
             parseInt(parameters['Ready Pan'] || '0');
+    var paramaterReadyOverlayEnabled =
+            eval(parameters['Ready Overlay'] || false);
+    var parameterReadyOverlayName =
+           String(parameters['Ready Overlay Name'] || 'States');
+    var parameterReadyOverlayIndex =
+           parseInt(parameters['Ready Overlay Index'] || 0);
+    var parameterReadyAnchorX =
+           parseFloat(parameters['Ready Overlay Anchor X'] || 0.5);
+    var parameterReadyAnchorY =
+           parseFloat(parameters['Ready Overlay Anchor Y'] || 1);
 //    var parameterTurnSound =
 //            String(parameters['Turn Sound'] || '-1');
-
 
 //=============================================================================
 // Game_Battler
@@ -327,8 +360,7 @@ DreamX.ITB = DreamX.ITB || {};
         if (this.isITB()) {
             this.actor().addITBActions(1);
             this.changeActor(-1, 'undecided');
-        }
-        else {
+        } else {
             DreamX.ITB.BattleManager_selectPreviousCommand.call(this);
         }
     };
@@ -341,8 +373,7 @@ DreamX.ITB = DreamX.ITB || {};
             $gameParty.makeActions();
             $gameTroop.makeActions();
             this.clearActor();
-        }
-        else {
+        } else {
             DreamX.ITB.BattleManager_startInput.call(this);
         }
     };
@@ -370,8 +401,7 @@ DreamX.ITB = DreamX.ITB || {};
                     this._statusWindow.x = statusX;
                 }
             }
-        }
-        else {
+        } else {
             DreamX.ITB.Scene_Battle_updateWindowPositions.call(this);
         }
     };
@@ -399,8 +429,7 @@ DreamX.ITB = DreamX.ITB || {};
         if (firstBattler.numITBActions() >= 1) {
             firstBattler.addITBActions(-1);
             return firstBattler;
-        }
-        else {
+        } else {
             this._ITBBattlers.shift();
             return this.getReadyITBBattler();
         }
@@ -495,25 +524,24 @@ DreamX.ITB = DreamX.ITB || {};
 
     BattleManager.sortITBOrders = function () {
         this._ITBBattlers.sort(function (a, b) {
-			// if does not have same agi
+            // if does not have same agi
             if (b.agi !== a.agi) {
                 return b.agi - a.agi;
-            }
-            else {
-				// if has same agi
-				// if both actors then return one with higher id
+            } else {
+                // if has same agi
+                // if both actors then return one with higher id
                 if (a.isActor() && b.isActor()) {
                     return b.actorId() - a.actorId();
                 }
-				// give enemy priority
+                // give enemy priority
                 else if (b.isActor() && a.isEnemy()) {
                     return -1;
                 }
-				// give enemy priority
+                // give enemy priority
                 else if (b.isEnemy() && a.isActor()) {
                     return 1;
                 }
-				// if both enemies then return one with higher id
+                // if both enemies then return one with higher id
                 else if (b.isEnemy() && a.isEnemy()) {
                     return b.enemyId() - a.enemyId();
                 }
@@ -540,12 +568,12 @@ DreamX.ITB = DreamX.ITB || {};
     BattleManager.normalWindowPosition = function () {
         return this._phase === 'input' || (this._phase === 'itb' && this._actorIndex === -1);
     };
-	
+
     BattleManager.addBattler = function (battler) {
-		if (this._ITBBattlers.indexOf(battler) == -1) {
-			this._ITBBattlers.push(battler);
-			this.sortITBOrders();
-		}
+        if (this._ITBBattlers.indexOf(battler) == -1) {
+            this._ITBBattlers.push(battler);
+            this.sortITBOrders();
+        }
     };
 
 //=============================================================================
@@ -559,9 +587,9 @@ DreamX.ITB = DreamX.ITB || {};
         if (item.meta.free_itb_action) {
             this.subject().addITBActions(1);
         }
-		if (item.meta.reAddBattler) {
-			BattleManager.addBattler(target);
-		}
+        if (item.meta.reAddBattler) {
+            BattleManager.addBattler(target);
+        }
     };
 
     // extra actions for hitting enemy weakness
@@ -590,6 +618,103 @@ DreamX.ITB = DreamX.ITB || {};
             }
         }
         return DreamX.ITB.Game_Action_makeDamageValue.call(this, target, critical);
+    };
+
+//-----------------------------------------------------------------------------
+// Sprite_ReadyOverlay
+//
+// The sprite for displaying the ready image for an actor.
+
+    DreamX.ITB.Sprite_Actor_setBattler = Sprite_Actor.prototype.setBattler;
+    Sprite_Actor.prototype.setBattler = function (battler) {
+        DreamX.ITB.Sprite_Actor_setBattler.call(this, battler);
+        if (paramaterReadyOverlayEnabled) {
+            this._readySprite.setup(battler);
+        }
+    };
+
+    DreamX.ITB.Sprite_Actor_initMembers = Sprite_Actor.prototype.initMembers;
+    Sprite_Actor.prototype.initMembers = function () {
+        DreamX.ITB.Sprite_Actor_initMembers.call(this);
+        if (paramaterReadyOverlayEnabled) {
+            this.createReadySprite();
+        }
+    };
+
+    Sprite_Actor.prototype.createReadySprite = function () {
+        this._readySprite = new Sprite_ReadyOverlay();
+        this.addChild(this._readySprite);
+    };
+
+    function Sprite_ReadyOverlay() {
+        this.initialize.apply(this, arguments);
+    }
+
+    Sprite_ReadyOverlay.prototype = Object.create(Sprite_Base.prototype);
+    Sprite_ReadyOverlay.prototype.constructor = Sprite_ReadyOverlay;
+
+    Sprite_ReadyOverlay.prototype.initialize = function () {
+        Sprite_Base.prototype.initialize.call(this);
+        this.initMembers();
+        this.loadBitmap();
+    };
+
+    Sprite_ReadyOverlay.prototype.initMembers = function () {
+        this._battler = null;
+        this._overlayIndex = 0;
+        this._animationCount = 0;
+        this._pattern = 0;
+        this.anchor.x = parameterReadyAnchorX;
+        this.anchor.y = parameterReadyAnchorY;
+    };
+
+    Sprite_ReadyOverlay.prototype.loadBitmap = function () {
+        this.bitmap = ImageManager.loadSystem(parameterReadyOverlayName);
+        this.setFrame(0, 0, 0, 0);
+    };
+
+    Sprite_ReadyOverlay.prototype.setup = function (battler) {
+        this._battler = battler;
+    };
+
+    Sprite_ReadyOverlay.prototype.update = function () {
+        Sprite_Base.prototype.update.call(this);
+        this._animationCount++;
+        if (this._animationCount >= this.animationWait()) {
+            this.updatePattern();
+            this.updateFrame();
+            this._animationCount = 0;
+        }
+    };
+
+    Sprite_ReadyOverlay.prototype.animationWait = function () {
+        return 8;
+    };
+
+    Game_BattlerBase.prototype.readyOverlayIndex = function () {
+        return parameterReadyOverlayIndex;
+    };
+    Sprite_ReadyOverlay.prototype.updatePattern = function () {
+        this._pattern++;
+        this._pattern %= 8;
+        if (this._battler && this._battler === BattleManager.actor()) {
+            this._overlayIndex = this._battler.readyOverlayIndex() + 1;
+            this.opacity = 255;
+        } else {
+            this.opacity = 0;
+        }
+    };
+
+    Sprite_ReadyOverlay.prototype.updateFrame = function () {
+        if (this._overlayIndex > 0) {
+            var w = 96;
+            var h = 96;
+            var sx = this._pattern * w;
+            var sy = (this._overlayIndex - 1) * h;
+            this.setFrame(sx, sy, w, h);
+        } else {
+            this.setFrame(0, 0, 0, 0);
+        }
     };
 
 //=============================================================================
