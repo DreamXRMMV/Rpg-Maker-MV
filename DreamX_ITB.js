@@ -697,7 +697,7 @@ DreamX.ITB = DreamX.ITB || {};
     Sprite_ReadyOverlay.prototype.updatePattern = function () {
         this._pattern++;
         this._pattern %= 8;
-        if (this._battler && this._battler === BattleManager.actor()) {
+        if (this._battler && this._battler === BattleManager.actor() && BattleManager._phase === 'input') {
             this._overlayIndex = this._battler.readyOverlayIndex() + 1;
             this.opacity = 255;
         } else {
