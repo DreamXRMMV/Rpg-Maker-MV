@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.4d Capture enemies 
+ * @plugindesc v1.4e Capture enemies 
  * 
  * <DreamX Capture Enemies>
  * @author DreamX
@@ -271,11 +271,6 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
                 break;
             case "CaptureSuccess":
                 if (DreamX.CaptureEnemy.shouldLevelUpAnActor(newActorId)) {
-                    DreamX.CaptureEnemy.levelUpDuplicateActors(newActorId);
-                    if (paramDefaultLevelUpMsg === false) {
-                        DreamX.CaptureEnemy.displayMessage(paramLvlUpMsg.format(targetName, troopName, actorName));
-                    }
-
                     target._wasLevelUpCaptured = true;
                 } else {
                     var level = 1;
@@ -298,13 +293,25 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
     DreamX.CaptureEnemy.performCollapse = Game_Enemy.prototype.performCollapse;
     Game_Enemy.prototype.performCollapse = function () {
         DreamX.CaptureEnemy.performCollapse.call(this);
+        var enemyName = this.originalName();
+        var troopName = $gameTroop.troop().name;
+        var actorId = this.enemy().meta.capture_actor_id;
+        var actor = $dataActors[actorId];
+        var actorName = actor.name;
+
+        var gameActor = $gameParty.allMembers().filter(function (actor) {
+            return (actor.actorId() === actorId) || actor.baseActorId() === actorId;
+        });
+        gameActor = gameActor[0];
 
         if (this._wasCaptured) {
-            var enemyName = this.originalName();
-            var troopName = $gameTroop.troop().name;
-            var actorId = this.enemy().meta.capture_actor_id;
-            var actorName = $dataActors[actorId].name;
             DreamX.CaptureEnemy.displayMessage(parameterCaptureSuccessMsg.format(enemyName, troopName, actorName));
+        }
+        if (this._wasLevelUpCaptured) {
+            DreamX.CaptureEnemy.levelUpDuplicateActors(actorId);
+            if (paramDefaultLevelUpMsg === false) {
+                DreamX.CaptureEnemy.displayMessage(paramLvlUpMsg.format(actorName, troopName, actorName));
+            }
         }
     };
 
