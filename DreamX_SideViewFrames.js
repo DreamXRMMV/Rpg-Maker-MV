@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.4 Configure the number of frames and frame speed for SV.
+ * @plugindesc v1.5 Configure the number of frames and frame speed for SV.
  *
  * <DreamX Actor Sideview Frames>
  * @author DreamX
@@ -110,6 +110,20 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
                 : $dataEnemies[this._battler.enemyId()].meta;
     }
 
+    Game_Battler.prototype.DXNumFrames = function () {
+        if (this.isActor()) {
+            return this.actor().meta.SVFrames ? this.actor().meta.SVFrames : paramEnemyFrames;
+        }
+        return this.enemy().meta.SVFrames ? this.enemy().meta.SVFrames : paramEnemyFrames;
+    };
+
+    Game_Battler.prototype.DXFrameSpeed = function () {
+        if (this.isActor()) {
+            return this.actor().meta.SVFrameSpeed ? this.actor().meta.SVFrameSpeed : paramActorFrameSpeed;
+        }
+        return this.sideviewFrameSpeed();
+    };
+
     Sprite_Battler.prototype.DXisHolders = function () {
         return this.DXBattlerMeta().holders ? true : false;
     };
@@ -201,12 +215,10 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
                     } else if (this._pattern === 0) {
                         this._reverseFrame = false;
                     }
-                }
-                else {
+                } else {
                     if (this._pattern === this.DXNumFrames() - 1) {
                         this._pattern = 0;
-                    }
-                    else {
+                    } else {
                         this._pattern++;
                     }
                 }
@@ -266,6 +278,28 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
     };
 
     if (Imported.YEP_BattleEngineCore) {
+        DreamX.SideviewFrames.Sprite_Actor_stepFlinch = Sprite_Actor.prototype.stepFlinch;
+        Sprite_Actor.prototype.stepFlinch = function () {
+            DreamX.SideviewFrames.Sprite_Actor_stepFlinch.call(this);
+            var battler = this._battler;
+            var frames = battler.DXNumFrames();
+            var frameSpeed = battler.DXFrameSpeed();
+            BattleManager._logWindow._waitCount += (frames * frameSpeed) - 12;
+        };
+
+        BattleManager.actionMotionWait = function (actionArgs) {
+            var targets = this.makeActionTargets(actionArgs[0]);
+            if ((targets[0].isActor() && targets[0].isSpriteVisible())
+                    || (Imported.YEP_X_AnimatedSVEnemies && targets[0].hasSVBattler())) {
+                var battler = targets[0];
+                var frames = battler.DXNumFrames();
+                var frameSpeed = battler.DXFrameSpeed();
+                this._logWindow._waitCount += (frames * frameSpeed) - 24;
+                return false;
+            }
+            return true;
+        };
+
         Sprite_Actor.prototype.forceMotion = function (motionType) {
             var newMotion = this.motions()[motionType];
             this._motion = newMotion;
