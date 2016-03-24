@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.5 Configure the number of frames and frame speed for SV.
+ * @plugindesc v1.5a Configure the number of frames and frame speed for SV.
  *
  * <DreamX Actor Sideview Frames>
  * @author DreamX
@@ -297,7 +297,7 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
             Game_Battler.prototype.performDamage.call(this);
             if (this.isSpriteVisible()) {
                 this.requestMotion(this.damageMotion());
-                
+
                 // new
                 var frames = this.DXNumFrames();
                 var frameSpeed = this.DXFrameSpeed();
@@ -316,7 +316,14 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
                 var battler = targets[0];
                 var frames = battler.DXNumFrames();
                 var frameSpeed = battler.DXFrameSpeed();
-                this._logWindow._waitCount += (frames * frameSpeed) - 24;
+                var waitTime = frames * frameSpeed;
+                if (battler.isActor()) {
+                    waitTime -= 24;
+                }
+                if (waitTime < 0) {
+                    this._logWindow._waitCount += waitTime;
+                }
+
                 return false;
             }
             return true;
