@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.5a Configure the number of frames and frame speed for SV.
+ * @plugindesc v1.5b Configure the number of frames and frame speed for SV.
  *
  * <DreamX Actor Sideview Frames>
  * @author DreamX
