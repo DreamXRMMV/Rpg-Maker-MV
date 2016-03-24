@@ -257,7 +257,7 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
                 this.startMotion('dead');
             } else if (stateMotion === 2) {
                 this.startMotion('sleep');
-            } else if (battler.isChanting()) {
+            } else if (!battler.isEnemy() && battler.isChanting()) {
                 this.startMotion('chant');
             } else if (battler.isGuard() || battler.isGuardWaiting()) {
                 this.startMotion('guard');
@@ -267,8 +267,10 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
                 this.startMotion('dying');
             } else if (battler.isUndecided()) {
                 this.startMotion('walk');
-            } else {
+            } else if (battler.isActor()) {
                 this.startMotion('wait');
+            } else {
+                this.startMotion(battler.idleMotion());
             }
         }
     };
@@ -286,6 +288,26 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
             var frameSpeed = battler.DXFrameSpeed();
             BattleManager._logWindow._waitCount += (frames * frameSpeed) - 12;
         };
+
+        Yanfly.SVE.Game_Enemy_performDamage = Game_Enemy.prototype.performDamage;
+        Game_Enemy.prototype.performDamage = function () {
+            if (!this.hasSVBattler()) {
+                return Yanfly.SVE.Game_Enemy_performDamage.call(this);
+            }
+            Game_Battler.prototype.performDamage.call(this);
+            if (this.isSpriteVisible()) {
+                this.requestMotion(this.damageMotion());
+                
+                // new
+                var frames = this.DXNumFrames();
+                var frameSpeed = this.DXFrameSpeed();
+                BattleManager._logWindow._waitCount += (frames * frameSpeed) - 12;
+            } else {
+                $gameScreen.startShake(5, 5, 10);
+            }
+            SoundManager.playEnemyDamage();
+        };
+
 
         BattleManager.actionMotionWait = function (actionArgs) {
             var targets = this.makeActionTargets(actionArgs[0]);
@@ -320,7 +342,7 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
                 this.startMotion(battler.deadMotion());
             } else if (stateMotion === 2) {
                 this.startMotion(battler.sleepMotion());
-            } else if (battler.isChanting()) {
+            } else if (!battler.isEnemy() && battler.isChanting()) {
                 this.startMotion(battler.chantMotion());
             } else if (battler.isGuard() || battler.isGuardWaiting()) {
                 this.startMotion(battler.guardMotion());
@@ -330,8 +352,10 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
                 this.startMotion(battler.dyingMotion());
             } else if (battler.isUndecided()) {
                 this.startMotion(battler.idleMotion());
+            } else if (battler.isActor()) {
+                this.startMotion('wait');
             } else {
-                this.startMotion(battler.waitMotion());
+                this.startMotion(battler.idleMotion());
             }
         };
     }
@@ -364,8 +388,6 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
                 return;
             this.DXrefreshMotion();
         }
-        var max = 55;
-        var count = 0;
 
         DreamX.SideviewFrames.Game_Battler_spriteWidth = Game_Battler.prototype.spriteWidth;
         Game_Battler.prototype.spriteWidth = function () {
