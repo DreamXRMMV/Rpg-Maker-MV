@@ -3,7 +3,7 @@
  *
  * <DreamX Actor Sideview Frames>
  * @author DreamX
- * 
+ *
  * @param Frame Number
  * @desc Number of frames for each motion for actors. Default: 3
  * @default 3
@@ -11,33 +11,33 @@
  * @param Frame Speed
  * @desc Speed of motions for actors. Default: 12
  * @default 12
- * 
+ *
  * @param Straight Loop
  * @desc If frames go 1-2-3-1-2-3 instead of 1-2-3-2-1. Default: false
  * @default false
  *
  * @param ---Compatibility---
  * @default
- * 
+ *
  * @param Yanfly Enemy SV Frame Number
  * @desc Number of frames for each motion. Default: 3
  * @default 3
- * 
+ *
  * @help
- * Use <SVFrames:x> with x as the number for frames to override the parameter 
+ * Use <SVFrames:x> with x as the number for frames to override the parameter
  * for an enemy or actor.
- * Use <SVFrameSpeed:x> with x as the number of frame speed to override the 
+ * Use <SVFrameSpeed:x> with x as the number of frame speed to override the
  * parameter for an actor.
- * Use <holders:1> to configure the enemy or actor to use holder style 
+ * Use <holders:1> to configure the enemy or actor to use holder style
  * spritesheets(4 frames, 14 motions vertically).
- * 
- * Use <SVStraightLoop:true> on an actor or enemy to have a battler's frames 
- * loop from 1-2-3-1-2-3 instead of 1-2-3-2-1, if the parameter Straight Loop 
+ *
+ * Use <SVStraightLoop:true> on an actor or enemy to have a battler's frames
+ * loop from 1-2-3-1-2-3 instead of 1-2-3-2-1, if the parameter Straight Loop
  * is false. This will override the parameter setting for that battler.
- * Use <SVStraightLoop:false> on an actor or enemy to have a battler's frames 
- * loop from 1-2-3-2-1,if the parameter Straight Loop is true. This will 
+ * Use <SVStraightLoop:false> on an actor or enemy to have a battler's frames
+ * loop from 1-2-3-2-1,if the parameter Straight Loop is true. This will
  * override the parameter setting for battler.
- * 
+ *
  * ============================================================================
  * Terms Of Use
  * ============================================================================
@@ -286,7 +286,11 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
             var battler = this._battler;
             var frames = battler.DXNumFrames();
             var frameSpeed = battler.DXFrameSpeed();
-            BattleManager._logWindow._waitCount += (frames * frameSpeed) - 12;
+            var waitTime = (frames * frameSpeed) - 12;
+            if (waitTime > 0) {
+                BattleManager._logWindow._waitCount += waitTime;
+            }
+
         };
 
         Yanfly.SVE.Game_Enemy_performDamage = Game_Enemy.prototype.performDamage;
@@ -320,7 +324,7 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
                 if (battler.isActor()) {
                     waitTime -= 24;
                 }
-                if (waitTime < 0) {
+                if (waitTime > 0) {
                     this._logWindow._waitCount += waitTime;
                 }
 
