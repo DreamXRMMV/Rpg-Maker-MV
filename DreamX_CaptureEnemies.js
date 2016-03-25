@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.4e Capture enemies 
+ * @plugindesc v1.4f Capture enemies 
  * 
  * <DreamX Capture Enemies>
  * @author DreamX
@@ -297,8 +297,10 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         var troopName = $gameTroop.troop().name;
         var actorId = this.enemy().meta.capture_actor_id;
         var actor = $dataActors[actorId];
+        if (!actor) {
+            return;
+        }
         var actorName = actor.name;
-
         var gameActor = $gameParty.allMembers().filter(function (actor) {
             return (actor.actorId() === actorId) || actor.baseActorId() === actorId;
         });
