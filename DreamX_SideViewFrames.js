@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.5c Configure the number of frames and frame speed for SV.
+ * @plugindesc v1.5d Configure the number of frames and frame speed for SV.
  *
  * <DreamX Actor Sideview Frames>
  * @author DreamX
@@ -293,28 +293,7 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
 
         };
 
-        Yanfly.SVE.Game_Enemy_performDamage = Game_Enemy.prototype.performDamage;
-        Game_Enemy.prototype.performDamage = function () {
-            if (!this.hasSVBattler()) {
-                return Yanfly.SVE.Game_Enemy_performDamage.call(this);
-            }
-            Game_Battler.prototype.performDamage.call(this);
-            if (this.isSpriteVisible()) {
-                this.requestMotion(this.damageMotion());
 
-                // new
-                var frames = this.DXNumFrames();
-                var frameSpeed = this.DXFrameSpeed();
-                var waitTime = (frames * frameSpeed) - 12;
-                if (waitTime > 0) {
-                    BattleManager._logWindow._waitCount += waitTime;
-                }
-
-            } else {
-                $gameScreen.startShake(5, 5, 10);
-            }
-            SoundManager.playEnemyDamage();
-        };
 
 
         BattleManager.actionMotionWait = function (actionArgs) {
@@ -376,6 +355,29 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
     }
 
     if (Imported.YEP_X_AnimatedSVEnemies) {
+        Yanfly.SVE.Game_Enemy_performDamage = Game_Enemy.prototype.performDamage;
+        Game_Enemy.prototype.performDamage = function () {
+            if (!this.hasSVBattler()) {
+                return Yanfly.SVE.Game_Enemy_performDamage.call(this);
+            }
+            Game_Battler.prototype.performDamage.call(this);
+            if (this.isSpriteVisible()) {
+                this.requestMotion(this.damageMotion());
+
+                // new
+                var frames = this.DXNumFrames();
+                var frameSpeed = this.DXFrameSpeed();
+                var waitTime = (frames * frameSpeed) - 12;
+                if (waitTime > 0) {
+                    BattleManager._logWindow._waitCount += waitTime;
+                }
+
+            } else {
+                $gameScreen.startShake(5, 5, 10);
+            }
+            SoundManager.playEnemyDamage();
+        };
+        
         // override
         Sprite_Enemy.prototype.updateSVFrame = function () {
             this.DXUpdateFrame();
