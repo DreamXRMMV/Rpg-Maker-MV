@@ -1,7 +1,10 @@
 /*:
- * @plugindesc v0.1
+ * @plugindesc v0.2
  * @author DreamX
  * @help
+ * Put <AutoPhoenix> on an actor, class, weapon, armor or state to allow for 
+ * Auto-Phoenix. An actor will revive a defeated ally if a revival item is 
+ * available.
  * ============================================================================
  * Terms Of Use
  * ============================================================================
@@ -36,29 +39,78 @@ DreamX.AutoPhoenix = DreamX.AutoPhoenix || {};
         return array;
     };
 
+    Game_Party.prototype.autoPhoenixItem = function () {
+        var singleAllyRevive = [];
+        var multiAllyRevive = [];
+        for (var i = 0; i < this.items().length; i++) {
+            var item = this.items()[i];
+            var itemEffects = item.effects;
+
+            for (var j = 0; j < itemEffects.length; j++) {
+                var itemEffect = itemEffects[j];
+                if (itemEffect.code === 22 && itemEffect.dataId === 1) {
+                    if (this.deadBattleMembers().length > 1 && item.meta.MultiPhoenix) {
+                        multiAllyRevive.push(item);
+                    }
+                    singleAllyRevive.push(item);
+                }
+            }
+        }
+        if (multiAllyRevive.length >= 1) {
+            return multiAllyRevive[0];
+        }
+        return singleAllyRevive[0];
+    };
+
     Game_Party.prototype.hasReviveItem = function () {
         return this.reviveItems().length > 0;
     };
 
-    DreamX.AutoPhoenix.Game_BattlerBase_die = Game_BattlerBase.prototype.die;
-    Game_BattlerBase.prototype.die = function () {
-        DreamX.AutoPhoenix.Game_BattlerBase_die.call(this);
-        $gameParty.requestMotionRefresh();
-        if ($gameParty.inBattle() && this.isActor()) {
-            if ($gameParty.hasReviveItem()) {
-                for (var i = 0; i < $gameParty.battleMembers().length; i++) {
-                    var actor = $gameParty.battleMembers()[i];
-                    if (actor.isAlive() && actor.canMove() && actor.hp > 0 && actor.isAutoPhoenixEnabled()) {
-                        this.clearActions();
-                        var action = new Game_Action(actor, true);
-                        action.setItemObject($gameParty.reviveItems()[0]);
-                        action.setTarget($gameParty.battleMembers().indexOf(this));
-                        actor._actions.push(action);
-                        BattleManager.forceAction(actor);
-                        $gameTroop._interpreter.setWaitMode('action');
-                    }
-                }
+    Game_Party.prototype.deadBattleMembers = function () {
+        var deadBMembers = [];
+        for (var i = 0; i < this.battleMembers().length; i++) {
+            var actor = this.battleMembers()[i];
+            if (actor.hp <= 0 || !actor.isAlive() || actor.isDead()) {
+                deadBMembers.push(i);
             }
+        }
+        return deadBMembers;
+    };
+
+    Game_Party.prototype.randomDeadBattleMember = function () {
+        return Math.floor(Math.random() * this.deadBattleMembers().length);
+    };
+
+    Game_Party.prototype.autoPhoenixActors = function () {
+        var actorPool = [];
+        for (var i = 0; i < $gameParty.battleMembers().length; i++) {
+            var actor = $gameParty.battleMembers()[i];
+            if (actor.isAlive() && actor.canMove() && actor.hp > 0
+                    && actor.isAutoPhoenixEnabled()) {
+                actorPool.push(actor);
+            }
+        }
+        if (actorPool.length >= 1) {
+            return actorPool;
+        }
+        return undefined;
+    };
+
+    DreamX.AutoPhoenix.BattleManager_endAction = BattleManager.endAction;
+    BattleManager.endAction = function () {
+        DreamX.AutoPhoenix.BattleManager_endAction.call(this);
+        var deadMembers = $gameParty.deadBattleMembers();
+
+        if (deadMembers.length >= 1 && $gameParty.hasReviveItem()) {
+            var actor = $gameParty.autoPhoenixActors()[0];
+
+            var action = new Game_Action(actor, true);
+            action.setItemObject($gameParty.autoPhoenixItem());
+
+            action.setTarget($gameParty.randomDeadBattleMember());
+            actor._actions.push(action);
+            BattleManager.forceAction(actor);
+            $gameTroop._interpreter.setWaitMode('action');
         }
     };
 
@@ -68,18 +120,18 @@ DreamX.AutoPhoenix = DreamX.AutoPhoenix || {};
         if (!DreamX.AutoPhoenix.DataManager_isDatabaseLoaded.call(this))
             return false;
         if (!DreamX._loaded_DreamX_AutoPhoenix) {
-            this.processDashNotetags1($dataActors);
-            this.processDashNotetags1($dataClasses);
-            this.processDashNotetags1($dataWeapons);
-            this.processDashNotetags1($dataArmors);
-            this.processDashNotetags1($dataStates);
+            this.processAutoPhoenixNotetags1($dataActors);
+            this.processAutoPhoenixNotetags1($dataClasses);
+            this.processAutoPhoenixNotetags1($dataWeapons);
+            this.processAutoPhoenixNotetags1($dataArmors);
+            this.processAutoPhoenixNotetags1($dataStates);
             DreamX._loaded_DreamX_AutoPhoenix = true;
         }
         return true;
     };
-    
+
     // modified from yanfly's dash toggle plugin
-    DataManager.processDashNotetags1 = function (group) {
+    DataManager.processAutoPhoenixNotetags1 = function (group) {
         for (var n = 1; n < group.length; n++) {
             var obj = group[n];
             var notedata = obj.note.split(/[\r\n]+/);
