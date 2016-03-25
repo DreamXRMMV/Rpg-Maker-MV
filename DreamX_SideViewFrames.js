@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.5d Configure the number of frames and frame speed for SV.
+ * @plugindesc v1.5e Configure the number of frames and frame speed for SV.
  *
  * <DreamX Actor Sideview Frames>
  * @author DreamX
@@ -294,8 +294,6 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
         };
 
 
-
-
         BattleManager.actionMotionWait = function (actionArgs) {
             var targets = this.makeActionTargets(actionArgs[0]);
             if ((targets[0].isActor() && targets[0].isSpriteVisible())
@@ -304,9 +302,7 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
                 var frames = battler.DXNumFrames();
                 var frameSpeed = battler.DXFrameSpeed();
                 var waitTime = frames * frameSpeed;
-                if (battler.isActor()) {
-                    waitTime -= 24;
-                }
+
                 if (waitTime > 0) {
                     this._logWindow._waitCount += waitTime;
                 }
