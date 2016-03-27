@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.12a Random prefixes/affixes
+ * @plugindesc v1.13 Random prefixes/affixes
  * @author DreamX
  *
  * @param Default Chance
@@ -104,6 +104,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         this.randomGenWeapons = [];
         this.randomGenArmors = [];
     };
+
 
     DreamX.RandomPrefixAffix.DataManager_extractSaveContents = DataManager.extractSaveContents;
     DataManager.extractSaveContents = function (contents) {
@@ -466,15 +467,15 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
 
     // since the new item names don't show up by default, must alias this and
     // make the new items before hand
-    DreamX.RandomPrefixAffix.BattleManager_displayDropItems = BattleManager.displayDropItems;
-    BattleManager.displayDropItems = function () {
+    DreamX.RandomPrefixAffix.BattleManager_gainDropItems = BattleManager.gainDropItems;
+    BattleManager.gainDropItems = function () {
         for (var i = 0; i < this._rewards.items.length; i++) {
             var item = this._rewards.items[i];
             if (item && (item.meta.prefix || item.meta.affix) && (item.wtypeId || item.atypeId)) {
-                this._rewards.items[i] = DreamX.RandomPrefixAffix.makeItem(item);
+                this._rewards.items[i] = DreamX.RandomPrefixAffix.makeItem(JSON.parse(JSON.stringify(item)));
             }
         }
-        DreamX.RandomPrefixAffix.BattleManager_displayDropItems.call(this);
+        DreamX.RandomPrefixAffix.BattleManager_gainDropItems.call(this);
     };
 
     DreamX.RandomPrefixAffix.GainPrefixAffixItem = function (item, amount, includeEquip) {
@@ -499,19 +500,6 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         }
         return false;
     };
-
-    if (Imported.YEP_VictoryAftermath) {
-        DreamX.RandomPrefixAffix.Window_VictoryDrop_extractDrops = Window_VictoryDrop.prototype.extractDrops;
-        Window_VictoryDrop.prototype.extractDrops = function () {
-            for (var i = 0; i < BattleManager._rewards.items.length; i++) {
-                var item = BattleManager._rewards.items[i];
-                if (item && (item.meta.prefix || item.meta.affix) && (item.wtypeId || item.atypeId)) {
-                    BattleManager._rewards.items[i] = DreamX.RandomPrefixAffix.makeItem(item);
-                }
-            }
-            DreamX.RandomPrefixAffix.Window_VictoryDrop_extractDrops.call(this);
-        };
-    }
 
     if (Imported.YEP_ItemCore) {
         DreamX.RandomPrefixAffix.DataManager_isIndependent = DataManager.isIndependent;
