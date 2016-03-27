@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.12 Random prefixes/affixes
+ * @plugindesc v1.12a Random prefixes/affixes
  * @author DreamX
  *
  * @param Default Chance
@@ -444,9 +444,9 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         }
         if (Imported.YEP_X_MoreCurrencies) {
             if (item.wtypeId) {
-                DataManager.processMCNotetags1($dataWeapons, 1);
+                DataManager.processMCNotetags1(processArray, 1);
             } else {
-                DataManager.processMCNotetags1($dataArmors, 2);
+                DataManager.processMCNotetags1(processArray, 2);
             }
         }
         if (Imported.YEP_X_PartyLimitGauge) {
@@ -521,7 +521,6 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
             }
             return DreamX.RandomPrefixAffix.DataManager_isIndependent.call(this, item);
         };
-
     }
 
 })();
