@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.13 Random prefixes/affixes
+ * @plugindesc v1.13a Random prefixes/affixes
  * @author DreamX
  *
  * @param Default Chance
@@ -465,19 +465,6 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         return newItem;
     };
 
-    // since the new item names don't show up by default, must alias this and
-    // make the new items before hand
-    DreamX.RandomPrefixAffix.BattleManager_gainDropItems = BattleManager.gainDropItems;
-    BattleManager.gainDropItems = function () {
-        for (var i = 0; i < this._rewards.items.length; i++) {
-            var item = this._rewards.items[i];
-            if (item && (item.meta.prefix || item.meta.affix) && (item.wtypeId || item.atypeId)) {
-                this._rewards.items[i] = DreamX.RandomPrefixAffix.makeItem(JSON.parse(JSON.stringify(item)));
-            }
-        }
-        DreamX.RandomPrefixAffix.BattleManager_gainDropItems.call(this);
-    };
-
     DreamX.RandomPrefixAffix.GainPrefixAffixItem = function (item, amount, includeEquip) {
         for (var i = 0; i < amount; i++) {
             $gameParty.gainItem(DreamX.RandomPrefixAffix.makeItem(JSON.parse(JSON.stringify(item))), 1, includeEquip);
@@ -500,6 +487,33 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         }
         return false;
     };
+
+    BattleManager.convertPrefixAffix = function () {
+        for (var i = 0; i < this._rewards.items.length; i++) {
+            var item = this._rewards.items[i];
+            if (item && (item.meta.prefix || item.meta.affix) && (item.wtypeId || item.atypeId)) {
+                this._rewards.items[i] = DreamX.RandomPrefixAffix.makeItem(JSON.parse(JSON.stringify(item)));
+            }
+        }
+    };
+
+    // since the new item names don't show up by default, must alias this and
+    // make the new items before hand
+    if (Imported.YEP_VictoryAftermath) {
+        DreamX.RandomPrefixAffix.BattleManager_gainDropItems = BattleManager.gainDropItems;
+        BattleManager.gainDropItems = function () {
+            this.convertPrefixAffix();
+            DreamX.RandomPrefixAffix.BattleManager_gainDropItems.call(this);
+        };
+    } else {
+        DreamX.RandomPrefixAffix.BattleManager_displayDropItems = BattleManager.displayDropItems;
+        BattleManager.displayDropItems = function () {
+            this.convertPrefixAffix();
+            DreamX.RandomPrefixAffix.BattleManager_displayDropItems.call(this);
+        };
+    }
+
+
 
     if (Imported.YEP_ItemCore) {
         DreamX.RandomPrefixAffix.DataManager_isIndependent = DataManager.isIndependent;
