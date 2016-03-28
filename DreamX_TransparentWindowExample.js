@@ -36,6 +36,17 @@
             this._listWindow.opacity = 0;
             this._detailWindow.opacity = 0;
         };
+
+        Window_PartySelect.prototype.drawEmpty = function (rect) {
+
+            this.resetFontSettings();
+            var text = Yanfly.Param.PartyEmptyText
+            this.contents.drawText(text, rect.x, rect.y, rect.width,
+                    rect.height, 'center');
+        };
+
+        Window_PartyDetail.prototype.drawDarkRect = function (dx, dy, dw, dh) {
+        };
     }
 
 
