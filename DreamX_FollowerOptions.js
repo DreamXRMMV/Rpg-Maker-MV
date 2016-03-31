@@ -9,8 +9,8 @@
  * @default true
  *
  * @param Max Followers
- * @desc Processed as eval. Max number of followers. Default: $gameParty.maxBattleMembers() - 1
- * @default $gameParty.maxBattleMembers() - 1
+ * @desc Processed as eval. Max number of followers. Default: 4
+ * @default 4
  *
  * @help This plugin does not provide plugin commands.
  * ============================================================================
