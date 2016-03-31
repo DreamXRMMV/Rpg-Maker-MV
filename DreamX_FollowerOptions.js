@@ -1,13 +1,9 @@
 /*:
- * @plugindesc v1.06 Choose which party members appear as followers or in battle.
+ * @plugindesc v1.07 Choose which party members appear as followers or in battle.
  *
  * <DreamX Follower and Battle Member Options>
  * @author DreamX
- *
- * @param Max Index
- * @desc Recommended: Max Party Size (Including Non-Battle Members) Default: 12
- * @default 12
- 
+ * 
  * @param Battle Members Only
  * @desc Proc. as eval. true: only battle members may appear as followers, false: any party member may appear Default: true
  * @default true
@@ -26,13 +22,6 @@
  * ============================================================================
  * Place this plugin BELOW Yanfly's Party System plugin if you're using it.
  * 
- * Adjust parameters to your liking. Parameter "Max Index" is far the game looks
- * into your party for potential followers. For example, if you use 12, it'll 
- * look as far as party member #12. I recommend using the max possible size of 
- * the party, including actors that are reserve or don't participate in battle. 
- * Or a large number like 100 which the player would probably nearly reach in 
- * terms of  party size.
- *
  * Use <no_follow:1> in an actor's notetag to permanently prevent them from 
  * appearing as a follower.
  * Use <no_follow_switch:x> in an actor's notetag to designate a switch as what 
@@ -136,19 +125,9 @@ DreamX.FollowerOptions = DreamX.FollowerOptions || {};
     //==========================================================================
     // Game_Party
     //==========================================================================
-    DreamX.FollowerOptions.Game_Party_initialize
-            = Game_Party.prototype.initialize;
-    Game_Party.prototype.initialize = function () {
-        DreamX.FollowerOptions.Game_Party_initialize.call(this);
-        this._customFollowers = [];
-    };
-
     DreamX.FollowerOptions.Game_Party_leader = Game_Party.prototype.leader;
     Game_Party.prototype.leader = function () {
-        if (eval(parameterBattleMembersOnly) === false) {
-            return this.allPartyMembers()[0];
-        }
-        return DreamX.FollowerOptions.Game_Party_leader.call(this);
+        return this.allFollowers()[0];
     };
 
     Game_Party.prototype.allMembers = function () {
@@ -161,16 +140,6 @@ DreamX.FollowerOptions = DreamX.FollowerOptions || {};
         });
         return members;
     };
-
-    /*
-     Game_Party.prototype.battleMembers = function () {
-     var battleMembers = this.allMembers().filter(function (actor) {
-     return actor.isAppeared()
-     && DreamX.FollowerOptions.isActorBattleEnabled(actor);
-     });
-     return battleMembers.slice(0, this.maxBattleMembers());
-     };
-     */
 
     Game_Party.prototype.battleMembers = function () {
         var battleMembers = [];
@@ -253,7 +222,7 @@ DreamX.FollowerOptions = DreamX.FollowerOptions || {};
         this._visible = $dataSystem.optFollowers;
         this._gathering = false;
         this._data = [];
-        for (var i = 1; i < parameterMaxIndex; i++) {
+        for (var i = 1; i < parameterMaxFollowers; i++) {
             this._data.push(new Game_Follower(i));
         }
     };
@@ -282,14 +251,14 @@ DreamX.FollowerOptions = DreamX.FollowerOptions || {};
                 return DreamX.FollowerOptions.isFollowerOkay(actor);
             });
         }
-        return followers.slice(0, parseInt(eval(parameterMaxFollowers) + 1));
+        return followers;
     };
-    
+
     DreamX.FollowerOptions.Game_Party_setupBattleTestMembers = Game_Party.prototype.setupBattleTestMembers;
-    Game_Party.prototype.setupBattleTestMembers = function() {
+    Game_Party.prototype.setupBattleTestMembers = function () {
         DreamX.FollowerOptions.Game_Party_setupBattleTestMembers.call(this);
-        this._actors.slice(0,this.maxBattleMembers());
-};
+        this._actors.slice(0, this.maxBattleMembers());
+    };
 
 //=============================================================================
 // Compatibility
