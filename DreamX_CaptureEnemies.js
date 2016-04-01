@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.4f Capture enemies 
+ * @plugindesc v1.5 Capture enemies 
  * 
  * <DreamX Capture Enemies>
  * @author DreamX
@@ -49,6 +49,10 @@
  * @desc The custom message to display if an actor leveled up instead of being 
  * duplicated on capture. Default: %3 leveled up!
  * @default %3 leveled up!
+ * 
+ * @param Add In Battle
+ * @desc true: Add captured enemies in battle. false: Add captured enemies after battle. Default: true
+ * @default true
  *
  * @help 
  * ============================================================================
@@ -129,6 +133,8 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
     var paramLevelUpNoDuplicate = eval(parameters['Level Up Instead of Duplicates']
             || false);
     var paramDefaultLevelUpMsg = eval(parameters['Use Standard Level Up Message']
+            || true);
+    var paramAddInBattle = eval(parameters['Add In Battle']
             || true);
 
     DreamX.CaptureEnemy.Game_Interpreter_pluginCommand =
@@ -373,8 +379,31 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         CapturedEnemy.initialLevel = level;
 
         $dataActors.push(CapturedEnemy);
-        $gameParty.addActor(CapturedEnemy.id);
+
+        if ($gameParty.inBattle() && paramAddInBattle === false) {
+            BattleManager._capturedEnemies.push(CapturedEnemy.id);
+        } else {
+            $gameParty.addActor(CapturedEnemy.id);
+        }
+
         $gameSystem.capturedActors.push(CapturedEnemy);
+    };
+
+    DreamX.CaptureEnemy.BattleManager_initMembers = BattleManager.initMembers;
+    BattleManager.initMembers = function () {
+        DreamX.CaptureEnemy.BattleManager_initMembers.call(this);
+        this._capturedEnemies = [];
+    };
+
+    DreamX.CaptureEnemy.BattleManager_updateBattleEnd = BattleManager.updateBattleEnd;
+    BattleManager.updateBattleEnd = function () {
+        DreamX.CaptureEnemy.BattleManager_updateBattleEnd.call(this);
+        if (paramAddInBattle === false) {
+            for (var i = 0; i < this._capturedEnemies.length; i++) {
+                $gameParty.addActor(this._capturedEnemies[i]);
+            }
+        }
+        this._capturedEnemies = [];
     };
 
     //=============================================================================
