@@ -1,5 +1,5 @@
 /*:
- * @plugindesc 0.2 Display help text for choices.
+ * @plugindesc 0.3 Display help text for choices.
  * @author DreamX
  *
  * @param Hide On Empty
@@ -199,6 +199,7 @@ DreamX.ChoiceHelp = DreamX.ChoiceHelp || {};
                             var splitParam = param.split(faceRegExp)[1].split(" ");
                             if (splitParam.length === 2) {
                                 name = splitParam[0];
+                                ImageManager.loadFace(name);
                                 index = splitParam[1];
                             } else if (splitParam.length === 1) {
                                 index = splitParam[0];
