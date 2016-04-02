@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.13a Random prefixes/affixes
+ * @plugindesc v1.14 Random prefixes/affixes
  * @author DreamX
  *
  * @param Default Chance
@@ -123,7 +123,8 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
                 });
 
                 $dataWeapons = $dataWeapons.concat(sortedWeaponPart);
-            } else if (Yanfly.Param.ItemMaxArmors > 0) {
+            }
+            if (Yanfly.Param.ItemMaxArmors > 0) {
                 var sortedArmorPart = $dataArmors.splice(Yanfly.Param.ItemStartingId + 1, $dataArmors.length);
                 sortedArmorPart.sort(function (a, b) {
                     return a.id - b.id;
