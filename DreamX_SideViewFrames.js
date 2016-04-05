@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.5f Configure the number of frames and frame speed for SV.
+ * @plugindesc v1.6 Configure the number of frames and frame speed for SV.
  *
  * <DreamX Actor Sideview Frames>
  * @author DreamX
@@ -202,7 +202,7 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
 
     Sprite_Battler.prototype.DXupdateMotionCount = function () {
         if (this._motion && ++this._motionCount >= this.motionSpeed()) {
-            if (this._motion.loop) {
+            if (this._motion.loop && this.DXNumFrames() >= 2) {
                 if (this.DXIsStraightLoop() === false) {
                     if (this._reverseFrame === false) {
                         this._pattern++;
