@@ -1,10 +1,14 @@
 /*:
- * @plugindesc v1.14 Random prefixes/affixes
+ * @plugindesc v1.15 Random prefixes/affixes
  * @author DreamX
  *
  * @param Default Chance
  * @desc If using chances for the prefix/affix, this is the default chance.
  * @default 10
+ * 
+ * @param Bonus Parameter Text
+ * @desc Text to add when an item got bonus parameter values. Default: %1%2
+ * @default %1%2
  *
  * @help
  * This plugin must be named DreamX_RandomPrefixesAffixes in order for
@@ -24,12 +28,6 @@
  * and the affix item is named "Of Fire"
  * You would get Strong Sword Of Fire.
  *
- * If a prefix or affix item has <prefixAffixReplaceAnim:1> then its
- * anim will be used for the new item.
- *
- * If a prefix or affix item has <prefixAffixReplaceIcon:1> then its
- * icon will be used for the new item.
- *
  * The new item have the traits of both prefix and affix items and add their
  * params. For example, if the prefix item has +10 ATK and the base item has
  * +20 ATK, the new item wil have +30 ATK.
@@ -38,10 +36,39 @@
  * Price will be the original plus the prices of the prefix and affix item.
  * Note will be the notes of the original, the prefix and the affix items
  * except that the meta and prefix notetag portions will be removed.
+ * 
+ * ----
+ * If a prefix or affix item has <prefixAffixReplaceAnim:1> then its
+ * animation will be used for the new item.
  *
+ * If a prefix or affix item has <prefixAffixReplaceIcon:1> then its
+ * icon will be used for the new item.
+ * ---
+ * 
+ * Here is an example of how to add random bonus parameter values. Put this in 
+ * a prefix or affix item.
+ * 
+ * <prefixAffixParameters: ATK 5|10 DEF -10|20>
+ * We put the name of the parameter first, then the range of possible values. 
+ * The first number (5 for ATK or -10 for DEF in this example) must be equal to 
+ * or less than the second number (10 for ATK or 20 for DEF in this example).
+ * Here are the parameter names: MHP, MMP, ATK, DEF, MAT, MDF, AGI, LUK
+ * 
+ * If you want to guarantee a certain value, it is better to just use the 
+ * database.
+ * 
+ * For the plugin parameter "Bonus Parameter Text", here are the text codes:
+ * %1 - The + sign if the bonus is positive.
+ * %2 - The highest value of the random parameter bonuses applied on the item.
+ * Can be negative.
+ * 
+ * ---
+ * 
  * If you use the wrong notetags for the prefix/affix (like IDs that don't
  * exist), the player simply doesn't get an item instead of the game crashing.
- *
+ * 
+ * ---
+ * 
  * Use <prefixAffixChance:x> with x being the percent chance of getting that
  * prefix or affix.
  * Example: <prefixAffixChance:25> for a 25% chance.
@@ -96,6 +123,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
     var parameters = PluginManager.parameters('DreamX_RandomPrefixesAffixes');
 
     var paramDefaultChance = parseInt(parameters['Default Chance'] || 10);
+    var paramBonusParamText = String(parameters['Bonus Parameter Text'] || '%1%2');
 
     DreamX.RandomPrefixAffix.Game_System_initialize
             = Game_System.prototype.initialize;
@@ -201,6 +229,76 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         return mapArray[poolIndex].ids;
     };
 
+    DreamX.RandomPrefixAffix.combineWithBaseItem = function (prefixAffixItem, newItem, itemType) {
+        if (itemType === "prefix") {
+            newItem.name = prefixAffixItem.name + " " + newItem.name;
+        } else if (itemType === "affix") {
+            newItem.name = newItem.name + " " + prefixAffixItem.name;
+        }
+
+        newItem.traits = newItem.traits.concat(prefixAffixItem.traits);
+        for (var i = 0; i < prefixAffixItem.params.length; i++) {
+            newItem.params[i] += prefixAffixItem.params[i];
+        }
+        newItem.price += prefixAffixItem.price;
+        newItem.description += prefixAffixItem.description;
+        newItem.note += prefixAffixItem.note + "\n";
+        for (var notetag in prefixAffixItem.meta) {
+            newItem.meta[notetag] = prefixAffixItem.meta[notetag];
+        }
+        if (prefixAffixItem.meta.prefixAffixReplaceAnim) {
+            newItem.animationId = prefixAffixItem.animationId;
+        }
+        if (prefixAffixItem.meta.prefixAffixReplaceIcon) {
+            newItem.iconIndex = prefixAffixItem.iconIndex;
+        }
+        if (prefixAffixItem.meta.prefixAffixParameters) {
+            this.randomizeBonusParameters(prefixAffixItem.meta.prefixAffixParameters, newItem);
+        }
+    };
+
+    DreamX.RandomPrefixAffix.randomizeBonusParameters = function (notetag, newItem) {
+        var parameterSplit = notetag.trim().split(new RegExp("\\s"));
+        var i = 0;
+        while (i < parameterSplit.length) {
+            var parameterID = DreamX.RandomPrefixAffix.interpretParamNote(parameterSplit[i]);
+            i++;
+            var min = parseInt(parameterSplit[i].split("|")[0]);
+            var max = parseInt(parameterSplit[i].split("|")[1]);
+            if (parameterID && min && max) {
+                var paramRoll = Math.floor((Math.random() * max) + min);
+                if (parameterID >= 0 && parameterID < newItem.params.length) {
+                    newItem.params[parameterID] += paramRoll;
+                    if (!newItem._DXHighestParamBonus
+                            || (newItem._DXHighestParamBonus
+                                    && newItem._DXHighestParamBonus < paramRoll)) {
+                        newItem._DXHighestParamBonus = paramRoll;
+                        newItem._DXHighestParamID = parameterID;
+                    }
+                }
+            }
+            i++;
+        }
+    };
+
+    DreamX.RandomPrefixAffix.paramTermIDArray = function () {
+        // will 
+//        return ["MHP", "MMP", "ATK", "DEF", "MAT", "MDF", "AGI", "LUK"];
+    };
+
+    DreamX.RandomPrefixAffix.paramStringIDArray = function () {
+        return ["MHP", "MMP", "ATK", "DEF", "MAT", "MDF", "AGI", "LUK"];
+    };
+
+    DreamX.RandomPrefixAffix.interpretParamNote = function (string) {
+        var paramID = parseInt(string);
+        if (paramID)
+            return paramID;
+        paramID = this.paramStringIDArray().indexOf(string);
+        return paramID;
+    };
+
+
     DreamX.RandomPrefixAffix.makeItem = function (item, presetPrefixId, presetAffixId) {
         // the new item
         var newItem;
@@ -229,6 +327,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
                 prefixItem = dataType[prefixID];
             }
         }
+
         if (presetAffixId && dataType[presetAffixId]) {
             affixItem = dataType[presetAffixId];
         }
@@ -251,45 +350,21 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
 
         // make a deep copy
         newItem = JSON.parse(JSON.stringify(item));
+        // add a linebreak to note
         newItem.note += "\n";
 
         if (prefixItem) {
-            newItem.name = prefixItem.name + " " + newItem.name;
-            newItem.traits = newItem.traits.concat(prefixItem.traits);
-            for (var i = 0; i < prefixItem.params.length; i++) {
-                newItem.params[i] += prefixItem.params[i];
-            }
-            newItem.price += prefixItem.price;
-            newItem.description += prefixItem.description;
-            newItem.note += prefixItem.note + "\n";
-            for (notetag in prefixItem.meta) {
-                newItem.meta[notetag] = prefixItem.meta[notetag];
-            }
-            if (prefixItem.meta.prefixAffixReplaceAnim) {
-                newItem.animationId = prefixItem.animationId;
-            }
-            if (prefixItem.meta.prefixAffixReplaceIcon) {
-                newItem.iconIndex = prefixItem.iconIndex;
-            }
+            DreamX.RandomPrefixAffix.combineWithBaseItem(prefixItem, newItem, "prefix");
         }
+
         if (affixItem) {
-            newItem.name = newItem.name + " " + affixItem.name;
-            newItem.traits = newItem.traits.concat(affixItem.traits);
-            for (var i = 0; i < affixItem.params.length; i++) {
-                newItem.params[i] += affixItem.params[i];
-            }
-            newItem.price += affixItem.price;
-            newItem.description += affixItem.description;
-            newItem.note += affixItem.note + "\n";
-            for (notetag in affixItem.meta) {
-                newItem.meta[notetag] = affixItem.meta[notetag];
-            }
-            if (affixItem.meta.affixAffixReplaceAnim) {
-                newItem.animationId = affixItem.animationId;
-            }
-            if (affixItem.meta.affixAffixReplaceIcon) {
-                newItem.iconIndex = affixItem.iconIndex;
-            }
+            DreamX.RandomPrefixAffix.combineWithBaseItem(affixItem, newItem, "affix");
+        }
+
+        if (newItem._DXHighestParamBonus && newItem._DXHighestParamBonus !== 0) {
+            var sign = newItem._DXHighestParamBonus > 0 ? "+" : "";
+            var bonusParamText = paramBonusParamText.format(sign, newItem._DXHighestParamBonus);
+            newItem.name = newItem.name + " " + bonusParamText;
         }
 
         // remove prefix and affix notetags from note
@@ -299,8 +374,12 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         // remove the affixes and prefixes from meta. we don't want repeats
         delete newItem.meta.prefix;
         delete newItem.meta.affix;
+        // delete these properties from newitem, they are now useless
+        delete newItem._DXHighestParamBonus;
+        delete newItem._DXHighestParamID;
 
         newItem.id = item.wtypeId ? $dataWeapons.length : $dataArmors.length;
+
         if (item.wtypeId) {
             $dataWeapons.push(newItem);
             $gameSystem.randomGenWeapons.push(newItem);
@@ -492,7 +571,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
     BattleManager.convertPrefixAffix = function () {
         for (var i = 0; i < this._rewards.items.length; i++) {
             var item = this._rewards.items[i];
-            if (item && (item.meta.prefix || item.meta.affix) && (item.wtypeId || item.atypeId)) {
+            if (DreamX.RandomPrefixAffix.isConfiguredForPrefixAffix(item)) {
                 this._rewards.items[i] = DreamX.RandomPrefixAffix.makeItem(JSON.parse(JSON.stringify(item)));
             }
         }
