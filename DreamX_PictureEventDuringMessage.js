@@ -27,11 +27,11 @@
  * This plugin only affects clicks on a picture event when the message window 
  * is active.
  * 
- * If you are calling that does not change the currently displaying message, 
- * you can put a comment in the common event with "DisableMessageProgress" 
- * (without quotes and by itself) to prevent the message from reinitializing 
- * when you return to the previous event. This may also be useful when opening 
- * the menu from a common event.
+ * If the common event calling that does not change the currently displaying 
+ * message, you can put a comment in the common event with 
+ * "DisableMessageProgress"  (without quotes and by itself) to prevent the 
+ * message from reinitializing  when you return to the previous event. This may 
+ * also be useful when opening the menu from a common event.
  * ============================================================================
  * Terms Of Use
  * ============================================================================
