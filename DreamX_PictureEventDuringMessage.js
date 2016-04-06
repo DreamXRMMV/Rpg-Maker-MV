@@ -98,12 +98,11 @@ DreamX.PictureEventDuringMessage = DreamX.PictureEventDuringMessage || {};
         var lastList = $gameMap._interpreter._DXLastList;
         var lastIndex = $gameMap._interpreter._DXLastListIndex;
 
-        if (!lastList || lastIndex === undefined || lastIndex < 0)
+        if (!lastList || lastIndex === undefined)
             return;
 
         if (!SceneManager._scene._messageWindow)
             return;
-
 
         $gameMap._interpreter._list = lastList;
         $gameMap._interpreter.jumpTo(lastIndex);
@@ -127,7 +126,6 @@ DreamX.PictureEventDuringMessage = DreamX.PictureEventDuringMessage || {};
             var command = list[i];
 
             if (command.code === 108 && command.parameters[0] === "DisableMessageProgress") {
-
                 $gameTemp._disableMessageProgress = true;
             }
         }
@@ -139,7 +137,7 @@ DreamX.PictureEventDuringMessage = DreamX.PictureEventDuringMessage || {};
         for (var i = 0; i < list.length; i++) {
             var command = list[i];
 
-            if ($gameMap._interpreter._DXLastList && command.code === 108 
+            if ($gameMap._interpreter._DXLastList && command.code === 108
                     && command.parameters[0] === "DisableLastEventReplace") {
                 registerLastEvent = false;
             }
@@ -147,6 +145,10 @@ DreamX.PictureEventDuringMessage = DreamX.PictureEventDuringMessage || {};
         if (registerLastEvent) {
             $gameMap._interpreter._DXLastList = $gameMap._interpreter._list;
             $gameMap._interpreter._DXLastListIndex = $gameMap._interpreter._index - 3;
+
+            if ($gameMap._interpreter._DXLastListIndex < 0) {
+                $gameMap._interpreter._DXLastListIndex = 0;
+            }
         }
     };
 
