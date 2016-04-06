@@ -1,0 +1,150 @@
+/*:
+ * @plugindesc v1.0 You can now click on picture events during a message.
+ * @author DreamX
+ * @help
+ * Requires Yanfly Picture Common Events.
+ * Make sure the parameter "Hide Message" in Yanfly Picture Common Events is 
+ * false.
+ * You can now click on picture events during a message.
+ * When you click on a picture event during a message, the game will save the 
+ * last event it was on, and which part it was on.
+ * 
+ * In the common event the picture is associated with, you can call the 
+ * following plugin commands to return to the last event:
+ * 
+ * JumpToLastEventLabel x - x is the label of the last event you would like to 
+ * return to.
+ * 
+ * JumpToLastEventIndex - This plugin command returns you to the same part of 
+ * the event before the picture comment event was activated.
+ * 
+ * This plugin only affects clicks on a picture event when the message window 
+ * is active.
+ * 
+ * If you are calling that does not change the currently displaying message, 
+ * you can put a comment in the common event with "DisableMessageProgress" 
+ * (without quotes and by itself) to prevent the message from reinitializing 
+ * when you return to the previous event. This may also be useful when opening 
+ * the menu from a common event.
+ * ============================================================================
+ * Terms Of Use
+ * ============================================================================
+ * Free to use and modify for commercial and noncommercial games, with credit.
+ * Credit Yanfly for the script this is an extension of (Yanfly Picture Common 
+ * Events)
+ * ============================================================================
+ * Credits & Thanks
+ * ============================================================================
+ * DreamX
+ * Yanfly
+ */
+
+var Imported = Imported || {};
+Imported.DreamX_PictureEventDuringMessage = true;
+
+var DreamX = DreamX || {};
+DreamX.PictureEventDuringMessage = DreamX.PictureEventDuringMessage || {};
+
+(function () {
+    DreamX.PictureEventDuringMessage.DataManager_loadDatabase = DataManager.loadDatabase;
+    DataManager.loadDatabase = function () {
+        DreamX.PictureEventDuringMessage.DataManager_loadDatabase.call(this);
+        if (Yanfly.Param.PCEHideMsg === true) {
+            throw new Error("DreamX_PictureEventDuringMessage requires Yanfly Picture Common Events, with parameter Hide Message false");
+        }
+    };
+
+    DreamX.PictureEventDuringMessage.Game_Interpreter_pluginCommand =
+            Game_Interpreter.prototype.pluginCommand;
+    Game_Interpreter.prototype.pluginCommand = function (command, args) {
+        DreamX.PictureEventDuringMessage.Game_Interpreter_pluginCommand.call(this, command, args);
+        switch (command) {
+            case 'JumpToLastEventLabel':
+                if (args[0]) {
+                    DreamX.PictureEventDuringMessage.JumpToLastEventLabel(args[0]);
+                }
+                break;
+            case 'JumpToLastEventIndex':
+                DreamX.PictureEventDuringMessage.JumpToLastEventIndex();
+                break;
+        }
+    };
+
+    DreamX.PictureEventDuringMessage.JumpToLastEventLabel = function (labelName) {
+        var lastList = $gameMap._interpreter._DXLastList;
+        if (!lastList)
+            return;
+        if (!SceneManager._scene._messageWindow)
+            return;
+
+        for (var i = 0; i < lastList.length; i++) {
+            var command = lastList[i];
+            if (command.code === 118 && command.parameters[0] === labelName) {
+                $gameMap._interpreter._list = lastList;
+                $gameMap._interpreter.jumpTo(i);
+                $gameMap._interpreter._DXLastList = undefined;
+                $gameMap._interpreter._DXLastListIndex = undefined;
+            }
+        }
+    };
+
+    DreamX.PictureEventDuringMessage.JumpToLastEventIndex = function () {
+        var lastList = $gameMap._interpreter._DXLastList;
+        var lastIndex = $gameMap._interpreter._DXLastListIndex;
+        
+        if (!lastList || lastIndex === undefined || lastIndex < 0)
+            return;
+
+        if (!SceneManager._scene._messageWindow)
+            return;
+
+
+        $gameMap._interpreter._list = lastList;
+        $gameMap._interpreter.jumpTo(lastIndex);
+
+        $gameMap._interpreter._DXLastList = undefined;
+        $gameMap._interpreter._DXLastListIndex = undefined;
+    };
+
+    DreamX.PictureEventDuringMessage.Window_Message_isTriggered = Window_Message.prototype.isTriggered;
+    Window_Message.prototype.isTriggered = function () {
+        SceneManager._scene.updatePictureEvents();
+        if ($gameTemp._disableMessageProgress) {
+            $gameTemp._disableMessageProgress = false;
+            return false;
+        }
+        return DreamX.PictureEventDuringMessage.Window_Message_isTriggered.call(this);
+    };
+
+    DreamX.PictureEventDuringMessage.checkAndSetDisableMessageProgress = function (list) {
+        for (var i = 0; i < list.length; i++) {
+            var command = list[i];
+
+            if (command.code === 108 && command.parameters[0] === "DisableMessageProgress") {
+
+                $gameTemp._disableMessageProgress = true;
+            }
+        }
+    };
+
+    DreamX.PictureEventDuringMessage.Scene_Map_updatePictureEventCheck = Scene_Map.prototype.updatePictureEventCheck;
+    Scene_Map.prototype.updatePictureEventCheck = function (check) {
+        if (SceneManager.isSceneChanging())
+            return;
+        if (SceneManager._scene._messageWindow) {
+            var picture = this.getTriggeredPictureCommonEvent(check);
+            if (!picture)
+                return;
+            $gameMap._interpreter._DXLastList = $gameMap._interpreter._list;
+            $gameMap._interpreter._DXLastListIndex = $gameMap._interpreter._index - 3;
+
+            var newList = $dataCommonEvents[check[picture.pictureId()]].list;
+            DreamX.PictureEventDuringMessage.checkAndSetDisableMessageProgress(newList);
+
+            $gameMap._interpreter.setup(newList);
+            return;
+        }
+        DreamX.PictureEventDuringMessage.Scene_Map_updatePictureEventCheck.call(this);
+    };
+
+})();
