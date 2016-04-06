@@ -7,7 +7,13 @@
  * false.
  * You can now click on picture events during a message.
  * When you click on a picture event during a message, the game will save the 
- * last event it was on, and which part it was on.
+ * last event it was on, and which part it was on. 
+ * 
+ * You can put a comment in the common event with "DisableLastEventReplace" 
+ * (without quotes and by itself) to prevent the common event from replacing 
+ * last event save with itself if you click the same button again. 
+ * This is useful to prevent the button from erasing what the real last event 
+ * was. 
  * 
  * In the common event the picture is associated with, you can call the 
  * following plugin commands to return to the last event:
@@ -91,7 +97,7 @@ DreamX.PictureEventDuringMessage = DreamX.PictureEventDuringMessage || {};
     DreamX.PictureEventDuringMessage.JumpToLastEventIndex = function () {
         var lastList = $gameMap._interpreter._DXLastList;
         var lastIndex = $gameMap._interpreter._DXLastListIndex;
-        
+
         if (!lastList || lastIndex === undefined || lastIndex < 0)
             return;
 
@@ -127,6 +133,23 @@ DreamX.PictureEventDuringMessage = DreamX.PictureEventDuringMessage || {};
         }
     };
 
+    DreamX.PictureEventDuringMessage.checkAndSetLastEvent = function (list) {
+        var registerLastEvent = true;
+
+        for (var i = 0; i < list.length; i++) {
+            var command = list[i];
+
+            if ($gameMap._interpreter._DXLastList && command.code === 108 
+                    && command.parameters[0] === "DisableLastEventReplace") {
+                registerLastEvent = false;
+            }
+        }
+        if (registerLastEvent) {
+            $gameMap._interpreter._DXLastList = $gameMap._interpreter._list;
+            $gameMap._interpreter._DXLastListIndex = $gameMap._interpreter._index - 3;
+        }
+    };
+
     DreamX.PictureEventDuringMessage.Scene_Map_updatePictureEventCheck = Scene_Map.prototype.updatePictureEventCheck;
     Scene_Map.prototype.updatePictureEventCheck = function (check) {
         if (SceneManager.isSceneChanging())
@@ -135,10 +158,11 @@ DreamX.PictureEventDuringMessage = DreamX.PictureEventDuringMessage || {};
             var picture = this.getTriggeredPictureCommonEvent(check);
             if (!picture)
                 return;
-            $gameMap._interpreter._DXLastList = $gameMap._interpreter._list;
-            $gameMap._interpreter._DXLastListIndex = $gameMap._interpreter._index - 3;
+
+
 
             var newList = $dataCommonEvents[check[picture.pictureId()]].list;
+            DreamX.PictureEventDuringMessage.checkAndSetLastEvent(newList);
             DreamX.PictureEventDuringMessage.checkAndSetDisableMessageProgress(newList);
 
             $gameMap._interpreter.setup(newList);
