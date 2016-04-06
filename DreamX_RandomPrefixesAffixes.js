@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.15 Random prefixes/affixes
+ * @plugindesc v1.16 Random prefixes/affixes
  * @author DreamX
  *
  * @param Default Chance
@@ -63,7 +63,33 @@
  * Can be negative.
  * 
  * ---
+ * Here's an example of how to add a custom requirement to a prefix or affix 
+ * item. You'll need a bit of javascript knowledge. 
  * 
+ *   <Prefix Affix Requirement>
+ *   $gameSwitches.value(1);
+ *   </Prefix Affix Requirement>
+ * 
+ * This will require that switch 1 is on.
+ * 
+ * Here's an another example using a function provided by this plugin.
+ *   <Prefix Affix Requirement>
+ *   DreamX.RandomPrefixAffix.averagePartyLevel() > 5 && DreamX.RandomPrefixAffix.averagePartyLevel() < 10;
+ *   </Prefix Affix Requirement>
+ *   
+ * In this example, the requirement is that the average party level is above 5 
+ * but below 10.
+ * 
+ * Another function provided by this program is 
+ * DreamX.RandomPrefixAffix.averagePartyBattleMemberLevel
+ * It returns the average level of all of the battle members in the party, 
+ * instead of the whole party. You can use this function the same way as above.
+ * 
+ * If you're having trouble with javascript, I recommend either asking in the 
+ * thread for this plugin or somewhere else in the javascript section, or google 
+ * it, etc.
+ * 
+ * ---
  * If you use the wrong notetags for the prefix/affix (like IDs that don't
  * exist), the player simply doesn't get an item instead of the game crashing.
  * 
@@ -99,10 +125,13 @@
  * Terms Of Use
  * ============================================================================
  * Free to use and modify for commercial and noncommercial games, with credit.
+ * Credit Yanfly. This script uses some code from their plugins, for note 
+ * parsing.
  * ============================================================================
  * Credits
  * ============================================================================
  * DreamX
+ * Yanfly
  */
 
 //=============================================================================
@@ -163,6 +192,62 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         }
     };
 
+    DreamX.RandomPrefixAffix.evaluateCustomRequirement = function (item) {
+        var evalMode = 'none';
+        var notedata = item.note.split(/[\r\n]+/);
+        var jsScript = "";
+        
+        for (var i = 0; i < notedata.length; i++) {
+            var line = notedata[i];
+            if (line.match(/<(?:PREFIX AFFIX REQUIREMENT)>/i)) {
+                evalMode = 'custom requirement';
+            } else if (line.match(/<\/(?:PREFIX AFFIX REQUIREMENT)>/i)) {
+                evalMode = 'none';
+            } else if (evalMode === 'custom requirement') {
+                jsScript = jsScript + line + '\n';
+            }
+        }
+        // if there was no custom requirement, this returns true
+        if (jsScript.length === 0) {
+            return true;
+        }
+        
+        // return the evaluation of the script
+        return eval(jsScript);
+    };
+
+    DreamX.RandomPrefixAffix.isValidItem = function (item) {
+        if (!item) {
+            return false;
+        }
+        if (!this.evaluateCustomRequirement(item)) {
+            return false;
+        }
+
+        return true;
+    };
+    
+    DreamX.RandomPrefixAffix.averagePartyLevel = function () {
+        return this.DXaverageLevelUtility($gameParty.allMembers());
+    };
+
+    DreamX.RandomPrefixAffix.averagePartyBattleMemberLevel = function () {
+        return this.DXaverageLevelUtility($gameParty.battleMembers());
+    };
+
+    DreamX.RandomPrefixAffix.DXaverageLevelUtility = function (memberArray) {
+        if (memberArray.length <= 0) {
+            return 0;
+        }
+        var sum = 0;
+
+        memberArray.forEach(function (member) {
+            sum += member.level;
+        });
+
+        return sum / memberArray.length;
+    };
+
 
     DreamX.RandomPrefixAffix.makeChoices = function (arrayOfIDs, dataType) {
         var mapArray = [];
@@ -173,7 +258,8 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
 
         // get rid of bad ids
         for (var i = 0; i < arrayOfIDs.length; i++) {
-            if (!dataType[ arrayOfIDs[i] ]) {
+            var testItem = dataType[ arrayOfIDs[i] ];
+            if (!this.isValidItem(testItem)) {
                 arrayOfIDs.splice(i, 1);
                 i--;
             }
