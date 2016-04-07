@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.16 Random prefixes/affixes
+ * @plugindesc v1.17 Random prefixes/affixes
  * @author DreamX
  *
  * @param Default Chance
@@ -23,7 +23,11 @@
  * also changing the name. The new item is then added instead of the
  * base item.
  *
- * Example: <prefix:2,4,8,12,26> <affix:7,2>
+ * Example: <prefix: 2, 4, 5-10, 12, 26> <affix:7,2>
+ * 
+ * As you can see, you can add item id ranges. In addition to the single ids, 
+ * item ids 5, 6, 7, 8, 9 and 10 will be added to the pool in this example.
+ * 
  * If the base item is named "Sword", the prefix item is named "Strong"
  * and the affix item is named "Of Fire"
  * You would get Strong Sword Of Fire.
@@ -89,6 +93,25 @@
  * thread for this plugin or somewhere else in the javascript section, or google 
  * it, etc.
  * 
+ * ---
+ * Here's an example of how to add a custom effect to the new item from the 
+ * prefix/affix item. You'll need to know some javascript.
+ * 
+ * <Prefix Affix Effect>
+ * var atkBonus = Math.floor((Math.random() * 100) + 50);
+ * newItem.params[2] += atkBonus;
+ * newItem.name += " +" + atkBonus;
+ * newItem.price += atkBonus;
+ * </Prefix Affix Effect>
+ * 
+ * In this example, we are applying a random ATK bonus between 50 and 150 to 
+ * the new item and also adding that bonus to the name of the new item. In 
+ * additon, we also add to the price the ATK bonus.
+ * 
+ * Here are the variables provided to you by plugin for these effects:
+ * item - the prefix/affix item the effect is taken from.
+ * baseItem - the baseItem.
+ * newItem = the new item to be created.
  * ---
  * If you use the wrong notetags for the prefix/affix (like IDs that don't
  * exist), the player simply doesn't get an item instead of the game crashing.
@@ -196,7 +219,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         var evalMode = 'none';
         var notedata = item.note.split(/[\r\n]+/);
         var jsScript = "";
-        
+
         for (var i = 0; i < notedata.length; i++) {
             var line = notedata[i];
             if (line.match(/<(?:PREFIX AFFIX REQUIREMENT)>/i)) {
@@ -211,9 +234,36 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         if (jsScript.length === 0) {
             return true;
         }
-        
+
         // return the evaluation of the script
         return eval(jsScript);
+    };
+
+    DreamX.RandomPrefixAffix.evaluateCustomEffect = function (item, bItem, nItem) {
+        var baseItem = bItem;
+        var newItem = nItem;
+
+        var evalMode = 'none';
+        var notedata = item.note.split(/[\r\n]+/);
+        var jsScript = "";
+
+        for (var i = 0; i < notedata.length; i++) {
+            var line = notedata[i];
+            if (line.match(/<(?:PREFIX AFFIX EFFECT)>/i)) {
+                evalMode = 'custom effect';
+            } else if (line.match(/<\/(?:PREFIX AFFIX EFFECT)>/i)) {
+                evalMode = 'none';
+            } else if (evalMode === 'custom effect') {
+                jsScript = jsScript + line + '\n';
+            }
+        }
+        // if there was no custom requirement, this returns true
+        if (jsScript.length === 0) {
+            return;
+        }
+
+        // execute the script
+        eval(jsScript);
     };
 
     DreamX.RandomPrefixAffix.isValidItem = function (item) {
@@ -226,7 +276,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
 
         return true;
     };
-    
+
     DreamX.RandomPrefixAffix.averagePartyLevel = function () {
         return this.DXaverageLevelUtility($gameParty.allMembers());
     };
@@ -384,14 +434,37 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         return paramID;
     };
 
+    DreamX.RandomPrefixAffix.ChoosePrefixAffixItem = function (itemMeta, dataType) {
+        var itemArray = [];
+
+        var itemSplit = itemMeta.trim().replace(/,/g, " ").split(new RegExp("\\s{1,}"));
+
+        for (var i = 0; i < itemSplit.length; i++) {
+            var word = itemSplit[i];
+            if (word.indexOf("-") !== -1) {
+                var start = word.split("-")[0];
+                var end = word.split("-")[1];
+                for (var j = start; j <= end; j++) {
+                    itemArray.push(j);
+                }
+            } else {
+                itemArray.push(word);
+            }
+        }
+
+        var choices = this.makeChoices(itemArray, dataType);
+
+        if (choices.length >= 1) {
+            var itemID = choices[Math.floor(Math.random() * choices.length)];
+            return dataType[itemID];
+        }
+        return undefined;
+    };
+
 
     DreamX.RandomPrefixAffix.makeItem = function (item, presetPrefixId, presetAffixId) {
         // the new item
         var newItem;
-
-        // arrays of choices of prefix/affix items
-        var prefixChoices = [];
-        var affixChoices = [];
 
         // the prefix/affix item
         var prefixItem;
@@ -400,32 +473,20 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         // weapon or armor
         var dataType = item.wtypeId ? $dataWeapons : $dataArmors;
 
+        // prefix item selection
         if (presetPrefixId && dataType[presetPrefixId]) {
             prefixItem = dataType[presetPrefixId];
         }
         if (!prefixItem && item.meta.prefix) {
-            prefixSplit = item.meta.prefix.trim().split(",");
-            prefixChoices = this.makeChoices(prefixSplit, item.wtypeId
-                    ? $dataWeapons : $dataArmors);
-
-            if (prefixChoices.length >= 1) {
-                var prefixID = prefixChoices[Math.floor(Math.random() * prefixChoices.length)];
-                prefixItem = dataType[prefixID];
-            }
+            prefixItem = this.ChoosePrefixAffixItem(item.meta.prefix, dataType);
         }
 
+        // affix item selection
         if (presetAffixId && dataType[presetAffixId]) {
             affixItem = dataType[presetAffixId];
         }
         if (!affixItem && item.meta.affix) {
-            affixSplit = item.meta.affix.trim().split(",");
-            affixChoices = this.makeChoices(affixSplit, item.wtypeId
-                    ? $dataWeapons : $dataArmors);
-
-            if (affixChoices.length >= 1) {
-                var affixID = affixChoices[Math.floor(Math.random() * affixChoices.length)];
-                affixItem = dataType[affixID];
-            }
+            affixItem = this.ChoosePrefixAffixItem(item.meta.affix, dataType);
         }
 
         // if incorrect notetag configuration, return undefined
@@ -440,11 +501,17 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         newItem.note += "\n";
 
         if (prefixItem) {
-            DreamX.RandomPrefixAffix.combineWithBaseItem(prefixItem, newItem, "prefix");
+            this.combineWithBaseItem(prefixItem, newItem, "prefix");
         }
-
         if (affixItem) {
-            DreamX.RandomPrefixAffix.combineWithBaseItem(affixItem, newItem, "affix");
+            this.combineWithBaseItem(affixItem, newItem, "affix");
+        }
+        // execute custom effects
+        if (prefixItem) {
+            this.evaluateCustomEffect(prefixItem, item, newItem);
+        }
+        if (affixItem) {
+            this.evaluateCustomEffect(affixItem, item, newItem);
         }
 
         if (newItem._DXHighestParamBonus && newItem._DXHighestParamBonus !== 0) {
@@ -464,7 +531,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         delete newItem._DXHighestParamBonus;
         delete newItem._DXHighestParamID;
 
-        newItem.id = item.wtypeId ? $dataWeapons.length : $dataArmors.length;
+        newItem.id = dataType.length;
 
         if (item.wtypeId) {
             $dataWeapons.push(newItem);
