@@ -1,13 +1,42 @@
 {
-    "SWORD": {
-        "NONE": "Cow",
-        "CHAINMAIL": "Cat",
-        "CHITIN": "Dog",
-        "NULL": ""
+    "NONE": {
+        "USE": "",
+        "MISS": "Wind7",
+        "NONE": {
+            "NORMAL": "",
+            "CRITICAL": ""
+        },
+        "CLOTH": {
+            "NORMAL": "",
+            "CRITICAL": ""
+        },
+        "METAL": {
+            "NORMAL": "",
+            "CRITICAL": ""
+        },
+        "STONE": {
+            "NORMAL": "",
+            "CRITICAL": ""
+        }
     },
-    "MACE": {
-        "NONE": "Fire1",
-        "PLATE": "Computer",
-        "NULL": ""
+    "SWORD": {
+        "USE": "Sword4",
+        "MISS": "Wind7",
+        "NONE": {
+            "NORMAL": "Slash2",
+            "CRITICAL": "Slash3"
+        },
+        "CLOTH": {
+            "NORMAL": "Slash4",
+            "CRITICAL": "Slash5"
+        },
+        "METAL": {
+            "NORMAL": "Sword1",
+            "CRITICAL": "Sword2"
+        },
+        "STONE": {
+            "NORMAL": "Earth5",
+            "CRITICAL": "Earth1"
+        }
     }
 }
