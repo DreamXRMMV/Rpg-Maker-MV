@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.6 Capture enemies 
+ * @plugindesc v1.6a Capture enemies 
  * 
  * <DreamX Capture Enemies>
  * @author DreamX
@@ -53,6 +53,10 @@
  * @param Add In Battle
  * @desc true: Add captured enemies in battle. false: Add captured enemies after battle. Default: true
  * @default true
+ * 
+ * @param Capture Count Variable
+ * @desc Add 1 to this variable id every time an enemy is captured. 0 - disable Default: 0
+ * @default 0
  *
  * @help 
  * ============================================================================
@@ -75,7 +79,10 @@
  
  Put <capturedSwitch:x> with x as the switch id as an enemy notetag to set the 
  switch to true when the enemy is captured.
-
+ 
+ Put <capturedVariable:x> with x as the variable id as an enemy notetag to 
+ incremenet that variable by 1 every time the enemy type is captured.
+ 
  When you use the item or skill succesfully, the actor in that notetag will be 
  added. You can have duplicates. You can manually add actors to your party by 
  using the AddActor x y plugin command with x being the actor id and y being 
@@ -139,6 +146,8 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
             || true);
     var paramAddInBattle = eval(parameters['Add In Battle']
             || true);
+    var paramCaptureCountVariable = parseInt(parameters['Capture Count Variable']
+            || 0);
 
     DreamX.CaptureEnemy.Game_Interpreter_pluginCommand =
             Game_Interpreter.prototype.pluginCommand;
@@ -224,10 +233,20 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
     };
 
     DreamX.CaptureEnemy.actorAlreadyExists = function (actorId) {
-        var exists = $gameParty.allMembers().some(function (actor) {
+        var tempMemberExists;
+        var partyMemberExists;
+        
+        partyMemberExists = $gameParty.allMembers().some(function (actor) {
             return (actor.actorId() === actorId) || actor.baseActorId() === actorId;
         });
-        return exists;
+        if ($gameTemp._tempCaptureIDs) {
+            tempMemberExists = $gameTemp._tempCaptureIDs.some(function (id) {
+                return id === actorId;
+            });
+
+        }
+
+        return tempMemberExists === true || partyMemberExists === true;
     };
 
     DreamX.CaptureEnemy.shouldLevelUpAnActor = function (actorId) {
@@ -279,13 +298,33 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
                 DreamX.CaptureEnemy.displayMessage(parameterCaptureFailedMsg.format(targetName, troopName, actorName));
                 break;
             case "CaptureSuccess":
-                
-                if (parseInt(dataEnemyMeta.capturedSwitch)) {
-                    $gameSwitches.setValue(parseInt(dataEnemyMeta.capturedSwitch), true);
+                if (paramCaptureCountVariable >= 1) {
+                    var oldCaptureCount = $gameVariables.value(paramCaptureCountVariable);
+                    $gameVariables.setValue(paramCaptureCountVariable,
+                            oldCaptureCount + 1);
                 }
+
+                if (parseInt(dataEnemyMeta.capturedSwitch)) {
+                    var capturedSwitchId = parseInt(dataEnemyMeta.capturedSwitch);
+                    if (capturedSwitchId >= 1) {
+                        $gameSwitches.setValue(capturedSwitchId, true);
+                    }
+                }
+
+                if (parseInt(dataEnemyMeta.capturedVariable)) {
+                    var capturedVariableId = parseInt(dataEnemyMeta.capturedVariable);
+                    if (capturedVariableId >= 1) {
+                        var oldVarValue = $gameVariables.value(capturedVariableId);
+                        $gameVariables.setValue(capturedVariableId,
+                                oldVarValue + 1);
+                    }
+                }
+
                 if (DreamX.CaptureEnemy.shouldLevelUpAnActor(newActorId)) {
+
                     target._wasLevelUpCaptured = true;
                 } else {
+
                     var level = 1;
                     if (target.level && target.level >= 1) {
                         level = target.level;
@@ -320,6 +359,10 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         gameActor = gameActor[0];
 
         if (this._wasCaptured) {
+            if (!$gameTemp._tempCaptureIDs) {
+                $gameTemp._tempCaptureIDs = [];
+            }
+            $gameTemp._tempCaptureIDs.push(actorId);
             DreamX.CaptureEnemy.displayMessage(parameterCaptureSuccessMsg.format(enemyName, troopName, actorName));
         }
         if (this._wasLevelUpCaptured) {
@@ -407,7 +450,6 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         DreamX.CaptureEnemy.BattleManager_updateBattleEnd.call(this);
         if (paramAddInBattle === false) {
             for (var i = 0; i < this._capturedEnemies.length; i++) {
-                console.log(this._capturedEnemies[i]);
                 $gameParty.addActor(this._capturedEnemies[i]);
             }
         }
