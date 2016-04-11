@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.5 Capture enemies 
+ * @plugindesc v1.6 Capture enemies 
  * 
  * <DreamX Capture Enemies>
  * @author DreamX
@@ -73,6 +73,9 @@
  Put <captureRate:x> in the notetag of a state to add x to the chance of 
  capture when the enemy has that state.
  
+ Put <capturedSwitch:x> with x as the switch id as an enemy notetag to set the 
+ switch to true when the enemy is captured.
+
  When you use the item or skill succesfully, the actor in that notetag will be 
  added. You can have duplicates. You can manually add actors to your party by 
  using the AddActor x y plugin command with x being the actor id and y being 
@@ -276,6 +279,10 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
                 DreamX.CaptureEnemy.displayMessage(parameterCaptureFailedMsg.format(targetName, troopName, actorName));
                 break;
             case "CaptureSuccess":
+                
+                if (parseInt(dataEnemyMeta.capturedSwitch)) {
+                    $gameSwitches.setValue(parseInt(dataEnemyMeta.capturedSwitch), true);
+                }
                 if (DreamX.CaptureEnemy.shouldLevelUpAnActor(newActorId)) {
                     target._wasLevelUpCaptured = true;
                 } else {
@@ -400,6 +407,7 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         DreamX.CaptureEnemy.BattleManager_updateBattleEnd.call(this);
         if (paramAddInBattle === false) {
             for (var i = 0; i < this._capturedEnemies.length; i++) {
+                console.log(this._capturedEnemies[i]);
                 $gameParty.addActor(this._capturedEnemies[i]);
             }
         }
