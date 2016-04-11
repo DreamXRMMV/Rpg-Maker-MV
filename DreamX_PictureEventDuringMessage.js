@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.0 You can now click on picture events during a message.
+ * @plugindesc v1.1 You can now click on picture events during a message.
  * @author DreamX
  * @help
  * Requires Yanfly Picture Common Events.
@@ -55,7 +55,7 @@ DreamX.PictureEventDuringMessage = DreamX.PictureEventDuringMessage || {};
     DreamX.PictureEventDuringMessage.DataManager_loadDatabase = DataManager.loadDatabase;
     DataManager.loadDatabase = function () {
         DreamX.PictureEventDuringMessage.DataManager_loadDatabase.call(this);
-        if (Yanfly.Param.PCEHideMsg === true) {
+        if (!Imported.YEP_PictureCommonEvents || Yanfly.Param.PCEHideMsg === true) {
             throw new Error("DreamX_PictureEventDuringMessage requires Yanfly Picture Common Events, with parameter Hide Message false");
         }
     };
@@ -121,6 +121,19 @@ DreamX.PictureEventDuringMessage = DreamX.PictureEventDuringMessage || {};
         return DreamX.PictureEventDuringMessage.Window_Message_isTriggered.call(this);
     };
 
+
+    DreamX.PictureEventDuringMessage.Window_Selectable_processTouch = Window_Selectable.prototype.processTouch;
+    Window_Selectable.prototype.processTouch = function () {
+        if (this instanceof Window_ChoiceList) {
+            if (this.isOpenAndActive()) {
+                if (TouchInput.isTriggered()) {
+                    SceneManager._scene.updatePictureEvents();
+                }
+            }
+        }
+        DreamX.PictureEventDuringMessage.Window_Selectable_processTouch.call(this);
+    };
+
     DreamX.PictureEventDuringMessage.checkAndSetDisableMessageProgress = function (list) {
         for (var i = 0; i < list.length; i++) {
             var command = list[i];
@@ -143,12 +156,23 @@ DreamX.PictureEventDuringMessage = DreamX.PictureEventDuringMessage || {};
             }
         }
         if (registerLastEvent) {
-            $gameMap._interpreter._DXLastList = $gameMap._interpreter._list;
-            $gameMap._interpreter._DXLastListIndex = $gameMap._interpreter._index - 3;
-
-            if ($gameMap._interpreter._DXLastListIndex < 0) {
-                $gameMap._interpreter._DXLastListIndex = 0;
+            var index = $gameMap._interpreter._index;
+            var list = $gameMap._interpreter._list;
+            if (list[index].code === 402) {
+                SceneManager._scene._messageWindow.terminateMessage();
+                index--;
             }
+            index -= 3;
+
+            if (index < 0) {
+                index = 0;
+            }
+
+            console.log(list[index]);
+            console.log(index);
+
+            $gameMap._interpreter._DXLastList = list;
+            $gameMap._interpreter._DXLastListIndex = index;
         }
     };
 
@@ -160,8 +184,6 @@ DreamX.PictureEventDuringMessage = DreamX.PictureEventDuringMessage || {};
             var picture = this.getTriggeredPictureCommonEvent(check);
             if (!picture)
                 return;
-
-
 
             var newList = $dataCommonEvents[check[picture.pictureId()]].list;
             DreamX.PictureEventDuringMessage.checkAndSetLastEvent(newList);
