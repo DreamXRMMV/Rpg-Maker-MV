@@ -155,25 +155,28 @@ DreamX.PictureEventDuringMessage = DreamX.PictureEventDuringMessage || {};
                 registerLastEvent = false;
             }
         }
-        if (registerLastEvent) {
-            var index = $gameMap._interpreter._index;
-            var list = $gameMap._interpreter._list;
-            if (list[index].code === 402) {
-                SceneManager._scene._messageWindow.terminateMessage();
-                index--;
-            }
-            index -= 3;
 
-            if (index < 0) {
-                index = 0;
-            }
+        if (!registerLastEvent)
+            return;
 
-            console.log(list[index]);
-            console.log(index);
+        var index = $gameMap._interpreter._index;
+        var list = $gameMap._interpreter._list;
+        if (!list || !list[index])
+            return;
+        if (list[index].code === 402) {
+            SceneManager._scene._messageWindow.terminateMessage();
+            SceneManager._scene._messageWindow._choiceWindow.hide();
 
-            $gameMap._interpreter._DXLastList = list;
-            $gameMap._interpreter._DXLastListIndex = index;
+            index--;
         }
+        index -= 3;
+
+        if (index < 0) {
+            index = 0;
+        }
+
+        $gameMap._interpreter._DXLastList = list;
+        $gameMap._interpreter._DXLastListIndex = index;
     };
 
     DreamX.PictureEventDuringMessage.Scene_Map_updatePictureEventCheck = Scene_Map.prototype.updatePictureEventCheck;
