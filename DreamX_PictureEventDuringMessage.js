@@ -97,7 +97,7 @@ DreamX.PictureEventDuringMessage = DreamX.PictureEventDuringMessage || {};
     DreamX.PictureEventDuringMessage.JumpToLastEventIndex = function () {
         var lastList = $gameMap._interpreter._DXLastList;
         var lastIndex = $gameMap._interpreter._DXLastListIndex;
-
+        
         if (!lastList || lastIndex === undefined)
             return;
 
@@ -164,8 +164,10 @@ DreamX.PictureEventDuringMessage = DreamX.PictureEventDuringMessage || {};
         if (!list || !list[index])
             return;
         if (list[index].code === 402) {
-            SceneManager._scene._messageWindow.terminateMessage();
+
             SceneManager._scene._messageWindow._choiceWindow.hide();
+            SceneManager._scene._messageWindow._choiceWindow.deactivate();
+            SceneManager._scene._messageWindow.terminateMessage();
 
             index--;
         }
