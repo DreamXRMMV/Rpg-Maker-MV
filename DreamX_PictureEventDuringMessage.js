@@ -113,7 +113,10 @@ DreamX.PictureEventDuringMessage = DreamX.PictureEventDuringMessage || {};
 
     DreamX.PictureEventDuringMessage.Window_Message_isTriggered = Window_Message.prototype.isTriggered;
     Window_Message.prototype.isTriggered = function () {
-        SceneManager._scene.updatePictureEvents();
+        if (SceneManager._scene instanceof Scene_Map) {
+            SceneManager._scene.updatePictureEvents();        
+        }
+
         if ($gameTemp._disableMessageProgress) {
             $gameTemp._disableMessageProgress = false;
             return false;
@@ -124,7 +127,7 @@ DreamX.PictureEventDuringMessage = DreamX.PictureEventDuringMessage || {};
 
     DreamX.PictureEventDuringMessage.Window_Selectable_processTouch = Window_Selectable.prototype.processTouch;
     Window_Selectable.prototype.processTouch = function () {
-        if (this instanceof Window_ChoiceList) {
+        if (this instanceof Window_ChoiceList && SceneManager._scene instanceof Scene_Map) {
             if (this.isOpenAndActive()) {
                 if (TouchInput.isTriggered()) {
                     SceneManager._scene.updatePictureEvents();
