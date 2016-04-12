@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.17 Random prefixes/affixes
+ * @plugindesc v1.19 Random prefixes/affixes
  * @author DreamX
  *
  * @param Default Chance
@@ -9,7 +9,11 @@
  * @param Bonus Parameter Text
  * @desc Text to add when an item got bonus parameter values. Default: %1%2
  * @default %1%2
- *
+ * 
+ * @param Bonus Parameter Price Multiplier
+ * @desc Multiply each bonus paramater point by this amount to add to the price. Default: 10
+ * @default 10
+ * 
  * @help
  * This plugin must be named DreamX_RandomPrefixesAffixes in order for
  * parameters to work properly.
@@ -48,7 +52,11 @@
  * If a prefix or affix item has <prefixAffixReplaceIcon:1> then its
  * icon will be used for the new item.
  * ---
- * 
+ * Use <prefixAffixName:x> with x as the name to override the database name 
+ * for this item when making the new item. This means you can name the 
+ * database item in a way convenient for you, but have the name display 
+ * differently in-game, as whatever you put in the notetag.
+ * ---
  * Here is an example of how to add random bonus parameter values. Put this in 
  * a prefix or affix item.
  * 
@@ -171,11 +179,11 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
     //==========================================================================
     // Parameter Variables
     //==========================================================================
-
     var parameters = PluginManager.parameters('DreamX_RandomPrefixesAffixes');
 
     var paramDefaultChance = parseInt(parameters['Default Chance'] || 10);
     var paramBonusParamText = String(parameters['Bonus Parameter Text'] || '%1%2');
+    var paramMultiplier = parseInt(parameters['Bonus Parameter Price Multiplier'] || 10);
 
     DreamX.RandomPrefixAffix.Game_System_initialize
             = Game_System.prototype.initialize;
@@ -366,10 +374,13 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
     };
 
     DreamX.RandomPrefixAffix.combineWithBaseItem = function (prefixAffixItem, newItem, itemType) {
+        var prefixAffixName = prefixAffixItem.meta.prefixAffixName 
+        ? prefixAffixItem.meta.prefixAffixName : prefixAffixItem.name;
+        
         if (itemType === "prefix") {
-            newItem.name = prefixAffixItem.name + " " + newItem.name;
+            newItem.name = prefixAffixName + " " + newItem.name;
         } else if (itemType === "affix") {
-            newItem.name = newItem.name + " " + prefixAffixItem.name;
+            newItem.name = newItem.name + " " + prefixAffixName;
         }
 
         newItem.traits = newItem.traits.concat(prefixAffixItem.traits);
@@ -405,6 +416,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
                 var paramRoll = Math.floor((Math.random() * max) + min);
                 if (parameterID >= 0 && parameterID < newItem.params.length) {
                     newItem.params[parameterID] += paramRoll;
+                    newItem.price += paramRoll * paramMultiplier;
                     if (!newItem._DXHighestParamBonus
                             || (newItem._DXHighestParamBonus
                                     && newItem._DXHighestParamBonus < paramRoll)) {
@@ -415,11 +427,6 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
             }
             i++;
         }
-    };
-
-    DreamX.RandomPrefixAffix.paramTermIDArray = function () {
-        // will 
-//        return ["MHP", "MMP", "ATK", "DEF", "MAT", "MDF", "AGI", "LUK"];
     };
 
     DreamX.RandomPrefixAffix.paramStringIDArray = function () {
@@ -730,6 +737,9 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
         }
     };
 
+    //==========================================================================
+    // Compatibility
+    //==========================================================================
     // since the new item names don't show up by default, must alias this and
     // make the new items before hand
     if (Imported.YEP_VictoryAftermath) {
@@ -755,6 +765,40 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
                 return false;
             }
             return DreamX.RandomPrefixAffix.DataManager_isIndependent.call(this, item);
+        };
+    }
+
+    if (Imported.ShopManager) {
+        /* Setup shop goods, if needed */
+        DreamX.RandomPrefixAffix.Game_Shop_setupGoods = Game_Shop.prototype.setupGoods;
+        Game_Shop.prototype.setupGoods = function (goods) {
+            if (this._needsSetup) {
+                for (var i = 0; i < goods.length; i++) {
+                    var data = goods[i];
+                    var type = data[0];
+                    var id = data[1];
+                    var dataType;
+                    switch (type) {
+                        case 0:
+                            dataType = $dataItems;
+                            break;
+                        case 1:
+                            dataType = $dataWeapons;
+                            break;
+                        case 2:
+                            dataType = $dataArmors;
+                            break;
+                    }
+
+                    var item = dataType[id];
+
+                    if (DreamX.RandomPrefixAffix.isConfiguredForPrefixAffix(item)) {
+                        var newItem = DreamX.RandomPrefixAffix.makeItem(JSON.parse(JSON.stringify(item)));
+                        data[1] = newItem.id;
+                    }
+                }
+            }
+            DreamX.RandomPrefixAffix.Game_Shop_setupGoods.call(this, goods);
         };
     }
 
