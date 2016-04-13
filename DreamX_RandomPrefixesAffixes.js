@@ -461,7 +461,6 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
                 itemArray.push(word);
             }
         }
-        console.log(itemArray);
 
         var choices = this.makeChoices(itemArray, dataType);
 
