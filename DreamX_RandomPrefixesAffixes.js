@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.19 Random prefixes/affixes
+ * @plugindesc v1.19a Random prefixes/affixes
  * @author DreamX
  *
  * @param Default Chance
@@ -374,9 +374,9 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
     };
 
     DreamX.RandomPrefixAffix.combineWithBaseItem = function (prefixAffixItem, newItem, itemType) {
-        var prefixAffixName = prefixAffixItem.meta.prefixAffixName 
-        ? prefixAffixItem.meta.prefixAffixName : prefixAffixItem.name;
-        
+        var prefixAffixName = prefixAffixItem.meta.prefixAffixName
+                ? prefixAffixItem.meta.prefixAffixName : prefixAffixItem.name;
+
         if (itemType === "prefix") {
             newItem.name = prefixAffixName + " " + newItem.name;
         } else if (itemType === "affix") {
@@ -451,6 +451,9 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
             if (word.indexOf("-") !== -1) {
                 var start = word.split("-")[0];
                 var end = word.split("-")[1];
+                
+                start = parseInt(start);
+                end = parseInt(end);
                 for (var j = start; j <= end; j++) {
                     itemArray.push(j);
                 }
@@ -458,6 +461,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
                 itemArray.push(word);
             }
         }
+        console.log(itemArray);
 
         var choices = this.makeChoices(itemArray, dataType);
 
@@ -465,6 +469,7 @@ DreamX.RandomPrefixAffix = DreamX.RandomPrefixAffix || {};
             var itemID = choices[Math.floor(Math.random() * choices.length)];
             return dataType[itemID];
         }
+
         return undefined;
     };
 
