@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.6a Capture enemies 
+ * @plugindesc v1.7 Capture enemies 
  * 
  * <DreamX Capture Enemies>
  * @author DreamX
@@ -57,6 +57,11 @@
  * @param Capture Count Variable
  * @desc Add 1 to this variable id every time an enemy is captured. 0 - disable Default: 0
  * @default 0
+ * 
+ * @param Starting ID
+ * @desc This will be the starting ID number for captured actors
+ * so that they don't interfere with default actors.
+ * @default 3000
  *
  * @help 
  * ============================================================================
@@ -99,11 +104,14 @@
  * Terms Of Use
  * ============================================================================
  * Free to use and modify for commercial and noncommercial games, with credit.
+ * This plugin uses some code from Yanfly's Item Core. Please credit Yanfly.
  * ============================================================================
  * Credits & Thanks
  * ============================================================================
  * DreamX
  * Thanks to Jeremy Cannady for reference from his Monster Breeding System script.
+ * Thanks to Yanfly for code from their Item Core script.
+ * 
  */
 
 var Imported = Imported || {};
@@ -148,6 +156,8 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
             || true);
     var paramCaptureCountVariable = parseInt(parameters['Capture Count Variable']
             || 0);
+    var parameterStartingId = parseInt(parameters['Starting ID']
+            || 0);
 
     DreamX.CaptureEnemy.Game_Interpreter_pluginCommand =
             Game_Interpreter.prototype.pluginCommand;
@@ -163,14 +173,69 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         }
     };
 
+//=============================================================================
+// DataManager
+//=============================================================================
+    DreamX.CaptureEnemy.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
+    DataManager.isDatabaseLoaded = function () {
+        if (!DreamX.CaptureEnemy.DataManager_isDatabaseLoaded.call(this))
+            return false;
+        if (!DreamX.loadedCapturedEnemies) {
+            this.setBaseDataActorLength();
+            this.setCapturedActorsLength();
+            DreamX.loadedCapturedEnemies = true;
+        }
+        return true;
+    };
+
+    DataManager.setBaseDataActorLength = function () {
+        this._baseActorsLength = $dataActors.length;
+    };
+
+    DreamX.CaptureEnemy.DataManager_makeSaveContents = DataManager.makeSaveContents;
+    DataManager.makeSaveContents = function () {
+        var contents = DreamX.CaptureEnemy.DataManager_makeSaveContents.call(this);
+        contents.capturedActors = this._capturedActors;
+        return contents;
+    };
+
     DreamX.CaptureEnemy.DataManager_extractSaveContents = DataManager.extractSaveContents;
     DataManager.extractSaveContents = function (contents) {
         DreamX.CaptureEnemy.DataManager_extractSaveContents.call(this, contents);
-        for (var i = 0; i < $gameSystem.capturedActors.length; i++) {
-            $dataActors.push($gameSystem.capturedActors[i]);
+        this._capturedActors = contents.capturedActors;
+        this.loadCapturedActors();
+    };
+
+    DataManager.loadCapturedActors = function () {
+        $dataActors = $dataActors.concat(this._capturedActors);
+    };
+
+    DataManager.setCapturedActorsLength = function () {
+        for (; ; ) {
+            if ($dataActors.length > parameterStartingId)
+                break;
+            $dataActors.push(null);
         }
     };
 
+    DataManager.removeCapturedActors = function () {
+        // remove captured actors from other saves
+        var difItems = $dataActors.length - parameterStartingId;
+        $dataActors.splice(parameterStartingId, difItems);
+    };
+
+    DreamX.CaptureEnemy.DataManager_createGameObjects =
+            DataManager.createGameObjects;
+    DataManager.createGameObjects = function () {
+        DreamX.CaptureEnemy.DataManager_createGameObjects.call(this);
+        this._capturedActors = [];
+        // remove captured actors from other saves
+        this.removeCapturedActors();
+    };
+
+//=============================================================================
+// Game_Actor
+//=============================================================================
     DreamX.CaptureEnemy.Game_Actor_setup = Game_Actor.prototype.setup;
     Game_Actor.prototype.setup = function (actorId) {
         DreamX.CaptureEnemy.Game_Actor_setup.call(this, actorId);
@@ -182,6 +247,40 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         return this._baseActorId;
     };
 
+//=============================================================================
+// Game_Enemy
+//=============================================================================
+    DreamX.CaptureEnemy.performCollapse = Game_Enemy.prototype.performCollapse;
+    Game_Enemy.prototype.performCollapse = function () {
+        DreamX.CaptureEnemy.performCollapse.call(this);
+        var enemyName = this.originalName();
+        var troopName = $gameTroop.troop().name;
+        var actorId = this.enemy().meta.capture_actor_id;
+        var actor = $dataActors[actorId];
+        if (!actor) {
+            return;
+        }
+        var actorName = actor.name;
+        var gameActor = $gameParty.allMembers().filter(function (actor) {
+            return (actor.actorId() === actorId) || actor.baseActorId() === actorId;
+        });
+        gameActor = gameActor[0];
+
+        if (this._wasCaptured) {
+            if (!$gameTemp._tempCaptureIDs) {
+                $gameTemp._tempCaptureIDs = [];
+            }
+            $gameTemp._tempCaptureIDs.push(actorId);
+            DreamX.CaptureEnemy.displayMessage(parameterCaptureSuccessMsg.format(enemyName, troopName, actorName));
+        }
+        if (this._wasLevelUpCaptured) {
+            DreamX.CaptureEnemy.levelUpDuplicateActors(actorId);
+            if (paramDefaultLevelUpMsg === false) {
+                DreamX.CaptureEnemy.displayMessage(paramLvlUpMsg.format(actorName, troopName, actorName));
+            }
+        }
+    };
+
     DreamX.CaptureEnemy.Game_Enemy_exp = Game_Enemy.prototype.exp;
     Game_Enemy.prototype.exp = function () {
         if ((paramEXPFromCapture === false)
@@ -190,12 +289,6 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
             return 0;
         }
         return DreamX.CaptureEnemy.Game_Enemy_exp.call(this);
-    };
-
-    DreamX.CaptureEnemy.Game_System_initialize = Game_System.prototype.initialize;
-    Game_System.prototype.initialize = function () {
-        DreamX.CaptureEnemy.Game_System_initialize.call(this);
-        this.capturedActors = [];
     };
 
     Game_Troop.prototype.isCaptureEnabled = function () {
@@ -235,7 +328,7 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
     DreamX.CaptureEnemy.actorAlreadyExists = function (actorId) {
         var tempMemberExists;
         var partyMemberExists;
-        
+
         partyMemberExists = $gameParty.allMembers().some(function (actor) {
             return (actor.actorId() === actorId) || actor.baseActorId() === actorId;
         });
@@ -342,37 +435,6 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         }
     };
 
-    DreamX.CaptureEnemy.performCollapse = Game_Enemy.prototype.performCollapse;
-    Game_Enemy.prototype.performCollapse = function () {
-        DreamX.CaptureEnemy.performCollapse.call(this);
-        var enemyName = this.originalName();
-        var troopName = $gameTroop.troop().name;
-        var actorId = this.enemy().meta.capture_actor_id;
-        var actor = $dataActors[actorId];
-        if (!actor) {
-            return;
-        }
-        var actorName = actor.name;
-        var gameActor = $gameParty.allMembers().filter(function (actor) {
-            return (actor.actorId() === actorId) || actor.baseActorId() === actorId;
-        });
-        gameActor = gameActor[0];
-
-        if (this._wasCaptured) {
-            if (!$gameTemp._tempCaptureIDs) {
-                $gameTemp._tempCaptureIDs = [];
-            }
-            $gameTemp._tempCaptureIDs.push(actorId);
-            DreamX.CaptureEnemy.displayMessage(parameterCaptureSuccessMsg.format(enemyName, troopName, actorName));
-        }
-        if (this._wasLevelUpCaptured) {
-            DreamX.CaptureEnemy.levelUpDuplicateActors(actorId);
-            if (paramDefaultLevelUpMsg === false) {
-                DreamX.CaptureEnemy.displayMessage(paramLvlUpMsg.format(actorName, troopName, actorName));
-            }
-        }
-    };
-
     DreamX.CaptureEnemy.displayMessage = function (message) {
         if (parameterShowText === true) {
             $gameMessage.add(message);
@@ -428,6 +490,7 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         // give a new starting level
         CapturedEnemy.initialLevel = level;
 
+        DataManager._capturedActors.push(CapturedEnemy);
         $dataActors.push(CapturedEnemy);
 
         if ($gameParty.inBattle() && paramAddInBattle === false) {
@@ -435,8 +498,6 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         } else {
             $gameParty.addActor(CapturedEnemy.id);
         }
-
-        $gameSystem.capturedActors.push(CapturedEnemy);
     };
 
     DreamX.CaptureEnemy.BattleManager_initMembers = BattleManager.initMembers;
