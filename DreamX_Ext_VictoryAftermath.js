@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.0 Perform actions like messages during Victory Aftermath
+ * @plugindesc v1.1 Perform actions like messages during Victory Aftermath
  * @author DreamX
  *
  * @param Always Use VX-Ace Style EXP Window
@@ -9,104 +9,120 @@
  * @param VX-Ace Style EXP Text
  * @desc When VX-Ace Style EXP window is used, this is used for the exp gained label. Default: EXP
  * @default EXP
+ * 
+ * @param Victory EXP Opacity
+ * @desc The opacity of the Victory EXP window. Default: 255
+ * @default 255
+ * 
+ * @param Victory Drop Opacity
+ * @desc The opacity of the Victory Drop window. Default: 255
+ * @default 255
+ * 
+ * @param Victory Level Up Opacity
+ * @desc The opacity of the Victory Level Up window. Default: 255
+ * @default 255
+ * 
+ * @param Victory Title Opacity
+ * @desc The opacity of the Victory Title window that appears at the top. Default: 255
+ * @default 255
  *
  * @help
  * //===========================================================================
  * // Notetags
  * //===========================================================================
- * You must use notetags in order to have actions during the victory aftermath 
- * windows. Victory actions for the exp and drop windows may be put in any 
- * actor's notebox, but actions for the level up windows (that Yanfly's 
- * Aftermath Level Up extension provides) must be put into the notebox of the 
- * actor associated. For example, if you want an action to occur when Harold 
+ * You must use notetags in order to have actions during the victory aftermath
+ * windows. Victory actions for the exp and drop windows may be put in any
+ * actor's notebox, but actions for the level up windows (that Yanfly's
+ * Aftermath Level Up extension provides) must be put into the notebox of the
+ * actor associated. For example, if you want an action to occur when Harold
  * levels up, you must put that action in his notebox.
- * 
+ *
  * <VICTORY ACTION TYPE: x>
- * This notetag is required. Replace x with the type of window where this action 
- * will be performed. There are three options: exp, level, and drop. 
- * Example: 
+ * This notetag is required. Replace x with the type of window where this action
+ * will be performed. There are three options: exp, level, and drop.
+ * Example:
  * <VICTORY ACTION TYPE: drop>
- * 
+ *
  * <VICTORY ACTION CONDITION>
  * x
  * </VICTORY ACTION CONDITION>
- * This notetag set is optional, but you need it if you want to set special 
+ * This notetag set is optional, but you need it if you want to set special
  * conditions for an action to occur. Replace x with a script condition.
  * Example:
  * <VICTORY ACTION CONDITION>
  * $gameSwitches.value(1)
  * </VICTORY ACTION CONDITION>
  * The condition in this example is that the switch 1 is on.
- * 
+ *
  * <VICTORY ACTION PRIORITY>
  * x
  * </VICTORY ACTION PRIORITY>
- * This notetag set is optional. Replace x with a script. This is the priority  
- * for the action. If there is more than one action that passes its condition, 
- * this plugin will test the action's priority and choose the one with the 
- * highest priority if possible. If there is more than one action with the 
- * highest condition, a random one of those actions will be selected. By 
- * default, every action's priority is 0, but you can override it with this 
+ * This notetag set is optional. Replace x with a script. This is the priority
+ * for the action. If there is more than one action that passes its condition,
+ * this plugin will test the action's priority and choose the one with the
+ * highest priority if possible. If there is more than one action with the
+ * highest condition, a random one of those actions will be selected. By
+ * default, every action's priority is 0, but you can override it with this
  * notetag set.
  * Example:
  * <VICTORY ACTION PRIORITY>
  * $gameVariables.value(1)
  * </VICTORY ACTION PRIORITY>
- * This script will set the priority of the action to be the value of variable 
- * 1. 
- * 
+ * This script will set the priority of the action to be the value of variable
+ * 1.
+ *
  * <VICTORY ACTION NO MESSAGE>
- * This notetag is optional. If you use this for an action, it will not shorten 
- * the Victory Aftermath windows in order to accomodate a message window. This 
- * is useful for any action that does not cause a message to appear. Note that 
- * if at least one level up action that will occur during the level up window 
- * is not set with this notetag, the level up window will still be shortened to 
+ * This notetag is optional. If you use this for an action, it will not shorten
+ * the Victory Aftermath windows in order to accomodate a message window. This
+ * is useful for any action that does not cause a message to appear. Note that
+ * if at least one level up action that will occur during the level up window
+ * is not set with this notetag, the level up window will still be shortened to
  * accomodate for a message.
- * 
+ *
  * <VICTORY ACTION EFFECT>
  * x
  * </VICTORY ACTION EFFECT>
- * This notetag set is required. Replace x with a script. This is the effect 
- * performed when the action occurs. This notetag set also closes parsing for 
- * this action, meaning this needs to be the last notetag for the action. After 
+ * This notetag set is required. Replace x with a script. This is the effect
+ * performed when the action occurs. This notetag set also closes parsing for
+ * this action, meaning this needs to be the last notetag for the action. After
  * this, you can start defining more actions in the same notebox.
  * Example:
  * <VICTORY ACTION EFFECT>
  * console.log("Hello World");
  * </VICTORY ACTION EFFECT>
- * 
+ *
  * //===========================================================================
  * // Script calls provided by this plugin
  * //===========================================================================
- * To assist people in creating conditions or effects for an action, a couple 
- * functions are provided by this plugin for that purpose. This should be 
+ * To assist people in creating conditions or effects for an action, a couple
+ * functions are provided by this plugin for that purpose. This should be
  * especially useful for people without much javascript experience.
- * 
- * this.DXVACommonEvent("x") - Replace x with a common event id(s). This will 
- * cause a common event to occur. You can use commas (for separate ids) or 
- * dashes (for ranges) for multiple ids. A random common event of the ones 
+ *
+ * this.DXVACommonEvent("x") - Replace x with a common event id(s). This will
+ * cause a common event to occur. You can use commas (for separate ids) or
+ * dashes (for ranges) for multiple ids. A random common event of the ones
  * passed to this function will be chosen.
  * Example:
  * this.DXVACommonEvent("1-3, 7");
  * In this example, common event 1, 2, 3 or 7 will be chosen to occur.
- * 
- * this.DXVADropsHasTag("x") - Replace with a notetag name. This function 
- * returns whether one of the battle drops has a notetag. In other words, it 
+ *
+ * this.DXVADropsHasTag("x") - Replace with a notetag name. This function
+ * returns whether one of the battle drops has a notetag. In other words, it
  * can be used as a condition.
  * Example:
  * this.DXVADropsHasTag("IsPotion");
- * In this example, the condition is that one of the battle drops has a notetag 
+ * In this example, the condition is that one of the battle drops has a notetag
  * named IsPotion, for example, <IsPotion:1>
- * 
- * this.DXVAEnemiesHasTag("x") - Replace with a notetag name. This function 
- * returns whether one of the enemies had a notetag. In other words, it 
+ *
+ * this.DXVAEnemiesHasTag("x") - Replace with a notetag name. This function
+ * returns whether one of the enemies had a notetag. In other words, it
  * can be used as a condition.
  * Example:
  * this.DXVAEnemiesHasTag("IsImp");
- * In this example, the condition is that one of the battle drops has a notetag 
+ * In this example, the condition is that one of the battle drops has a notetag
  * named IsImp, for example, <IsImp:1>
- * 
- * If you require javascript assistance, I recommend either asking in the 
+ *
+ * If you require javascript assistance, I recommend either asking in the
  * thread for this plugin or in the javascript help section.
  * ===========================================================================
  * Terms Of Use
@@ -139,6 +155,14 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
             || "EXP");
     var paramAlwaysVXACEExp = eval(parameters['Always Use VX-Ace Style EXP Window']
             || false);
+    var paramExpWindowOpacity = parseInt(parameters['Victory EXP Opacity']
+            || 255);
+    var paramDropWindowOpacity = parseInt(parameters['Victory Drop Opacity']
+            || 255);
+    var paramLevelUpWindowOpacity = parseInt(parameters['Victory Level Up Opacity']
+            || 255);
+    var paramTitleWindowOpacity = parseInt(parameters['Victory Title Opacity']
+            || 255);
     var paramAlwaysShortWindows = false;
 
 //=============================================================================
@@ -377,6 +401,10 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
             this._DXVAAddedChoiceWindow = true;
             SceneManager._scene.addChild(SceneManager._scene._messageWindow._choiceWindow);
         }
+        if (!this._DXVAAddedChoiceHelpWindow && Imported.DreamX_ChoiceHelp) {
+            this._DXVAAddedChoiceHelpWindow = true;
+            SceneManager._scene.addChild(SceneManager._scene._messageWindow._helpWindow);
+        }
         DreamX.VictoryAftermath.Scene_Battle_updateVictorySteps.call(this);
     };
 
@@ -405,6 +433,23 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
         }
 
         DreamX.VictoryAftermath.Scene_Battle_createVictoryDrop.call(this);
+    };
+
+//=============================================================================
+// Window_VictoryExp
+//=============================================================================
+    DreamX.VictoryAftermath.BattleManager_playVictoryBGM = BattleManager.playVictoryBGM;
+    BattleManager.playVictoryBGM = function () {
+        var names = Yanfly.Param.VABgmName;
+        var nameSplit = names.split(" ");
+        var chosenName = nameSplit[Math.floor(Math.random() * nameSplit.length)];
+        var victoryBgm = {
+            name: chosenName,
+            volume: Yanfly.Param.VABgmVol,
+            pitch: Yanfly.Param.VABgmPitch,
+            pan: Yanfly.Param.VABgmPan
+        };
+        AudioManager.playBgm(victoryBgm);
     };
 
 //=============================================================================
@@ -625,6 +670,20 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
         this.drawText(text, x, y, Window_Base._faceWidth, 'center');
     };
 
+    DreamX.VictoryAftermath.Window_VictoryExp_initialize = Window_VictoryExp.prototype.initialize;
+    Window_VictoryExp.prototype.initialize = function () {
+        DreamX.VictoryAftermath.Window_VictoryExp_initialize.call(this);
+        this.opacity = paramExpWindowOpacity;
+    };
+
+//=============================================================================
+// Window_VictoryTitle
+//=============================================================================
+    DreamX.VictoryAftermath.Window_VictoryTitle_initialize = Window_VictoryTitle.prototype.initialize;
+    Window_VictoryTitle.prototype.initialize = function () {
+        DreamX.VictoryAftermath.Window_VictoryTitle_initialize.call(this);
+        this.opacity = paramTitleWindowOpacity;
+    };
 //=============================================================================
 // Window_VictoryDrop
 //=============================================================================
@@ -643,6 +702,7 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
             var wh = Graphics.boxHeight - wy;
             this.height = wh - Window_Message.prototype.windowHeight();
         }
+        this.opacity = paramDropWindowOpacity;
     };
 
 //=============================================================================
@@ -697,6 +757,11 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
             }
         };
 
+        DreamX.VictoryAftermath.Window_VictoryLevelUp_initialize = Window_VictoryLevelUp.prototype.initialize;
+        Window_VictoryLevelUp.prototype.initialize = function (actor) {
+            DreamX.VictoryAftermath.Window_VictoryLevelUp_initialize.call(this, actor);
+            this.opacity = paramLevelUpWindowOpacity;
+        };
     }
 
 })();
