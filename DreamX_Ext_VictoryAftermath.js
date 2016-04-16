@@ -274,7 +274,6 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
 //=============================================================================
     Scene_Battle.prototype.DXVAEnemiesHasTag = function (metaTag) {
         return $gameTroop._enemies.some(function (enemy) {
-            console.log(enemy.enemy().meta.hasOwnProperty(metaTag));
             return enemy.enemy().meta.hasOwnProperty(metaTag);
         });
     };
@@ -349,7 +348,6 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
             return false;
         var id = actorID ? actorID : 0;
         var action = this.DXVADecideAction(array, id);
-        console.log(action);
 
         if (action) {
             return action;
@@ -610,7 +608,7 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
         var nowExp = actor._preVictoryExp - actor.expForLevel(actorLv) + bonusExp;
         var nextExp = actor.expForLevel(actorLv + 1) - actor.expForLevel(actorLv);
 
-        var expRatio = Math.floor ( (nowExp / nextExp ) * 100 );
+        var expRatio = Math.floor((nowExp / nextExp) * 100);
 
         if (actorLv === actor.maxLevel()) {
             var text = Yanfly.Param.VAMaxLv;
@@ -650,52 +648,55 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
 //=============================================================================
 // Window_VictoryLevelUp
 //=============================================================================
-    DreamX.VictoryAftermath.BattleManager_prepareVictoryPostLevel = BattleManager.prepareVictoryPostLevel;
-    BattleManager.prepareVictoryPostLevel = function () {
-        DreamX.VictoryAftermath.BattleManager_prepareVictoryPostLevel.call(this);
-        $gameTemp._LevelWindowMessage = false;
-        $gameTemp._pendingLevelActions = [];
-        var isMatch = false;
-        var scene = SceneManager._scene;
+    if (Imported.YEP_X_AftermathLevelUp) {
+        DreamX.VictoryAftermath.BattleManager_prepareVictoryPostLevel = BattleManager.prepareVictoryPostLevel;
+        BattleManager.prepareVictoryPostLevel = function () {
+            DreamX.VictoryAftermath.BattleManager_prepareVictoryPostLevel.call(this);
+            $gameTemp._LevelWindowMessage = false;
+            $gameTemp._pendingLevelActions = [];
+            var isMatch = false;
+            var scene = SceneManager._scene;
 
-        for (var i = 0; i < this._leveledActors.length && !isMatch; i++) {
-            var actor = this._leveledActors[i];
-            var id = actor.actorId();
-            actor._levelUpAction = undefined;
+            for (var i = 0; i < this._leveledActors.length && !isMatch; i++) {
+                var actor = this._leveledActors[i];
+                var id = actor.actorId();
+                actor._levelUpAction = undefined;
 
-            var action = scene.DXVAGetAction(DreamX.VictoryAftermath.LevelActions, id);
-            if (action) {
-                actor._levelUpAction = action;
-                if (action.isMessage) {
-                    $gameTemp._LevelWindowMessage = true;
+                var action = scene.DXVAGetAction(DreamX.VictoryAftermath.LevelActions, id);
+                if (action) {
+                    actor._levelUpAction = action;
+                    if (action.isMessage) {
+                        $gameTemp._LevelWindowMessage = true;
+                    }
                 }
             }
-        }
-    };
+        };
 
-    Window_VictoryLevelUp.prototype.shouldUseShortWindow = function () {
-        if ($gameTemp._LevelWindowMessage === true) {
-            return true;
-        }
-        return false;
-    };
+        Window_VictoryLevelUp.prototype.shouldUseShortWindow = function () {
+            if ($gameTemp._LevelWindowMessage === true) {
+                return true;
+            }
+            return false;
+        };
 
-    DreamX.VictoryAftermath.Window_VictoryLevelUp_windowHeight = Window_VictoryLevelUp.prototype.windowHeight;
-    Window_VictoryLevelUp.prototype.windowHeight = function () {
-        if (this.shouldUseShortWindow() === false) {
-            return DreamX.VictoryAftermath.Window_VictoryLevelUp_windowHeight.call(this);
-        }
-        return Graphics.boxHeight - this.fittingHeight(1) - Window_Message.prototype.windowHeight();
-    };
+        DreamX.VictoryAftermath.Window_VictoryLevelUp_windowHeight = Window_VictoryLevelUp.prototype.windowHeight;
+        Window_VictoryLevelUp.prototype.windowHeight = function () {
+            if (this.shouldUseShortWindow() === false) {
+                return DreamX.VictoryAftermath.Window_VictoryLevelUp_windowHeight.call(this);
+            }
+            return Graphics.boxHeight - this.fittingHeight(1) - Window_Message.prototype.windowHeight();
+        };
 
-    DreamX.VictoryAftermath.Window_VictoryLevelUp_setActor = Window_VictoryLevelUp.prototype.setActor;
-    Window_VictoryLevelUp.prototype.setActor = function (actor) {
-        DreamX.VictoryAftermath.Window_VictoryLevelUp_setActor.call(this, actor);
-        var scene = SceneManager._scene;
-        var action = actor._levelUpAction;
-        if (action) {
-            scene.DXVAExecuteAction(action);
-        }
-    };
+        DreamX.VictoryAftermath.Window_VictoryLevelUp_setActor = Window_VictoryLevelUp.prototype.setActor;
+        Window_VictoryLevelUp.prototype.setActor = function (actor) {
+            DreamX.VictoryAftermath.Window_VictoryLevelUp_setActor.call(this, actor);
+            var scene = SceneManager._scene;
+            var action = actor._levelUpAction;
+            if (action) {
+                scene.DXVAExecuteAction(action);
+            }
+        };
+
+    }
 
 })();
