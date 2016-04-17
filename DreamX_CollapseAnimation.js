@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.0
+ * @plugindesc v1.1
  * @author DreamX
  * 
  * @param Default Collapse Animation
@@ -47,22 +47,26 @@ DreamX.CollapseAnimation = DreamX.CollapseAnimation || {};
         }
         var anim = $dataAnimations[animId];
         this._appeared = false;
+        this._effectDuration = anim.frames.length;
+        this._effectType = null;
         this._minimumCollapseAnimationWait = anim.frames.length;
         this._enemy.startAnimation(animId);
     };
 
     DreamX.CollapseAnimation.Sprite_Enemy_updateEffect = Sprite_Enemy.prototype.updateEffect;
     Sprite_Enemy.prototype.updateEffect = function () {
-        DreamX.CollapseAnimation.Sprite_Enemy_updateEffect.call(this);
-        if (this._minimumCollapseAnimationWait && this._minimumCollapseAnimationWait > 0) {
+        if (this._minimumCollapseAnimationWait !== undefined && this._minimumCollapseAnimationWait > 0) {
             this._minimumCollapseAnimationWait--;
+            return;
         }
         if (this._minimumCollapseAnimationWait !== undefined
                 && this._minimumCollapseAnimationWait === 0
                 && !this.isAnimationPlaying()) {
             this._minimumCollapseAnimationWait = undefined;
             this.opacity = 0;
+            return;
         }
+        DreamX.CollapseAnimation.Sprite_Enemy_updateEffect.call(this);
     };
 
     DreamX.CollapseAnimation.Game_Battler_escape = Game_Battler.prototype.escape;
