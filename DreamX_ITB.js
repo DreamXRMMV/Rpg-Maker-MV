@@ -1,11 +1,15 @@
 /*:
- * @plugindesc v1.12 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
+ * @plugindesc v1.14 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
  * 
  * <DreamX ITB>
  * @author DreamX
  *
  * @param Max Elemental Extra Actions
  * @desc Eval. Max # extra actions battler can get in turn for hitting enemy weakness. 0 - none, -1: infinite. Default: 0
+ * @default 0
+ * 
+ * @param Max Elemental Extra Actions Per Opponent Per Turn
+ * @desc Eval. Max # extra actions battler can get in turn for hitting enemy weakness per opponent. <= 0: infinite. Default: 0
  * @default 0
  *
  * @param Elemental Weakness State
@@ -15,6 +19,10 @@
  * @param Elemental Weakness Animation
  * @desc Animation ID to play on battler when they get an extra action from hitting enemy in weakness. 0: disable. Default: 0
  * @default 0
+ * 
+ * @param Show Turn Orders
+ * @desc Whether to show turn orders. Default: false
+ * @default false
  * 
  * @param Ready Overlay
  * @desc Whether to have a looping overlay on actor when they are ready to act. Default: false
@@ -76,7 +84,7 @@
  Use <reAddBattler:1> in a skill/item to readd a battler to the pool of battlers 
  if they had already finished their previous actions. Must be used with a state 
  that increases action times.
-
+ 
  To use a custom ready overlay, use a file in the same folder and same style as 
  States.png in img/system, make sure the parameter is set to the custom file 
  name.
@@ -121,10 +129,16 @@ DreamX.ITB = DreamX.ITB || {};
     // store the parameter data in variables. The defaults are -1
     var paramMaxElementExtraActions =
             String(parameters['Max Elemental Extra Actions'] || '0');
+    
+    var paramMaxElemExtraPerOpponentPerTurn =
+            String(parameters['Max Elemental Extra Actions Per Opponent Per Turn'] || '0');
+    
     var paramElementWeaknessState =
             String(parameters['Elemental Weakness State'] || '0');
     var paramElementWeaknessAnimation =
             parseInt(parameters['Elemental Weakness Animation'] || 0);
+    var paramaterShowTurnOrder =
+            eval(parameters['Show Turn Orders'] || false);
     var parameterReadySound =
             String(parameters['Ready Sound'] || '-1');
     var parameterReadyVolume =
@@ -136,13 +150,13 @@ DreamX.ITB = DreamX.ITB || {};
     var paramaterReadyOverlayEnabled =
             eval(parameters['Ready Overlay'] || false);
     var parameterReadyOverlayName =
-           String(parameters['Ready Overlay Name'] || 'States');
+            String(parameters['Ready Overlay Name'] || 'States');
     var parameterReadyOverlayIndex =
-           parseInt(parameters['Ready Overlay Index'] || 0);
+            parseInt(parameters['Ready Overlay Index'] || 0);
     var parameterReadyAnchorX =
-           parseFloat(parameters['Ready Overlay Anchor X'] || 0.5);
+            parseFloat(parameters['Ready Overlay Anchor X'] || 0.5);
     var parameterReadyAnchorY =
-           parseFloat(parameters['Ready Overlay Anchor Y'] || 1);
+            parseFloat(parameters['Ready Overlay Anchor Y'] || 1);
 //    var parameterTurnSound =
 //            String(parameters['Turn Sound'] || '-1');
 
@@ -164,6 +178,9 @@ DreamX.ITB = DreamX.ITB || {};
         this._ITBActions = 0;
         this._previousTraitITBActions = 0;
         this._extraActionsFromWeakness = 0;
+        
+        // holds ids and number of times hit in weakness by another battler
+        this._weaknessHitMap = new Map();
     };
 
     //==========================================================================
@@ -171,18 +188,24 @@ DreamX.ITB = DreamX.ITB || {};
     //==========================================================================
 
     // Checks if any states disallow elemental extra actions
-    Game_Battler.prototype.allowExtraElemWeaknessAction = function () {
+    Game_Battler.prototype.allowExtraElemWeaknessAction = function (user) {
         var isAllowed = true;
         this.states().forEach(function (state) {
             if (state.meta.noExtraElemenWeaknessAction) {
                 isAllowed = false;
             }
         });
+        
+        if (this._weaknessHitMap.get(user) && paramMaxElemExtraPerOpponentPerTurn >= 1 
+                && this._weaknessHitMap.get(user) 
+                >= paramMaxElemExtraPerOpponentPerTurn - 1) {
+            return false;
+        }
         return isAllowed;
     };
 
     // Adds ITB actions to the battler from hitting elemental weakness.
-    Game_Battler.prototype.extraElementalWeaknessAction = function () {
+    Game_Battler.prototype.extraElementalWeaknessAction = function (target) {
         if ((this._extraActionsFromWeakness
                 < eval(paramMaxElementExtraActions))
                 || eval(paramMaxElementExtraActions) === -1) {
@@ -229,6 +252,7 @@ DreamX.ITB = DreamX.ITB || {};
         this._ITBActions = 0;
         this._previousTraitITBActions = 0;
         this._extraActionsFromWeakness = 0;
+        this._weaknessHitMap = new Map();
     };
 
     // Decides whether to add ITB actions from traits.
@@ -570,7 +594,7 @@ DreamX.ITB = DreamX.ITB || {};
     };
 
     BattleManager.addBattler = function (battler) {
-        if (this._ITBBattlers.indexOf(battler) == -1) {
+        if (this._ITBBattlers.indexOf(battler) === -1) {
             this._ITBBattlers.push(battler);
             this.sortITBOrders();
         }
@@ -583,6 +607,10 @@ DreamX.ITB = DreamX.ITB || {};
     DreamX.ITB.Game_Action_apply = Game_Action.prototype.apply;
     Game_Action.prototype.apply = function (target) {
         DreamX.ITB.Game_Action_apply.call(this, target);
+        var result = target.result();
+        if (!result.isHit()) {
+            return;
+        }
         var item = this.item();
         if (item.meta.free_itb_action) {
             this.subject().addITBActions(1);
@@ -607,7 +635,10 @@ DreamX.ITB = DreamX.ITB || {};
 
             if (this.calcElementRate(target) > 1) {
                 // add an extra action to user
-                if (target.allowExtraElemWeaknessAction()) {
+                if (target.allowExtraElemWeaknessAction(user)) {
+                    var timesWeaknessHit = target._weaknessHitMap.get(user) 
+                    ? target._weaknessHitMap.get(user) : 0;
+                    target._weaknessHitMap.set(user, timesWeaknessHit + 1);
                     user.extraElementalWeaknessAction();
                 }
 
@@ -715,6 +746,554 @@ DreamX.ITB = DreamX.ITB || {};
         } else {
             this.setFrame(0, 0, 0, 0);
         }
+    };
+
+//=============================================================================
+// Window_CTBIcon
+//=============================================================================
+    Game_Battler.prototype.itbIcon = function () {
+        return 0;
+    };
+
+    Game_Battler.prototype.itbBorderColor = function () {
+        return 0;
+    };
+
+    Game_Battler.prototype.itbBackgroundColor = function () {
+        return 0;
+    };
+
+    Game_Actor.prototype.itbIcon = function () {
+        // CHANGE ME: Have meta processed instead
+        if (this.actor().itbClassIcon) {
+            if (this.actor().itbClassIcon[this._classId]) {
+                return this.actor().itbClassIcon[this._classId];
+            }
+        }
+        return this.actor().itbIcon;
+    };
+
+    Game_Actor.prototype.itbBorderColor = function () {
+        // CHANGE ME: Have meta processed instead
+        return this.actor().itbBorderColor;
+    };
+
+    Game_Actor.prototype.itbBackgroundColor = function () {
+        // CHANGE ME: Have meta processed instead
+        return this.actor().itbBackgroundColor;
+    };
+
+    Game_Enemy.prototype.itbIcon = function () {
+        // CHANGE ME: Have meta processed instead
+        return this.enemy().itbIcon;
+    };
+
+    Game_Enemy.prototype.ctbBorderColor = function () {
+        // CHANGE ME: Have meta processed instead
+        return this.enemy().itbBorderColor;
+    };
+
+    Game_Enemy.prototype.ctbBackgroundColor = function () {
+        // CHANGE ME: Have meta processed instead
+        return this.enemy().itbBackgroundColor;
+    };
+
+    DreamX.ITB.Sprite_Battler_postSpriteInitialize =
+            Sprite_Battler.prototype.postSpriteInitialize;
+    Sprite_Battler.prototype.postSpriteInitialize = function () {
+        DreamX.ITB.Sprite_Battler_postSpriteInitialize.call(this);
+        if (BattleManager.isITB() && paramaterShowTurnOrder === true)
+            this.createITBIcon();
+    };
+
+    Sprite_Battler.prototype.createITBIcon = function () {
+        // CHANGE ME: Added parameter to decide whether to show turn order
+//        if (!Yanfly.Param.CTBTurnOrder)
+//            return;
+        this._ITBIcon = new Window_ITBIcon(this);
+    };
+
+    DreamX.ITB.Sprite_Battler_update = Sprite_Battler.prototype.update;
+    Sprite_Battler.prototype.update = function () {
+        DreamX.ITB.Sprite_Battler_update.call(this);
+        this.addITBIcon();
+    };
+
+    Sprite_Battler.prototype.addITBIcon = function () {
+        if (!this._ITBIcon)
+            return;
+        if (this._addedITBIcon)
+            return;
+        if (!SceneManager._scene)
+            return;
+        var scene = SceneManager._scene;
+        if (!scene._windowLayer)
+            return;
+        this._addedITBIcon = true;
+        this._ITBIcon.setWindowLayer(scene._windowLayer);
+        scene.addChild(this._ITBIcon);
+    };
+
+    function Window_ITBIcon() {
+        this.initialize.apply(this, arguments);
+    }
+
+    Window_ITBIcon.prototype = Object.create(Window_Base.prototype);
+    Window_ITBIcon.prototype.constructor = Window_ITBIcon;
+
+    Window_ITBIcon.prototype.initialize = function (mainSprite) {
+        this._mainSprite = mainSprite;
+        var width = this.iconWidth() + 8 + this.standardPadding() * 2;
+        var height = this.iconHeight() + 8 + this.standardPadding() * 2;
+        this._redraw = false;
+        // CHANGE ME: Add position and direction parameter
+        this._position = "center";
+        this._direction = "left";
+        // not really sure what this is, but since you need BEC anyway, okay to use?
+        this._lowerWindows = eval(Yanfly.Param.BECLowerWindows);
+        Window_Base.prototype.initialize.call(this, 0, 0, width, height);
+        this.opacity = 0;
+        this.contentsOpacity = 0;
+    };
+
+    Window_ITBIcon.prototype.iconWidth = function () {
+        // CHANGE ME: change to parameter
+        return 32;
+    };
+
+    Window_ITBIcon.prototype.iconHeight = function () {
+        // CHANGE ME: change to parameter
+        return 32;
+    };
+
+    Window_ITBIcon.prototype.setWindowLayer = function (windowLayer) {
+        this._windowLayer = windowLayer;
+    };
+
+    Window_ITBIcon.prototype.update = function () {
+        Window_Base.prototype.update.call(this);
+        this.updateBattler();
+        this.updateIconIndex();
+        this.updateRedraw();
+        this.updateDestinationX();
+        this.updateOpacity();
+        this.updatePositionX();
+        this.updatePositionY();
+    };
+
+    Window_ITBIcon.prototype.updateBattler = function () {
+        var changed = this._battler !== this._mainSprite._battler;
+
+        // CHANGE ME: Added transformation to ITB?
+//        if (this._battler && this._battler._ctbTransformed)
+//            changed = true;
+        if (!changed)
+            return;
+        this._battler = this._mainSprite._battler;
+
+        // if battler sprite doesn't exit, remove icon
+        if (!this._battler)
+            return this.removeITBIcon();
+
+
+        this._battler._itbTransformed = undefined;
+
+// CHANGE ME: Get index from function instead of constant
+//        this._iconIndex = this._battler.itbIcon();
+        this._iconIndex = 0;
+
+        if (this._iconIndex > 0) {
+            this._image = ImageManager.loadSystem('IconSet');
+        } else if (this._battler.isEnemy()) {
+            if (this.isUsingSVBattler()) {
+                var name = this._battler.svBattlerName();
+                this._image = ImageManager.loadSvActor(name);
+            } else {
+                var battlerName = this._battler.battlerName();
+                var battlerHue = this._battler.battlerHue();
+                if ($gameSystem.isSideView()) {
+                    this._image = ImageManager.loadSvEnemy(battlerName, battlerHue);
+                } else {
+                    this._image = ImageManager.loadEnemy(battlerName, battlerHue);
+                }
+            }
+        } else if (this._battler.isActor()) {
+            var faceName = this._battler.faceName();
+            this._image = ImageManager.loadFace(faceName);
+        }
+        this._redraw = true;
+    };
+
+    Window_ITBIcon.prototype.removeITBIcon = function () {
+        this.contents.clear();
+        this.opacity = 0;
+        this.contentsOpacity = 0;
+    };
+
+    Window_ITBIcon.prototype.isUsingSVBattler = function () {
+        if (!Imported.YEP_X_AnimatedSVEnemies)
+            return false;
+        if (!this._battler.hasSVBattler())
+            return false;
+        // CHANGE ME: Use Parameter
+        return false;
+    };
+
+    Window_ITBIcon.prototype.updateIconIndex = function () {
+        if (!this._battler)
+            return;
+        var changed = this._iconIndex !== this._battler.itbIcon();
+        if (changed) {
+            this._iconIndex = this._battler.itbIcon();
+            this._redraw = true;
+        }
+    };
+
+    Window_ITBIcon.prototype.updateRedraw = function () {
+        if (!this._redraw)
+            return;
+        if (!this._image)
+            return;
+        if (this._image.width <= 0)
+            return;
+        this._redraw = false;
+        this.contents.clear();
+        this.drawBorder();
+        if (this._iconIndex > 0) {
+            this.drawIcon(this._iconIndex, 4, 4);
+        } else if (this._battler.isActor()) {
+            this.redrawActorFace();
+        } else if (this._battler.isEnemy()) {
+            this.redrawEnemy();
+        }
+        this.redrawLetter();
+    };
+
+    Window_ITBIcon.prototype.drawBorder = function () {
+        var width = this.contents.width;
+        var height = this.contents.height;
+        this.contents.fillRect(0, 0, width, height, this.gaugeBackColor());
+        width -= 2;
+        height -= 2;
+        this.contents.fillRect(1, 1, width, height, this.ctbBorderColor());
+        width -= 4;
+        height -= 4;
+        this.contents.fillRect(3, 3, width, height, this.gaugeBackColor());
+        width -= 2;
+        height -= 2;
+        this.contents.fillRect(4, 4, width, height, this.ctbBackgroundColor());
+    };
+
+    Window_ITBIcon.prototype.ctbBorderColor = function () {
+        return this.textColor(0);
+        // CHANGE ME
+//        var colorId = this._battler.itbBorderColor() || 0;
+//        return this.textColor(colorId);
+    };
+
+    Window_ITBIcon.prototype.ctbBackgroundColor = function () {
+        return this.textColor(0);
+        // CHANGE ME
+//        var colorId = this._battler.ctbBackgroundColor() || 0;
+//        return this.textColor(colorId);
+    };
+
+    Window_ITBIcon.prototype.drawIcon = function (iconIndex, x, y) {
+        var bitmap = ImageManager.loadSystem('IconSet');
+        var pw = Window_Base._iconWidth;
+        var ph = Window_Base._iconHeight;
+        var sx = iconIndex % 16 * pw;
+        var sy = Math.floor(iconIndex / 16) * ph;
+        var ww = this.iconWidth();
+        var wh = this.iconHeight();
+        this.contents.blt(bitmap, sx, sy, pw, ph, x, y, ww, wh);
+    };
+
+    Window_ITBIcon.prototype.redrawActorFace = function () {
+        var width = Window_Base._faceWidth;
+        var height = Window_Base._faceHeight;
+        var faceIndex = this._battler.faceIndex();
+        var bitmap = this._image;
+        var pw = Window_Base._faceWidth;
+        var ph = Window_Base._faceHeight;
+        var sw = Math.min(width, pw);
+        var sh = Math.min(height, ph);
+        var dx = Math.floor(Math.max(width - pw, 0) / 2);
+        var dy = Math.floor(Math.max(height - ph, 0) / 2);
+        var sx = faceIndex % 4 * pw + (pw - sw) / 2;
+        var sy = Math.floor(faceIndex / 4) * ph + (ph - sh) / 2;
+        var dw = this.contents.width - 8;
+        var dh = this.contents.height - 8;
+        this.contents.blt(bitmap, sx, sy, sw, sh, dx + 4, dy + 4, dw, dh);
+    };
+
+    Window_ITBIcon.prototype.redrawEnemy = function () {
+        if (this.isUsingSVBattler()) {
+            return this.redrawSVEnemy();
+        }
+        ;
+        var bitmap = this._image;
+        var sw = bitmap.width;
+        var sh = bitmap.height;
+        var dw = this.contents.width - 8;
+        var dh = this.contents.height - 8;
+        var dx = 0;
+        var dy = 0;
+        if (sw >= sh) {
+            var rate = sh / sw;
+            dh *= rate;
+            dy += this.contents.height - 8 - dh;
+        } else {
+            var rate = sw / sh;
+            dw *= rate;
+            dx += Math.floor((this.contents.width - 8 - dw) / 2);
+        }
+        this.contents.blt(bitmap, 0, 0, sw, sh, dx + 4, dy + 4, dw, dh);
+    };
+
+    Window_ITBIcon.prototype.redrawSVEnemy = function () {
+        var bitmap = this._image;
+        var sw = bitmap.width / 9;
+        var sh = bitmap.height / 6;
+        var dw = this.contents.width - 8;
+        var dh = this.contents.height - 8;
+        var dx = 0;
+        var dy = 0;
+        if (sw >= sh) {
+            var rate = sh / sw;
+            dh *= rate;
+            dy += this.contents.height - 8 - dh;
+        } else {
+            var rate = sw / sh;
+            dw *= rate;
+            dx += Math.floor((this.contents.width - 8 - dw) / 2);
+        }
+        this.contents.blt(bitmap, 0, 0, sw, sh, dx + 4, dy + 4, dw, dh);
+    };
+
+    Window_ITBIcon.prototype.redrawLetter = function () {
+        if (!this._battler.isEnemy())
+            return;
+        if (!this._battler._plural)
+            return;
+        var letter = this._battler._letter;
+        var dy = this.contents.height - this.lineHeight();
+        this.drawText(letter, 0, dy, this.contents.width - 4, 'right');
+    };
+
+    Window_ITBIcon.prototype.destinationXConstant = function () {
+        return this.contents.width + 2;
+    };
+
+    Window_ITBIcon.prototype.updateDestinationX = function () {
+        if (!this._battler)
+            return;
+        if (this._battler.isDead())
+            return;
+        if (this._position === 'left')
+            this.updateDestinationLeftAlign();
+        if (this._position === 'center')
+            this.updateDestinationCenterAlign();
+        if (this._position === 'right')
+            this.updateDestinationRightAlign();
+        if (this._direction === 'left')
+            this.updateDestinationGoingLeft();
+        if (this._direction === 'right')
+            this.updateDestinationGoingRight();
+    };
+
+    Window_ITBIcon.prototype.updateDestinationLeftAlign = function () {
+        this._destinationX = 0;
+    };
+
+    Window_ITBIcon.prototype.updateDestinationCenterAlign = function () {
+        this._destinationX = 0;
+        var width = this.standardPadding() * 2;
+        var size = BattleManager.itbTurnOrder().length;
+        var constant = this.destinationXConstant();
+        width += constant * size;
+        width += constant / 2 - 2;
+        this._destinationX = Math.floor((Graphics.boxWidth - width) / 2);
+    };
+
+    Window_ITBIcon.prototype.updateDestinationRightAlign = function () {
+        this._destinationX = Graphics.boxWidth;
+        this._destinationX -= this.standardPadding() * 2;
+        var size = BattleManager.itbTurnOrder().length;
+        var constant = this.destinationXConstant();
+        this._destinationX -= constant * size;
+        this._destinationX -= constant / 2;
+        this._destinationX += 2;
+    };
+
+    BattleManager.itbTurnOrder = function () {
+        var ITBbattlers = BattleManager._ITBBattlers;
+        ITBbattlers.sort(function (a, b) {
+            // if does not have same agi
+            if (b.agi !== a.agi) {
+                return b.agi - a.agi;
+            } else {
+                // if has same agi
+                // if both actors then return one with higher id
+                if (a.isActor() && b.isActor()) {
+                    return b.actorId() - a.actorId();
+                }
+                // give enemy priority
+                else if (b.isActor() && a.isEnemy()) {
+                    return -1;
+                }
+                // give enemy priority
+                else if (b.isEnemy() && a.isActor()) {
+                    return 1;
+                }
+                // if both enemies then return one with higher id
+                else if (b.isEnemy() && a.isEnemy()) {
+                    return b.enemyId() - a.enemyId();
+                }
+            }
+        });
+        var battlers = BattleManager.allBattleMembers();
+        battlers.sort(function (a, b) {
+            // if does not have same agi
+            if (b.agi !== a.agi) {
+                return b.agi - a.agi;
+            } else {
+                // if has same agi
+                // if both actors then return one with higher id
+                if (a.isActor() && b.isActor()) {
+                    return b.actorId() - a.actorId();
+                }
+                // give enemy priority
+                else if (b.isActor() && a.isEnemy()) {
+                    return -1;
+                }
+                // give enemy priority
+                else if (b.isEnemy() && a.isActor()) {
+                    return 1;
+                }
+                // if both enemies then return one with higher id
+                else if (b.isEnemy() && a.isEnemy()) {
+                    return b.enemyId() - a.enemyId();
+                }
+            }
+        });
+
+        
+        ITBbattlers = ITBbattlers.concat(battlers);
+        
+        return ITBbattlers;
+    };
+
+    Window_ITBIcon.prototype.updateDestinationGoingLeft = function (index) {
+        var index = BattleManager.itbTurnOrder().indexOf(this._battler);
+        if (index < 0) {
+            index = BattleManager.itbTurnOrder().length + 5;
+        }
+
+        var constant = this.destinationXConstant();
+        this._destinationX += index * constant;
+        if (index !== 0) {
+            this._destinationX += constant / 2;
+        }
+    };
+
+    Window_ITBIcon.prototype.updateDestinationGoingRight = function (index) {
+        var index = BattleManager.itbTurnOrder().reverse().indexOf(this._battler);
+        if (index < 0)
+            index = -5;
+        var constant = this.destinationXConstant();
+        this._destinationX += index * constant;
+        if (index === BattleManager.itbTurnOrder().length - 1) {
+            this._destinationX += constant / 2;
+        }
+    };
+
+    Window_ITBIcon.prototype.updateOpacity = function () {
+        var rate = this.opacityFadeRate();
+        if (this._foreverHidden)
+            return this.reduceOpacity();
+        if (this.isReduceOpacity())
+            return this.reduceOpacity();
+        if (BattleManager._victoryPhase) {
+            this._foreverHidden = true;
+            return this.reduceOpacity();
+        }
+        if (BattleManager._escaped) {
+            this._foreverHidden = true;
+            return this.reduceOpacity();
+        }
+        if (this._battler) {
+            var index = BattleManager.itbTurnOrder().reverse().indexOf(this._battler);
+            if (index < 0)
+                return this.reduceOpacity();
+        }
+        this.contentsOpacity += rate;
+    };
+
+    Window_ITBIcon.prototype.opacityFadeRate = function () {
+        return 8;
+    };
+
+    Window_ITBIcon.prototype.isReduceOpacity = function () {
+        if (!this._lowerWindows) {
+            if (this.isLargeWindowShowing())
+                return true;
+        }
+        return this._windowLayer && this._windowLayer.x !== 0;
+    };
+
+    Window_ITBIcon.prototype.reduceOpacity = function () {
+        this.contentsOpacity -= this.opacityFadeRate();
+    };
+
+    Window_ITBIcon.prototype.updatePositionX = function () {
+        if (this._destinationX === undefined)
+            return;
+        if (BattleManager._escaped)
+            return;
+        var desX = this._destinationX;
+        var moveAmount = Math.max(1, Math.abs(desX - this.x) / 4);
+        if (this.x > desX)
+            this.x = Math.max(this.x - moveAmount, desX);
+        if (this.x < desX)
+            this.x = Math.min(this.x + moveAmount, desX);
+    };
+
+    Window_ITBIcon.prototype.updatePositionY = function () {
+        if (BattleManager._escaped)
+            return;
+        if (this._destinationX !== this.x) {
+            var desX = this._destinationX;
+            var cap1 = this.destinationY() - this.contents.height / 2;
+            var cap2 = this.destinationY() + this.contents.height / 2;
+            var moveAmount = Math.max(1, Math.abs(cap2 - this.y) / 4);
+            if (this.x > desX)
+                this.y = Math.max(this.y - moveAmount, cap1);
+            if (this.x < desX)
+                this.y = Math.min(this.y + moveAmount, cap2);
+        } else if (this.destinationY() !== this.y) {
+            var desY = this.destinationY();
+            var moveAmount = Math.max(1, Math.abs(desY - this.y) / 4);
+            if (this.y > desY)
+                this.y = Math.max(this.y - moveAmount, desY);
+            if (this.y < desY)
+                this.y = Math.min(this.y + moveAmount, desY);
+        }
+    };
+
+    Window_ITBIcon.prototype.destinationY = function () {
+        // CHANGE ME: Use parameter instead of constant
+        var value = 54 - this.standardPadding();
+        var scene = SceneManager._scene;
+        if (scene && scene._helpWindow.visible) {
+            value = Math.max(value, scene._helpWindow.height);
+        }
+        if (!this._battler)
+            return value;
+        if (this._battler.isSelected()) {
+            value -= this.contents.height / 4;
+        }
+        return value;
     };
 
 //=============================================================================
