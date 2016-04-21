@@ -1,5 +1,5 @@
 /*:
- * @plugindesc 1.0
+ * @plugindesc 1.1
  * @author DreamX
  * 
  * @param Maximum State/Buffs Per Line
@@ -220,7 +220,7 @@ DreamX.Param.BSIDebuffColor = Number(DreamX.Parameters['Debuff Color']);
     DreamX.BattlerSpriteIcons.Sprite_Battler_setBattler = Sprite_Battler.prototype.setBattler;
     Sprite_Battler.prototype.setBattler = function (battler) {
         DreamX.BattlerSpriteIcons.Sprite_Battler_setBattler.call(this, battler);
-        if (!battler)
+        if (!battler || ( battler.isActor() && !$gameSystem.isSideView() ) )
             return;
         if (battler.isActor() && !DreamX.Param.BSIShowActorIcons) {
             return;
@@ -512,7 +512,9 @@ DreamX.Param.BSIDebuffColor = Number(DreamX.Parameters['Debuff Color']);
 
     Game_BattlerBase.prototype.DreamX_BSI_StateObject = function (state) {
         // make a deep copy
-        var stateTurns = JSON.parse(JSON.stringify(this._stateTurns[state.id]));
+        
+        var stateTurns = this._stateTurns[state.id] 
+        ? JSON.parse(JSON.stringify(this._stateTurns[state.id])) : 0;
         if (state.autoRemovalTiming <= 0 || state.meta.DXBSIHideTurns)
             stateTurns = 0;
         return {icon: state.iconIndex, turns: stateTurns, id: state.id, state: true};
