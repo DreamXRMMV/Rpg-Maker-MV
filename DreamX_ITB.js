@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.14 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
+ * @plugindesc v1.14a Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
  * 
  * <DreamX ITB>
  * @author DreamX
@@ -129,10 +129,10 @@ DreamX.ITB = DreamX.ITB || {};
     // store the parameter data in variables. The defaults are -1
     var paramMaxElementExtraActions =
             String(parameters['Max Elemental Extra Actions'] || '0');
-    
+
     var paramMaxElemExtraPerOpponentPerTurn =
             String(parameters['Max Elemental Extra Actions Per Opponent Per Turn'] || '0');
-    
+
     var paramElementWeaknessState =
             String(parameters['Elemental Weakness State'] || '0');
     var paramElementWeaknessAnimation =
@@ -178,7 +178,7 @@ DreamX.ITB = DreamX.ITB || {};
         this._ITBActions = 0;
         this._previousTraitITBActions = 0;
         this._extraActionsFromWeakness = 0;
-        
+
         // holds ids and number of times hit in weakness by another battler
         this._weaknessHitMap = new Map();
     };
@@ -195,9 +195,9 @@ DreamX.ITB = DreamX.ITB || {};
                 isAllowed = false;
             }
         });
-        
-        if (this._weaknessHitMap.get(user) && paramMaxElemExtraPerOpponentPerTurn >= 1 
-                && this._weaknessHitMap.get(user) 
+
+        if (this._weaknessHitMap.get(user) && paramMaxElemExtraPerOpponentPerTurn >= 1
+                && this._weaknessHitMap.get(user)
                 >= paramMaxElemExtraPerOpponentPerTurn - 1) {
             return false;
         }
@@ -636,8 +636,8 @@ DreamX.ITB = DreamX.ITB || {};
             if (this.calcElementRate(target) > 1) {
                 // add an extra action to user
                 if (target.allowExtraElemWeaknessAction(user)) {
-                    var timesWeaknessHit = target._weaknessHitMap.get(user) 
-                    ? target._weaknessHitMap.get(user) : 0;
+                    var timesWeaknessHit = target._weaknessHitMap.get(user)
+                            ? target._weaknessHitMap.get(user) : 0;
                     target._weaknessHitMap.set(user, timesWeaknessHit + 1);
                     user.extraElementalWeaknessAction();
                 }
@@ -1178,9 +1178,9 @@ DreamX.ITB = DreamX.ITB || {};
             }
         });
 
-        
+
         ITBbattlers = ITBbattlers.concat(battlers);
-        
+
         return ITBbattlers;
     };
 
@@ -1240,6 +1240,14 @@ DreamX.ITB = DreamX.ITB || {};
                 return true;
         }
         return this._windowLayer && this._windowLayer.x !== 0;
+    };
+
+    Window_ITBIcon.prototype.isLargeWindowShowing = function () {
+        if (SceneManager._scene._itemWindow.visible)
+            return true;
+        if (SceneManager._scene._skillWindow.visible)
+            return true;
+        return false;
     };
 
     Window_ITBIcon.prototype.reduceOpacity = function () {
