@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.1 Perform actions like messages during Victory Aftermath
+ * @plugindesc v1.2 Perform actions like messages during Victory Aftermath
  * @author DreamX
  *
  * @param Always Use VX-Ace Style EXP Window
@@ -456,6 +456,8 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
 // Window_VictoryExp
 //=============================================================================
     Window_VictoryExp.prototype.shouldUseVXAceStyleEXP = function () {
+        if (this instanceof Window_VictoryJp)
+            return false;
         if (paramAlwaysVXACEExp === true) {
             return true;
         }
@@ -467,6 +469,8 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
     };
 
     Window_VictoryExp.prototype.shouldUseShortWindow = function () {
+        if (this instanceof Window_VictoryJp)
+            return false;
         if ($gameTemp._EXPWindowMessage === true) {
             return true;
         }
