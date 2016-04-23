@@ -456,7 +456,7 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
 // Window_VictoryExp
 //=============================================================================
     Window_VictoryExp.prototype.shouldUseVXAceStyleEXP = function () {
-        if (this instanceof Window_VictoryJp)
+        if (Imported.YEP_JobPoints && this instanceof Window_VictoryJp)
             return false;
         if (paramAlwaysVXACEExp === true) {
             return true;
@@ -469,7 +469,7 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
     };
 
     Window_VictoryExp.prototype.shouldUseShortWindow = function () {
-        if (this instanceof Window_VictoryJp)
+        if (Imported.YEP_JobPoints && this instanceof Window_VictoryJp)
             return false;
         if ($gameTemp._EXPWindowMessage === true) {
             return true;
