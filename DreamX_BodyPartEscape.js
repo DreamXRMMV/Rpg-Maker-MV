@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.0
+ * @plugindesc v1.1
  * @author DreamX
  * @help
  * Use <EscapeEnemiesOnDeath:x y z> as an enemy notetag. When the enemy dies, 
@@ -30,6 +30,11 @@ DreamX.BodyPartEscape = DreamX.BodyPartEscape || {};
     Game_BattlerBase.prototype.die = function () {
         DreamX.BodyPartEscape.Game_BattlerBase_die.call(this);
         var dataBattler = this.isActor() ? this.actor() : this.enemy();
+        
+        var thisX = this.spritePosX();
+        var thisY = this.spritePosY();
+        
+        var map = new Map();
 
         if (!dataBattler.meta.EscapeEnemiesOnDeath) {
             return;
@@ -41,10 +46,37 @@ DreamX.BodyPartEscape = DreamX.BodyPartEscape || {};
             if (enemiesToKill.some(function (arrayId) {
                 return parseInt(arrayId) === id;
             })) {
-                member.escape();
+                if (!map.has(id)) {
+                    map.set(id, []);
+                }
+                map.get(id).push(member);
             }
-
         }
+
+        map.forEach(function (value, key) {
+            map.get(key).sort(function (a, b) {
+                var aDistance = Math.abs(a.spritePosX() - thisX)
+                        + Math.abs(a.spritePosY() - thisY);
+                var bDistance = Math.abs(b.spritePosX() - thisX)
+                        + Math.abs(b.spritePosY() - thisY);
+                return aDistance - bDistance;
+            });
+            map.get(key)[0].escape();
+        }, map);
+
     };
+
+
+//                var matchedEnemies = enemiesToEscape.map(function (metaId) {
+//                return parseInt(metaId) === id;
+//            });
+//
+//            if (matchedEnemies.length <= 0) {
+//                continue;
+//            }
+//
+
+//            
+//            matchedEnemies[0].escape();
 
 })();
