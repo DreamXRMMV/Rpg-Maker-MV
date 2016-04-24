@@ -1,16 +1,20 @@
 /*:
- * @plugindesc v1.1
+ * @plugindesc v1.2
  * @author DreamX
- * 
+ *
  * @param Default Collapse Animation
  * @desc The default animation id to play when enemies are defeated. Use 0 to disable. Default: 0
  * @default 0
- *  
+ *
+ * @param Capture Collapse Animation
+ * @desc Defeat animation to play when an enemy was captured. Default: 0
+ * @default 0
+ *
  * @help
- * Use <CollapseAnimation:x> with x as the animation id to define a collapse 
- * animation for an enemy. The enemy will automatically disappear at the end 
+ * Use <CollapseAnimation:x> with x as the animation id to define a collapse
+ * animation for an enemy. The enemy will automatically disappear at the end
  * of the animation.
- * 
+ *
  */
 
 var Imported = Imported || {};
@@ -22,20 +26,44 @@ DreamX.CollapseAnimation = DreamX.CollapseAnimation || {};
 (function () {
     var parameters = PluginManager.parameters('DreamX_CollapseAnimation');
 
-    var defaultCollapseAnimId = parseInt(parameters['Default Collapse Animation']
+    var paramDefaultCollapseAnimId = parseInt(parameters['Default Collapse Animation']
             || 0);
-    //var defaultEscapeCollapse = String(parameters['Escape Collapse Type']);
-
+    var paramCaptureCollapseAnimId = parseInt(parameters['Capture Collapse Animation']
+            || 0);
+    
     Game_Enemy.prototype.collapseAnimationId = function () {
         var doNotPlay = this._isEscapingDoNotPlayCustomCollapseAnim;
         if (doNotPlay && doNotPlay === true) {
             this._isEscapingDoNotPlayCustomCollapseAnim = false;
             return 0;
         }
+        if (this._wasCaptured === true
+                || this._wasLevelUpCaptured === true) {
+            return paramCaptureCollapseAnimId;
+        }
         if (this.enemy().meta.CollapseAnimation) {
             return this.enemy().meta.CollapseAnimation;
         }
-        return defaultCollapseAnimId;
+        return paramDefaultCollapseAnimId;
+    };
+
+    DreamX.CollapseAnimation.Game_Enemy_performCollapse = Game_Enemy.prototype.performCollapse;
+    Game_Enemy.prototype.performCollapse = function () {
+        if (this._isEscapingDoNotPlayCustomCollapseAnim === true 
+                || this.collapseAnimationId() <= 0) {
+            return DreamX.CollapseAnimation.Game_Enemy_performCollapse.call(this);
+        }
+        switch (this.collapseType()) {
+            case 0:
+                this.requestEffect('collapse');
+                break;
+            case 1:
+                this.requestEffect('bossCollapse');
+                break;
+            case 2:
+                this.requestEffect('instantCollapse');
+                break;
+        }
     };
 
     DreamX.CollapseAnimation.Sprite_Enemy_startCollapse = Sprite_Enemy.prototype.startCollapse;
