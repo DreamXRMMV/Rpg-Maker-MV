@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.2 Perform actions like messages during Victory Aftermath
+ * @plugindesc v1.3 Perform actions like messages during Victory Aftermath
  * @author DreamX
  *
  * @param Always Use VX-Ace Style EXP Window
@@ -39,7 +39,8 @@
  *
  * <VICTORY ACTION TYPE: x>
  * This notetag is required. Replace x with the type of window where this action
- * will be performed. There are three options: exp, level, and drop.
+ * will be performed. There are three options: exp, level, and drop. You can 
+ * also use jp if you are using Yanfly's Job Points plugin.
  * Example:
  * <VICTORY ACTION TYPE: drop>
  *
@@ -179,6 +180,21 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
         return true;
     };
 
+    DataManager.DXVAValidAppearanceType = function (string) {
+        switch (string) {
+            case "exp":
+            case "drop":
+            case "level":
+                return true;
+                break;
+            case "jp":
+                return Imported.YEP_JobPoints;
+                break;
+            default:
+                return false;
+        }
+    };
+
     DataManager.processDXVAActorNotetags = function (data) {
         var evalMode = 'none';
         var conditionScript = "";
@@ -191,6 +207,7 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
         DreamX.VictoryAftermath.ExpActions = [];
         DreamX.VictoryAftermath.DropActions = [];
         DreamX.VictoryAftermath.LevelActions = [];
+        DreamX.VictoryAftermath.JPActions = [];
 
         for (var i = 0; i < data.length; i++) {
             var actor = data[i];
@@ -226,9 +243,7 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
                 if (evalMode === 'finish') {
                     var valid = true;
                     // must have an appearance type
-                    if (!appearanceType.match("exp")
-                            && !appearanceType.match("drop")
-                            && !appearanceType.match("level")) {
+                    if (!this.DXVAValidAppearanceType(appearanceType)) {
                         valid = false;
                     }
 
@@ -262,6 +277,8 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
                             DreamX.VictoryAftermath.DropActions.push(action);
                         } else if (appearanceType.match("level")) {
                             DreamX.VictoryAftermath.LevelActions.push(action);
+                        } else if (appearanceType.match("jp")) {
+                            DreamX.VictoryAftermath.JPActions.push(action);
                         }
                     }
 
@@ -306,6 +323,10 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
         return BattleManager._rewards.items.some(function (reward) {
             return reward.meta.hasOwnProperty(metaTag);
         });
+    };
+
+    Scene_Battle.prototype.DXVAHasBattleMember = function (id) {
+        return $gameParty.battleMembers().contains($gameActors.actor(id));
     };
 
     Scene_Battle.prototype.DXVACommonEvent = function (data) {
@@ -408,19 +429,6 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
         DreamX.VictoryAftermath.Scene_Battle_updateVictorySteps.call(this);
     };
 
-    DreamX.VictoryAftermath.Scene_Battle_createVictoryExp = Scene_Battle.prototype.createVictoryExp;
-    Scene_Battle.prototype.createVictoryExp = function () {
-        var action = this.DXVAGetAction(DreamX.VictoryAftermath.ExpActions);
-
-        $gameTemp._EXPWindowMessage = false;
-
-        if (action) {
-            $gameTemp._EXPWindowMessage = action.isMessage;
-            this.DXVAExecuteAction(action);
-        }
-        DreamX.VictoryAftermath.Scene_Battle_createVictoryExp.call(this);
-    };
-
     DreamX.VictoryAftermath.Scene_Battle_createVictoryDrop = Scene_Battle.prototype.createVictoryDrop;
     Scene_Battle.prototype.createVictoryDrop = function () {
         var action = this.DXVAGetAction(DreamX.VictoryAftermath.DropActions);
@@ -456,8 +464,6 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
 // Window_VictoryExp
 //=============================================================================
     Window_VictoryExp.prototype.shouldUseVXAceStyleEXP = function () {
-        if (Imported.YEP_JobPoints && this instanceof Window_VictoryJp)
-            return false;
         if (paramAlwaysVXACEExp === true) {
             return true;
         }
@@ -469,8 +475,6 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
     };
 
     Window_VictoryExp.prototype.shouldUseShortWindow = function () {
-        if (Imported.YEP_JobPoints && this instanceof Window_VictoryJp)
-            return false;
         if ($gameTemp._EXPWindowMessage === true) {
             return true;
         }
@@ -540,6 +544,15 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
         return 0;
     };
 
+    Window_VictoryExp.prototype.quoteFaceX = function (rect) {
+        return rect.x + (this.itemWidth() / 2) - (Window_Base._faceWidth / 2);
+    };
+
+    Window_VictoryExp.prototype.quoteFaceY = function () {
+        return Math.floor((this.windowHeight() / 2)
+                - this.standardPadding() - Window_Base._faceHeight * .66);
+    };
+
     DreamX.VictoryAftermath.Window_VictoryExp_drawActorProfile = Window_VictoryExp.prototype.drawActorProfile;
     Window_VictoryExp.prototype.drawActorProfile = function (actor, index) {
         if (this.shouldUseVXAceStyleEXP() === false) {
@@ -552,21 +565,17 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
         this.drawActorFace(actor, x, y);
     };
 
-    Window_VictoryExp.prototype.quoteFaceX = function (rect) {
-        return rect.x + (this.itemWidth() / 2) - (Window_Base._faceWidth / 2);
-    };
-
-    Window_VictoryExp.prototype.quoteFaceY = function () {
-        return Math.floor((this.windowHeight() / 2)
-                - this.standardPadding() - Window_Base._faceHeight * .66);
-    };
-
     DreamX.VictoryAftermath.Window_VictoryExp_drawActorGauge = Window_VictoryExp.prototype.drawActorGauge;
     Window_VictoryExp.prototype.drawActorGauge = function (actor, index) {
         if (this.shouldUseVXAceStyleEXP() === false) {
             return DreamX.VictoryAftermath.Window_VictoryExp_drawActorGauge.call(this, actor, index);
         }
+        this.drawVXAceStyleExpActorGauge(actor, index);
+    };
 
+
+
+    Window_VictoryExp.prototype.drawVXAceStyleExpActorGauge = function (actor, index) {
         var rect = this.itemRect(index);
         this.contents.clearRect(rect.x, this.quoteFaceY() + Window_Base._faceHeight, rect.width, rect.height);
 
@@ -576,8 +585,12 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
         this.changeTextColor(this.hpColor(actor));
         this.drawText(actor.name(), x, y, Window_Base._faceWidth, 'center');
         this.resetFontSettings();
-
         this.drawLevel(actor, rect);
+
+        this.drawVXAceStyleExpActorGaugeExpExtra(actor, rect);
+    };
+
+    Window_VictoryExp.prototype.drawVXAceStyleExpActorGaugeExpExtra = function (actor, rect) {
         this.drawExpGauge(actor, rect);
         this.drawExpValues(actor, rect);
         this.drawExpGained(actor, rect);
@@ -588,7 +601,10 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
         if (this.shouldUseVXAceStyleEXP() === false) {
             return DreamX.VictoryAftermath.Window_VictoryExp_drawExpGauge.call(this, actor, rect);
         }
+        this.drawVXAceStyleExpGauge(actor, rect);
+    };
 
+    Window_VictoryExp.prototype.drawVXAceStyleExpGauge = function (actor, rect) {
         var rate = this.actorExpRate(actor);
         if (rate >= 1.0) {
             var color1 = this.textColor(Yanfly.Param.ColorLv1);
@@ -606,8 +622,12 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
     DreamX.VictoryAftermath.Window_VictoryExp_drawLevel = Window_VictoryExp.prototype.drawLevel;
     Window_VictoryExp.prototype.drawLevel = function (actor, rect) {
         if (this.shouldUseVXAceStyleEXP() === false) {
-            return  DreamX.VictoryAftermath.Window_VictoryExp_drawLevel.call(this, actor, rect);
+            return DreamX.VictoryAftermath.Window_VictoryExp_drawLevel.call(this, actor, rect);
         }
+        this.drawVXAceStyleLevel(actor, rect);
+    };
+
+    Window_VictoryExp.prototype.drawVXAceStyleLevel = function (actor, rect) {
         this.changeTextColor(this.normalColor());
         if (this.actorExpRate(actor) >= 1.0) {
             var text = Yanfly.Util.toGroup(actor._postVictoryLv);
@@ -624,11 +644,16 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
         this.drawText(TextManager.levelA, x, y, Window_Base._faceWidth);
     };
 
+
     DreamX.VictoryAftermath.Window_VictoryExp_drawExpGained = Window_VictoryExp.prototype.drawExpGained;
     Window_VictoryExp.prototype.drawExpGained = function (actor, rect) {
         if (this.shouldUseVXAceStyleEXP() === false) {
             return DreamX.VictoryAftermath.Window_VictoryExp_drawExpGained.call(this, actor, rect);
         }
+        this.drawVXAceStyleExpGained(actor, rect);
+    };
+
+    Window_VictoryExp.prototype.drawVXAceStyleExpGained = function (actor, rect) {
         var x = this.quoteFaceX(rect);
         var y = this.quoteFaceY() + Window_Base._faceHeight + (this.lineHeight());
 
@@ -650,7 +675,10 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
         if (this.shouldUseVXAceStyleEXP() === false) {
             return DreamX.VictoryAftermath.Window_VictoryExp_drawExpValues.call(this, actor, rect);
         }
-        var wy = rect.y + this.lineHeight();
+        this.drawVXAceStyleExp(actor, rect);
+    };
+
+    Window_VictoryExp.prototype.drawVXAceStyleExp = function (actor, rect) {
         var actorLv = actor._preVictoryLv;
         var bonusExp = 1.0 * actor._expGained * this._tick /
                 Yanfly.Param.VAGaugeTicks;
@@ -676,9 +704,112 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
 
     DreamX.VictoryAftermath.Window_VictoryExp_initialize = Window_VictoryExp.prototype.initialize;
     Window_VictoryExp.prototype.initialize = function () {
+        this.createVictoryExpAction();
         DreamX.VictoryAftermath.Window_VictoryExp_initialize.call(this);
         this.opacity = paramExpWindowOpacity;
     };
+
+    Window_VictoryExp.prototype.createVictoryExpAction = function () {
+        var scene = SceneManager._scene;
+        var action = scene.DXVAGetAction(DreamX.VictoryAftermath.ExpActions);
+
+        $gameTemp._EXPWindowMessage = false;
+
+        if (action) {
+            $gameTemp._EXPWindowMessage = action.isMessage;
+            scene.DXVAExecuteAction(action);
+        }
+    };
+
+//=============================================================================
+// Window_VictoryJp
+//=============================================================================
+    if (Imported.YEP_JobPoints) {
+        Window_VictoryJp.prototype.createVictoryExpAction = function () {
+            var scene = SceneManager._scene;
+            var action = scene.DXVAGetAction(DreamX.VictoryAftermath.JPActions);
+
+            $gameTemp._JPWindowMessage = false;
+
+            if (action) {
+                $gameTemp._JPWindowMessage = action.isMessage;
+                scene.DXVAExecuteAction(action);
+            }
+        };
+
+        DreamX.VictoryAftermath.Window_VictoryJp_drawActorGauge = Window_VictoryJp.prototype.drawActorGauge;
+        Window_VictoryJp.prototype.drawActorGauge = function (actor, index) {
+            if (this.shouldUseVXAceStyleEXP() === false) {
+                return DreamX.VictoryAftermath.Window_VictoryJp_drawActorGauge.call(this, actor, index);
+            }
+            this.drawVXAceStyleExpActorGauge(actor, index);
+        };
+
+        Window_VictoryJp.prototype.drawVXAceStyleExpActorGaugeExpExtra = function (actor, rect) {
+            this.drawJpGained(actor, rect);
+        };
+
+        Window_VictoryJp.prototype.shouldUseVXAceStyleEXP = function () {
+            if (paramAlwaysVXACEExp === true) {
+                return true;
+            }
+            if ($gameTemp._JPWindowMessage === true) {
+                return true;
+            }
+
+            return false;
+        };
+
+        Window_VictoryJp.prototype.shouldUseShortWindow = function () {
+            if ($gameTemp._JPWindowMessage === true) {
+                return true;
+            }
+            return false;
+        };
+
+        DreamX.VictoryAftermath.Window_VictoryJp_drawJpGained = Window_VictoryJp.prototype.drawJpGained;
+        Window_VictoryJp.prototype.drawJpGained = function (actor, rect) {
+            if (this.shouldUseVXAceStyleEXP() === false) {
+                return DreamX.VictoryAftermath.Window_VictoryJp_drawJpGained.call(this, actor, rect);
+            }
+            this.drawVXAceStyleJpGained(actor, rect);
+        };
+
+        Window_VictoryJp.prototype.drawVXAceStyleJpGained = function (actor, rect) {
+            var x = this.quoteFaceX(rect);
+            var y = this.quoteFaceY() + Window_Base._faceHeight;
+
+            this.changeTextColor(this.systemColor());
+            var bonusJp = 1.0 * actor.battleJp() * this._tick /
+                    Yanfly.Param.VAGaugeTicks;
+            var value = Yanfly.Util.toGroup(parseInt(bonusJp));
+            var fmt = Yanfly.Param.JpAftermathFmt;
+            var icon = '\\i[' + Yanfly.Icon.Jp + ']';
+            var JpText = fmt.format(value, Yanfly.Param.Jp, icon);
+            var textWidth = this.textWidthEx(JpText);
+
+            this.changeTextColor(this.normalColor());
+            x = x + (Window_Base._faceWidth / 2) - (textWidth / 2);
+            this.drawTextEx(JpText, x, y, Window_Base._faceWidth, 'right');
+        };
+
+        Window_VictoryJp.prototype.drawVXAceStyleLevel = function (actor, rect) {
+            this.changeTextColor(this.normalColor());
+            if (this.actorExpRate(actor) >= 1.0) {
+                var text = Yanfly.Util.toGroup(actor._postVictoryLv);
+            } else {
+                var text = Yanfly.Util.toGroup(actor._preVictoryLv);
+            }
+
+            var x = this.quoteFaceX(rect);
+            var y = this.quoteFaceY() + Window_Base._faceHeight + (this.lineHeight());
+
+            this.drawText(text, x, y, Window_Base._faceWidth, 'right');
+
+            this.changeTextColor(this.systemColor());
+            this.drawText(TextManager.levelA, x, y, Window_Base._faceWidth);
+        };
+    }
 
 //=============================================================================
 // Window_VictoryTitle
