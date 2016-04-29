@@ -23,6 +23,10 @@
  * parameters to work properly.
  *
  * Requires Yanfly Item Core.
+ * Items may only be randomized if there item type is independent (check Item 
+ * Core parameters. By default weapons and armors are independent, but regular 
+ * items are not. You'll need to change the parameters from the default for 
+ * regular items).
  *
  * Add <prefix:x,y,z> and/or <suffix:x,y,z> to a weapon/armor's note
  * with the letters being weapon/armor ids. You can have as many ids
