@@ -940,7 +940,6 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
         }
         if (Imported.YEP_SkillLearnSystem) {
             this.processSLSNotetagsW(processArray);
-            this.processISNotetags1(processArray, 1);
         }
         if (Imported.YEP_StealSnatch) {
             this.processStealNotetagsW(processArray);
