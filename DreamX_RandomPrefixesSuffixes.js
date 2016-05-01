@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.21 Random prefixes/suffixes
+ * @plugindesc v1.21a Random prefixes/suffixes
  * @author DreamX
  *
  * @param Default Chance
@@ -1226,7 +1226,7 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
                     var item = dataType[id];
 
                     if (DreamX.RandomPrefixSuffix.isConfiguredForPrefixSuffix(item)) {
-                        var newItem = DreamX.RandomPrefixSuffix.makeItem(JSON.parse(JSON.stringify(item)));
+                        var newItem = DataManager.registerNewItem(DreamX.RandomPrefixSuffix.makeItem(JSON.parse(JSON.stringify(item))));
                         data[1] = newItem.id;
                     }
                 }
