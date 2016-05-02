@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.21b Random prefixes/suffixes
+ * @plugindesc v1.20b Random prefixes/suffixes
  * @author DreamX
  *
  * @param Default Chance
