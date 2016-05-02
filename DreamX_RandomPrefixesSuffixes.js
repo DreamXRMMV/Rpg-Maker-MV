@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.21a Random prefixes/suffixes
+ * @plugindesc v1.21b Random prefixes/suffixes
  * @author DreamX
  *
  * @param Default Chance
@@ -885,7 +885,7 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
             this.processStealNotetags3(processArray);
         }
         if (Imported.YEP_X_AttachAugments) {
-            this.processAugmentNotetags2($dataItems);
+            this.processAugmentNotetags2(processArray);
         }
         if (Imported.YEP_X_ItemDurability) {
             this.processIDurNotetags2(processArray);
@@ -917,7 +917,7 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
             this.processStealNotetagsA(processArray);
         }
         if (Imported.YEP_X_AttachAugments) {
-            this.processAugmentNotetags1($dataArmors, false);
+            this.processAugmentNotetags1(processArray, false);
         }
         if (Imported.YEP_X_CounterControl) {
             this.processCounterNotetagsA(processArray);
@@ -945,7 +945,7 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
             this.processStealNotetagsW(processArray);
         }
         if (Imported.YEP_X_AttachAugments) {
-            this.processAugmentNotetags1($dataWeapons, true);
+            this.processAugmentNotetags1(processArray, true);
         }
         if (Imported.YEP_X_CounterControl) {
             this.processCounterNotetagsW(processArray);
