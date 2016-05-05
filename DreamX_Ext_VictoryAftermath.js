@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.3a Perform actions like messages during Victory Aftermath
+ * @plugindesc v1.4 Perform actions like messages during Victory Aftermath
  * @author DreamX
  *
  * @param Always Use VX-Ace Style EXP Window
@@ -896,6 +896,18 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
         Window_VictoryLevelUp.prototype.initialize = function (actor) {
             DreamX.VictoryAftermath.Window_VictoryLevelUp_initialize.call(this, actor);
             this.opacity = paramLevelUpWindowOpacity;
+        };
+    }
+
+    if (Imported.YEP_X_BattleSysCTB) {
+        DreamX.VictoryAftermath.BattleManager_updateEvent = BattleManager.updateEvent;
+        BattleManager.updateEvent = function () {
+            if (this.isCTB() && this._victoryPhase) {
+                $gameTroop.updateInterpreter();
+                $gameTroop.setupBattleEvent();
+                return true;
+            }
+            return DreamX.VictoryAftermath.BattleManager_updateEvent.call(this);
         };
     }
 
