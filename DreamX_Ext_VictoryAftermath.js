@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.3 Perform actions like messages during Victory Aftermath
+ * @plugindesc v1.3a Perform actions like messages during Victory Aftermath
  * @author DreamX
  *
  * @param Always Use VX-Ace Style EXP Window
@@ -400,7 +400,7 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
         return false;
     };
 
-    Scene_Battle.prototype.DXVAExecuteAction = function (action) {
+    Scene_Battle.prototype.DXVAExecuteAction = function (action, actor) {
         eval(action.effect);
     };
 
@@ -888,7 +888,7 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
             var scene = SceneManager._scene;
             var action = actor._levelUpAction;
             if (action) {
-                scene.DXVAExecuteAction(action);
+                scene.DXVAExecuteAction(action, actor);
             }
         };
 
