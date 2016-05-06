@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.20b Random prefixes/suffixes
+ * @plugindesc v1.20c Random prefixes/suffixes
  * @author DreamX
  *
  * @param Default Chance
@@ -23,9 +23,9 @@
  * parameters to work properly.
  *
  * Requires Yanfly Item Core.
- * Items may only be randomized if there item type is independent (check Item 
- * Core parameters. By default weapons and armors are independent, but regular 
- * items are not. You'll need to change the parameters from the default for 
+ * Items may only be randomized if there item type is independent (check Item
+ * Core parameters. By default weapons and armors are independent, but regular
+ * items are not. You'll need to change the parameters from the default for
  * regular items).
  *
  * Add <prefix:x,y,z> and/or <suffix:x,y,z> to a weapon/armor's note
@@ -76,12 +76,12 @@
  * Armor only.
  * ---
  * <prefixSuffixUseWeaponDatabase>
- * The new item uses prefix/suffix items from the weapon database instead of 
+ * The new item uses prefix/suffix items from the weapon database instead of
  * the armor database.
  * Armor only.
  * ---
  * <prefixSuffixUseArmorDatabase>
- * The new item uses prefix/suffix items from the armor database instead of 
+ * The new item uses prefix/suffix items from the armor database instead of
  * the weapon database.
  * Weapon only.
  * ---
@@ -1201,6 +1201,17 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
         };
     }
 
+    if (Imported.YEP_X_ItemUpgrades) {
+        DreamX.RandomPrefixSuffix.DataManager_getBaseItem = DataManager.getBaseItem;
+        DataManager.getBaseItem = function (item) {
+            if (item.DXRPSItem && arguments.callee.caller
+                    === Window_ItemInfo.prototype.drawSlotsInfo) {
+                return item;
+            }
+            return DreamX.RandomPrefixSuffix.DataManager_getBaseItem.call(this, item);
+        };
+    }
+
     if (Imported.ShopManager) {
         /* Setup shop goods, if needed */
         DreamX.RandomPrefixSuffix.Game_Shop_setupGoods = Game_Shop.prototype.setupGoods;
@@ -1234,5 +1245,7 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
             DreamX.RandomPrefixSuffix.Game_Shop_setupGoods.call(this, goods);
         };
     }
+
+
 
 })();
