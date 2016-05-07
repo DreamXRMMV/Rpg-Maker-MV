@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.4 Perform actions like messages during Victory Aftermath
+ * @plugindesc v1.4a Perform actions like messages during Victory Aftermath
  * @author DreamX
  *
  * @param Always Use VX-Ace Style EXP Window
@@ -420,6 +420,7 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
     Scene_Battle.prototype.updateVictorySteps = function () {
         if (!this._DXVAAddedChoiceWindow) {
             this._DXVAAddedChoiceWindow = true;
+            SceneManager._scene.addChild(SceneManager._scene._messageWindow);
             SceneManager._scene.addChild(SceneManager._scene._messageWindow._choiceWindow);
         }
         if (!this._DXVAAddedChoiceHelpWindow && Imported.DreamX_ChoiceHelp) {
