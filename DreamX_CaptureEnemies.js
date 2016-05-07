@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.7 Capture enemies 
+ * @plugindesc v1.7b Capture enemies 
  * 
  * <DreamX Capture Enemies>
  * @author DreamX
@@ -370,6 +370,10 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
 
         // if the item or target isn't configured correctly, return
         if (DreamX.CaptureEnemy.ItemTargetConfiguredProperly(item, dataEnemyMeta) === false) {
+            return;
+        }
+        
+        if (!$dataActors[dataEnemyMeta.capture_actor_id]) {
             return;
         }
 
