@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.20c Random prefixes/suffixes
+ * @plugindesc v1.20d Random prefixes/suffixes
  * @author DreamX
  *
  * @param Default Chance
@@ -1243,6 +1243,24 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
                 }
             }
             DreamX.RandomPrefixSuffix.Game_Shop_setupGoods.call(this, goods);
+        };
+    }
+    if (Imported.Quasi_ParamsPlus) {
+        DreamX.RandomPrefixSuffix.QuasiParams_equipParamsPlus = QuasiParams.equipParamsPlus;
+        QuasiParams.equipParamsPlus = function (equip) {
+            if (!equip.DXRPSItem) {
+                return DreamX.RandomPrefixSuffix.QuasiParams_equipParamsPlus.call(this, equip);
+            }
+
+            var data = !equip.atypeId ? this._equips[0] : this._equips[1];
+            var id = equip.id;
+            if (!data[id]) {
+                var dataBase = !equip.atypeId ? $dataWeapons : $dataArmors;
+                var note = equip.note || dataBase[id].note;
+                var params = /<params>([\s\S]*)<\/params>/i.exec(note);
+                data[id] = params ? this.stringToObjAry(params[1]) : data[id] || {};
+            }
+            return data[id];
         };
     }
 
