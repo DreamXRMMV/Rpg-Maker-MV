@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.7b Capture enemies 
+ * @plugindesc v1.8 Capture enemies 
  * 
  * <DreamX Capture Enemies>
  * @author DreamX
@@ -182,7 +182,6 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
             return false;
         if (!DreamX.loadedCapturedEnemies) {
             this.setBaseDataActorLength();
-            this.setCapturedActorsLength();
             DreamX.loadedCapturedEnemies = true;
         }
         return true;
@@ -190,6 +189,14 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
 
     DataManager.setBaseDataActorLength = function () {
         this._baseActorsLength = $dataActors.length;
+    };
+
+    DataManager.setCapturedActorsLength = function () {
+        for (; ; ) {
+            if ($dataActors.length > parameterStartingId)
+                break;
+            $dataActors.push(null);
+        }
     };
 
     DreamX.CaptureEnemy.DataManager_makeSaveContents = DataManager.makeSaveContents;
@@ -207,21 +214,11 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
     };
 
     DataManager.loadCapturedActors = function () {
-        $dataActors = $dataActors.concat(this._capturedActors);
-    };
-
-    DataManager.setCapturedActorsLength = function () {
-        for (; ; ) {
-            if ($dataActors.length > parameterStartingId)
-                break;
-            $dataActors.push(null);
-        }
-    };
-
-    DataManager.removeCapturedActors = function () {
         // remove captured actors from other saves
-        var difItems = $dataActors.length - parameterStartingId;
-        $dataActors.splice(parameterStartingId, difItems);
+        var difItems = $dataActors.length - this._baseActorsLength;
+        $dataActors.splice(this._baseActorsLength, difItems);
+        this.setCapturedActorsLength();
+        $dataActors = $dataActors.concat(this._capturedActors);
     };
 
     DreamX.CaptureEnemy.DataManager_createGameObjects =
@@ -230,7 +227,7 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         DreamX.CaptureEnemy.DataManager_createGameObjects.call(this);
         this._capturedActors = [];
         // remove captured actors from other saves
-        this.removeCapturedActors();
+        this.loadCapturedActors();
     };
 
 //=============================================================================
@@ -246,7 +243,6 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
     Game_Actor.prototype.baseActorId = function () {
         return this._baseActorId;
     };
-
 //=============================================================================
 // Game_Enemy
 //=============================================================================
@@ -372,7 +368,7 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         if (DreamX.CaptureEnemy.ItemTargetConfiguredProperly(item, dataEnemyMeta) === false) {
             return;
         }
-        
+
         if (!$dataActors[dataEnemyMeta.capture_actor_id]) {
             return;
         }
@@ -496,6 +492,8 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
 
         DataManager._capturedActors.push(CapturedEnemy);
         $dataActors.push(CapturedEnemy);
+
+        $gameActors.actor(CapturedEnemy.id).setup(CapturedEnemy.id);
 
         if ($gameParty.inBattle() && paramAddInBattle === false) {
             BattleManager._capturedEnemies.push(CapturedEnemy.id);
