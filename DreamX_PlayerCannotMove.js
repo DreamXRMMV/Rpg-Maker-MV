@@ -3,9 +3,14 @@
  * on
  * @author DreamX
  * 
- * @param Switch
- * @desc The switch ID that, if on, disables player movement by input. Default: 0
+ * @param Move Switch
+ * @desc Switch ID if on disables movement by input. Default: 0
  * @default 0
+ * 
+ * @param Move & Action Button Switch
+ * @desc Switch ID if on disables movement by input and event action button activation. Default: 0
+ * @default 0
+ * 
  * @help
  * ============================================================================
  * Terms Of Use
@@ -25,11 +30,20 @@ DreamX.PlayerCannotMove = DreamX.PlayerCannotMove || {};
 
 (function () {
     var parameters = PluginManager.parameters('DreamX_PlayerCannotMove');
-    var paramSwitch = parseInt(parameters['Switch'] || 0);
+    var paramSwitchMove = parseInt(parameters['Move Switch'] || 0);
+    var paramSwitchMoveInteract = parseInt(parameters['Move & Action Button Switch'] || 0);
+
+    DreamX.PlayerCannotMove.Game_Player_canMove = Game_Player.prototype.canMove;
+    Game_Player.prototype.canMove = function () {
+        if (paramSwitchMoveInteract >= 1 && $gameSwitches.value(paramSwitchMoveInteract) === true) {
+            return false;
+        }
+        return DreamX.PlayerCannotMove.Game_Player_canMove.call(this);
+    };
 
     DreamX.PlayerCannotMove.Game_Player_moveByInput = Game_Player.prototype.moveByInput;
     Game_Player.prototype.moveByInput = function () {
-        if (paramSwitch >= 1 && $gameSwitches.value(paramSwitch)) {
+        if (paramSwitchMove >= 1 && $gameSwitches.value(paramSwitchMove)) {
             return;
         }
         DreamX.PlayerCannotMove.Game_Player_moveByInput.call(this);
