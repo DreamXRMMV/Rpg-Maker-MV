@@ -4,7 +4,7 @@
  * @author DreamX
  * 
  * @param Switch
- * @desc The switch ID that, if on, disables player movement by input. 0: Disable Default: 0
+ * @desc The switch ID that, if on, disables player movement by input. Default: 0
  * @default 0
  * @help
  * ============================================================================
