@@ -1,11 +1,11 @@
 MyRandomPicture = function () {
-    // the last number in the set
-    // edit this as you need
-    var max = 350;
-
     // the first number in the set
     // edit this as you need
     var start = 1;
+
+    // the last number in the set
+    // edit this as you need
+    var max = 3;
 
     // the name before the number
     // edit this as you need
@@ -23,15 +23,15 @@ MyRandomPicture = function () {
     // origin of the picture
     //  0 = Upper Left
     //  1 = Center
-    var origin = 1;
+    var origin = 0;
     // X position
     var x = 0;
     // Y Position
-    var y = 00;
+    var y = 0;
     // Scale X (Width)
-    var scaleX = 1;
+    var scaleX = 100;
     // Scale Y (Height)
-    var scaleY = 1;
+    var scaleY = 100;
     // Opacity from 0 to 255
     var opacity = 255;
     // Blend Mode
@@ -39,7 +39,6 @@ MyRandomPicture = function () {
     //  1 = Additive
     //  2 = Multiply
     //  3 = Screen
-    $gameScreen.showPi
     var blendMode = 0;
 
     // Parameter 1: The ID of the picture. Appears as Number in the event command.
