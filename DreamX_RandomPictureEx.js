@@ -1,61 +1,28 @@
-MyRandomPicture = function () {
-    // the first number in the set
-    // edit this as you need
-    var start = 1;
-
-    // the last number in the set
-    // edit this as you need
-    var max = 3;
-
-    // the name before the number
-    // edit this as you need
-    var baseName = "Skill";
-
+    // Parameter 1: The starting number of the pictures, ie. 1
+    // Parameter 2: The ending number of the pictures, ie. 350
+    // Parameter 3: The base name of the pictures, ie. "Skill"
+    // Parameter 4: The ID of the picture. Appears as Number in the event command.
+    // Parameter 5: Name of the picture
+    // Parameter 6: Origin of the picture
+    //  0 = Upper Left
+    //  1 = Center
+    // Parameter 7: X Position
+    // Parameter 8: Y Position
+    // Parameter 9: Scale X
+    // Parameter 10: Scale Y
+    // Parameter 11: Opacity
+    // Parameter 12: Blend Mode
+    //  0 = Normal
+    //  1 = Additive
+    //  2 = Multiply
+    //  3 = Screen
+MyRandomPicture = function (start, max, baseName, ID, origin, x, y, scaleX, scaleY, opacity, blendMode) {
     // randomly select a number from start to max
     var imgNum = (Math.floor(Math.random() * max)) + start;
 
-    // parameter variables, edit them as appropriate
-    // 
-    // The ID of the picture. Appears as Number in the event command.
-    var ID = 1;
     // Name of the picture, don't edit this unless you know what you're doing
     var pictureName = baseName + imgNum;
-    // origin of the picture
-    //  0 = Upper Left
-    //  1 = Center
-    var origin = 0;
-    // X position
-    var x = 0;
-    // Y Position
-    var y = 0;
-    // Scale X (Width)
-    var scaleX = 100;
-    // Scale Y (Height)
-    var scaleY = 100;
-    // Opacity from 0 to 255
-    var opacity = 255;
-    // Blend Mode
-    //  0 = Normal
-    //  1 = Additive
-    //  2 = Multiply
-    //  3 = Screen
-    var blendMode = 0;
 
-    // Parameter 1: The ID of the picture. Appears as Number in the event command.
-    // Parameter 2: Name of the picture
-    // Parameter 3: Origin of the picture
-    //  0 = Upper Left
-    //  1 = Center
-    // Parameter 4: X Position
-    // Parameter 5: Y Position
-    // Parameter 6: Scale X
-    // Parameter 7: Scale Y
-    // Parameter 8: Opacity
-    // Parameter 9: Blend Mode
-    //  0 = Normal
-    //  1 = Additive
-    //  2 = Multiply
-    //  3 = Screen
     $gameScreen.showPicture(ID, pictureName, origin,
             x, y, scaleX, scaleY, opacity, blendMode);
 };
