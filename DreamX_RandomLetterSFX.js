@@ -10,7 +10,7 @@
  * Add filename0...x to the possible list of sound effects.
  * For example, if you filename, filename0, filename1, filename2, filename3
  * it will add it to the possible list.
- * It will keep adding until if finds an iteration that doesn't exist (ie. 
+ * It will keep adding until it finds an iteration that doesn't exist (ie. 
  * if filename7 doesn't exist)
  * 
  * Then, it will choose randomly from this list to play.
