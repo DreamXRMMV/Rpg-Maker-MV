@@ -21,10 +21,12 @@
  * Terms Of Use
  * ============================================================================
  * Free to use and modify for commercial and noncommercial games, with credit.
+ * Credit Yanfly.
  * ============================================================================
  * Credits
  * ============================================================================
  * DreamX
+ * Yanfly for the original plugin this is an extension of.
  */
 
 var Imported = Imported || {};
