@@ -105,6 +105,7 @@
  * ============================================================================
  * Free to use and modify for commercial and noncommercial games, with credit.
  * Credit Yanfly for their Equip Core and Status Core plugins.
+ * Credit Quasi for their parameter plugin.
  * ============================================================================
  * Credits
  * ============================================================================
