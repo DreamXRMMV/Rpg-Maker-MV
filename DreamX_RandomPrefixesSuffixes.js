@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.20d Random prefixes/suffixes
+ * @plugindesc v1.21 Random prefixes/suffixes
  * @author DreamX
  *
  * @param Default Chance
@@ -892,6 +892,7 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
         }
         if (Imported.YEP_X_ItemUpgrades) {
             this.processUpgradeNotetags1(processArray);
+            processArray[1].originalUpgradeSlots = processArray[1].upgradeSlots;
         }
         if (Imported.YEP_X_SkillCooldowns) {
             this.processSCDNotetags2(processArray);
@@ -1032,6 +1033,7 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
 
         // at this point we can mark the newItem as being as prefixsuffixitem
         newItem.DXRPSItem = true;
+        newItem.DXRPSNewItem = true;
 
         // add a linebreak to note
         newItem.note += "\n";
@@ -1134,10 +1136,18 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
         return false;
     };
 
+    // returns true if it was marked as one
+    DataManager.isDXRPSNewItem = function (item) {
+        if (item && item.DXRPSNewItem && item.DXRPSNewItem === true) {
+            return true;
+        }
+        return false;
+    };
+
     // its valid if its an item made by this plugin
     DreamX.RandomPrefixSuffix.DataManager_isNewItemValid = DataManager.isNewItemValid;
     DataManager.isNewItemValid = function (item) {
-        if (this.isDXRPSItem(item)) {
+        if (this.isDXRPSNewItem(item)) {
             return true;
         }
         return DreamX.RandomPrefixSuffix.DataManager_isNewItemValid.call(this, item);
@@ -1176,6 +1186,7 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
         DreamX.RandomPrefixSuffix.DataManager_addNewIndependentItem.call(this, baseItem, newItem);
         if (!this.isDXRPSItem(newItem))
             return;
+        newItem.DXRPSNewItem = false;
         newItem.note = originalNote;
         var database = this.getDatabase(newItem);
         var processArray = ["", database[newItem.id]];
@@ -1202,11 +1213,21 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
     }
 
     if (Imported.YEP_X_ItemUpgrades) {
+        DreamX.RandomPrefixSuffix.baseItemSpecialFunc = function (func) {
+            var funcs = [];
+            funcs.push(Window_ItemInfo.prototype.drawSlotsInfo);
+            funcs.push(Window_ItemInfo.prototype.drawSlotUpgradesUsed);
+
+            return funcs.indexOf(func) !== -1;
+        };
+
         DreamX.RandomPrefixSuffix.DataManager_getBaseItem = DataManager.getBaseItem;
         DataManager.getBaseItem = function (item) {
-            if (item.DXRPSItem && arguments.callee.caller
-                    === Window_ItemInfo.prototype.drawSlotsInfo) {
-                return item;
+            if (item.DXRPSItem) {
+                var caller = arguments.callee.caller;
+                if (DreamX.RandomPrefixSuffix.baseItemSpecialFunc(caller)) {
+                    return item;
+                }
             }
             return DreamX.RandomPrefixSuffix.DataManager_getBaseItem.call(this, item);
         };
@@ -1245,6 +1266,7 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
             DreamX.RandomPrefixSuffix.Game_Shop_setupGoods.call(this, goods);
         };
     }
+
     if (Imported.Quasi_ParamsPlus) {
         DreamX.RandomPrefixSuffix.QuasiParams_equipParamsPlus = QuasiParams.equipParamsPlus;
         QuasiParams.equipParamsPlus = function (equip) {
@@ -1263,7 +1285,4 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
             return data[id];
         };
     }
-
-
-
 })();
