@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.21 Random prefixes/suffixes
+ * @plugindesc v1.21a Random prefixes/suffixes
  * @author DreamX
  *
  * @param Default Chance
@@ -1230,6 +1230,33 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
                 }
             }
             return DreamX.RandomPrefixSuffix.DataManager_getBaseItem.call(this, item);
+        };
+
+        DreamX.RandomPrefixSuffix.Window_ItemInfo_drawSlotUpgradesUsed = Window_ItemInfo.prototype.drawSlotUpgradesUsed;
+        Window_ItemInfo.prototype.drawSlotUpgradesUsed = function (dy) {
+            var item = this._item;
+            if (!DataManager.isDXRPSItem(item)) {
+                return DreamX.RandomPrefixSuffix.Window_ItemInfo_drawSlotUpgradesUsed.call(this, dy);
+            }
+            if (item.originalUpgradeSlots <= 0)
+                return dy;
+            if (!item.slotsApplied)
+                ItemManager.initSlotUpgradeNotes(item);
+            if (!DataManager.isIndependent(item))
+                return dy;
+            if (!eval(Yanfly.Param.IUSShowSlots))
+                return dy;
+            if (item.slotsApplied.length <= 0)
+                return dy;
+            var dx = this.textPadding();
+            var fmt = Yanfly.Param.IUSSlotFmt;
+            for (var i = 0; i < item.slotsApplied.length; ++i) {
+                var text = fmt.format(i + 1, item.slotsApplied[i]);
+                this.drawTextEx(text, dx, dy);
+                dy += this.lineHeight();
+            }
+            this.resetFontSettings();
+            return dy;
         };
     }
 
