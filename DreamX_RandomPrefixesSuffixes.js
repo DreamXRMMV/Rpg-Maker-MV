@@ -1223,13 +1223,48 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
 
         DreamX.RandomPrefixSuffix.DataManager_getBaseItem = DataManager.getBaseItem;
         DataManager.getBaseItem = function (item) {
-            if (item.DXRPSItem) {
-                var caller = arguments.callee.caller;
-                if (DreamX.RandomPrefixSuffix.baseItemSpecialFunc(caller)) {
-                    return item;
-                }
-            }
+//            if (item.DXRPSItem) {
+//                var caller = arguments.callee.caller;
+//                if (DreamX.RandomPrefixSuffix.baseItemSpecialFunc(caller)) {
+//                    return item;
+//                }
+//            }
             return DreamX.RandomPrefixSuffix.DataManager_getBaseItem.call(this, item);
+        };
+
+        DreamX.RandomPrefixSuffix.Window_ItemInfo_drawSlotsInfo = Window_ItemInfo.prototype.drawSlotsInfo;
+        Window_ItemInfo.prototype.drawSlotsInfo = function (dy) {
+            var item = this._item;
+            if (!DataManager.isDXRPSItem(item)) {
+                return DreamX.RandomPrefixSuffix.Window_ItemInfo_drawSlotsInfo.call(this, dy);
+            }
+            if (!item.slotsApplied)
+                ItemManager.initSlotUpgradeNotes(item);
+            if (!DataManager.isIndependent(item))
+                return dy;
+            if (item.originalUpgradeSlots <= 0)
+                return dy;
+            if (Yanfly.Param.IUSSlotsText === '')
+                return dy;
+            var dx = this.textPadding();
+            var dw = this.contents.width - this.textPadding() * 2;
+            this.resetFontSettings();
+            this.changeTextColor(this.systemColor());
+            var text = Yanfly.Param.IUSSlotsText;
+            this.drawText(text, dx, dy, dw);
+            if (item.originalUpgradeSlots) {
+                text = '/' + Yanfly.Util.toGroup(item.originalUpgradeSlots);
+            } else {
+                text = '/' + Yanfly.Util.toGroup(item.upgradeSlots);
+            }
+            this.changeTextColor(this.normalColor());
+            this.drawText(text, dx, dy, dw, 'right');
+            dw -= this.textWidth(text);
+            text = Yanfly.Util.toGroup(item.upgradeSlots);
+            if (item.upgradeSlots <= 0)
+                this.changeTextColor(this.powerDownColor());
+            this.drawText(text, dx, dy, dw, 'right');
+            return dy + this.lineHeight();
         };
 
         DreamX.RandomPrefixSuffix.Window_ItemInfo_drawSlotUpgradesUsed = Window_ItemInfo.prototype.drawSlotUpgradesUsed;
