@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.01
+ * @plugindesc v1.02
  * @author DreamX
  *
  * @param Command Name
@@ -97,8 +97,12 @@ DreamX.StateDescriptions = DreamX.StateDescriptions || {};
     DreamX.StateDescriptions.Window_StatusInfo_select = Window_StatusInfo.prototype.select;
     Window_StatusInfo.prototype.select = function (index) {
         DreamX.StateDescriptions.Window_StatusInfo_select.call(this, index);
-        if (this._symbol === 'passives' && index >= 0) {
-            var meta = this._actor.statusMenuDescriptionStates()[index].meta;
+        if (index < 0 || this._symbol !== 'passives') {
+            return;
+        }
+        var state = this._actor.statusMenuDescriptionStates()[index];
+        if (state) {
+            var meta = state.meta;
             var text = meta.stateDescription ? meta.stateDescription : "";
             SceneManager._scene._helpWindow.setText(text);
         }
