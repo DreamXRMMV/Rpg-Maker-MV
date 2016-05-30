@@ -234,6 +234,8 @@ DreamX.Param.IconWindowRefreshRate = eval(String(DreamX.Parameters['Icon Window 
 DreamX.Param.BSIShowActorIcons = eval(String(DreamX.Parameters['Show Icons For Actor']) || true);
 DreamX.Param.BSIShowEnemyIcons = eval(String(DreamX.Parameters['Show Icons For Enemy']) || true);
 DreamX.Param.BSIShowIconsOnDeath = eval(String(DreamX.Parameters['Show Icons On Death']) || true);
+DreamX.Param.BSIShowDefaultBuffDesc = eval(String(DreamX.Parameters['Buff Description']) || true);
+DreamX.Param.BSIDefaultBuffDesc = Number(DreamX.Parameters['Default Buff Description State']);
 
 DreamX.Param.BSIShowActorTurns = eval(String(DreamX.Parameters['Show Actor Turns']));
 DreamX.Param.BSIShowEnemyTurns = eval(String(DreamX.Parameters['Show Enemy Turns']));
@@ -838,6 +840,13 @@ DreamX.Param.BSIDebuffColor = Number(DreamX.Parameters['Debuff Color']);
     };
 
     Window_StateToolTip.prototype.buffDescriptionCode = function () {
+        if (!DreamX.Param.BSIShowDefaultBuffDesc ) {
+            return "";
+        }
+        if (DreamX.Param.BSIDefaultBuffDesc) {
+            return $dataStates[DreamX.Param.BSIDefaultBuffDesc].DXBSITooltipCode;
+        }
+        
         return this.defaultBuffDescription();
     };
 
