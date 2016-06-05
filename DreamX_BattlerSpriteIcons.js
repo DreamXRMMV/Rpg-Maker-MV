@@ -1,18 +1,10 @@
 /*:
- * @plugindesc 1.2
+ * @plugindesc 1.2a
  * @author DreamX
  *
  * @param ---Battler Sprite Icon Window---
  * @default
  *
- * @param Buff Description
- * @desc Whether to show a buff/debuff tooltip description. Default: false
- * @default false
- * 
- * @param Default Buff Description State
- * @desc The state in the database to draw the default buff/debuff description from. 0: Use plugin default Default: 0
- * @default 0
- * 
  * @param Maximum State/Buffs Per Line
  * @desc Maximum states/buffs to show per battler per line. Default: 4
  * @default 4
@@ -68,9 +60,21 @@
  * @param ---Tooltips---
  * @default
  *
+ * @param Show Tooltips
+ * @desc default: false
+ * @default false
+ * 
  * @param Tooltip Refresh Rate
  * @desc The number of frames to wait for before refreshing the tooltip window. Default: 60
  * @default 60
+ * 
+ * @param Buff Description
+ * @desc Whether to show a buff/debuff tooltip description. Default: false
+ * @default false
+ * 
+ * @param Default Buff Description State
+ * @desc The state in the database to draw the default buff/debuff description from. 0: Use plugin default Default: 0
+ * @default 0
  *
  * @param ---Turn Indicator---
  * @default
@@ -237,6 +241,9 @@ DreamX.Param.BSIShowIconsOnDeath = eval(String(DreamX.Parameters['Show Icons On 
 DreamX.Param.BSIShowDefaultBuffDesc = eval(String(DreamX.Parameters['Buff Description']) || true);
 DreamX.Param.BSIDefaultBuffDesc = Number(DreamX.Parameters['Default Buff Description State']);
 
+
+DreamX.Param.BSIShowTooltips = eval(String(DreamX.Parameters['Show Tooltips']));
+
 DreamX.Param.BSIShowActorTurns = eval(String(DreamX.Parameters['Show Actor Turns']));
 DreamX.Param.BSIShowEnemyTurns = eval(String(DreamX.Parameters['Show Enemy Turns']));
 DreamX.Param.BSIFontSize = String(DreamX.Parameters['Font Size']);
@@ -295,6 +302,7 @@ DreamX.Param.BSIDebuffColor = Number(DreamX.Parameters['Debuff Color']);
     //=============================================================================
     Scene_Battle.prototype.DXBSIIconWindowIndex = function () {
         var toolTipWindowIndex;
+        var scene = SceneManager._scene;
 
         for (var i = 0; i < this.children.length && !toolTipWindowIndex; i++) {
             if (this.children[i] instanceof Window_StateToolTip) {
@@ -354,21 +362,6 @@ DreamX.Param.BSIDebuffColor = Number(DreamX.Parameters['Debuff Color']);
     };
 
     //=============================================================================
-    // Game_Battler
-    //=============================================================================
-//    DreamX.BattlerSpriteIcons.Game_Battler_ddState = Game_Battler.prototype.addState;
-//    Game_Battler.prototype.addState = function (stateId) {
-//        if (this.isStateAddable(stateId)) {
-//            if (!this.isStateAffected(stateId)) {
-//                this.addNewState(stateId);
-//                this.refresh();
-//            }
-//            this.resetStateCounts(stateId);
-//            this._result.pushAddedState(stateId);
-//        }
-//    };
-
-    //=============================================================================
     // Window_BattleStateIcon
     //=============================================================================
 
@@ -384,7 +377,9 @@ DreamX.Param.BSIDebuffColor = Number(DreamX.Parameters['Debuff Color']);
         this._battler = battler;
         Window_Selectable.prototype.initialize.call(this, 0, 0, this.windowWidth(), this.windowHeight());
         this.opacity = 0;
-        this.createToolTipWindows();
+        if (DreamX.Param.BSIShowTooltips === true) {
+            this.createToolTipWindows();
+        }
     };
 
     Window_BattleStateIcon.prototype.update = function () {
@@ -422,7 +417,9 @@ DreamX.Param.BSIDebuffColor = Number(DreamX.Parameters['Debuff Color']);
         }
         this.drawAllItems();
         this.updateWindowPosition();
-        this.updateToolTipWindows();
+        if (DreamX.Param.BSIShowTooltips === true) {
+            this.updateToolTipWindows();
+        }
     };
 
     Window_BattleStateIcon.prototype.createToolTipWindows = function () {
@@ -840,13 +837,13 @@ DreamX.Param.BSIDebuffColor = Number(DreamX.Parameters['Debuff Color']);
     };
 
     Window_StateToolTip.prototype.buffDescriptionCode = function () {
-        if (!DreamX.Param.BSIShowDefaultBuffDesc ) {
+        if (!DreamX.Param.BSIShowDefaultBuffDesc) {
             return "";
         }
         if (DreamX.Param.BSIDefaultBuffDesc) {
             return $dataStates[DreamX.Param.BSIDefaultBuffDesc].DXBSITooltipCode;
         }
-        
+
         return this.defaultBuffDescription();
     };
 
