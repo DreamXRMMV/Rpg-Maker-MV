@@ -1,5 +1,5 @@
 /*:
- * @plugindesc 1.2a
+ * @plugindesc 1.2b
  * @author DreamX
  *
  * @param ---Battler Sprite Icon Window---
@@ -300,20 +300,10 @@ DreamX.Param.BSIDebuffColor = Number(DreamX.Parameters['Debuff Color']);
     //=============================================================================
     // Scene_Battle
     //=============================================================================
-    Scene_Battle.prototype.DXBSIIconWindowIndex = function () {
-        var toolTipWindowIndex;
-        var scene = SceneManager._scene;
-
-        for (var i = 0; i < this.children.length && !toolTipWindowIndex; i++) {
-            if (this.children[i] instanceof Window_StateToolTip) {
-                toolTipWindowIndex = i;
-            }
-        }
-
-        if (toolTipWindowIndex)
-            return toolTipWindowIndex;
-
-        return this.children.indexOf(scene._windowLayer);
+    Scene_Battle.prototype.DXBSIIconWindowSpritesetChildIndex = function () {
+        var spritesetLayer = this._spriteset;
+        
+        return spritesetLayer.children.indexOf(spritesetLayer._pictureContainer);
     };
 
     //==========================================================================
@@ -333,15 +323,10 @@ DreamX.Param.BSIDebuffColor = Number(DreamX.Parameters['Debuff Color']);
     };
 
     Sprite_Battler.prototype.addStateIconWindows = function () {
-        var battler = this._battler;
-        if (!battler)
-            return;
         if (this._DXBSI_addedStateIconWindows)
             return;
-        if (!SceneManager._scene)
-            return;
-        var scene = SceneManager._scene;
-        if (!scene._windowLayer)
+        var battler = this._battler;
+        if (!battler)
             return;
 
         if (battler.isActor() && !$gameSystem.isSideView())
@@ -353,11 +338,25 @@ DreamX.Param.BSIDebuffColor = Number(DreamX.Parameters['Debuff Color']);
             return;
         }
 
+        var scene = SceneManager._scene;
+        var spriteset = scene._spriteset;
+        
+        if (!spriteset) {
+            return;
+        }
+
         this._DXBSI_NormalStateIconWindow = new Window_BattleNormalStateIcon(battler);
         this._DXBSI_BadStateIconWindow = new Window_BattleBadStateIcon(battler);
 
-        scene.addChildAt(this._DXBSI_NormalStateIconWindow, scene.DXBSIIconWindowIndex());
-        scene.addChildAt(this._DXBSI_BadStateIconWindow, scene.DXBSIIconWindowIndex());
+        if (!scene._stateIconLayer) {
+            scene._stateIconLayer = new Sprite();
+            spriteset.addChildAt(scene._stateIconLayer,
+                    scene.DXBSIIconWindowSpritesetChildIndex());
+        }
+
+        scene._stateIconLayer.addChild(this._DXBSI_NormalStateIconWindow);
+        scene._stateIconLayer.addChild(this._DXBSI_BadStateIconWindow);
+
         this._DXBSI_addedStateIconWindows = true;
     };
 
@@ -377,6 +376,7 @@ DreamX.Param.BSIDebuffColor = Number(DreamX.Parameters['Debuff Color']);
         this._battler = battler;
         Window_Selectable.prototype.initialize.call(this, 0, 0, this.windowWidth(), this.windowHeight());
         this.opacity = 0;
+        this.z = 0;
         if (DreamX.Param.BSIShowTooltips === true) {
             this.createToolTipWindows();
         }
