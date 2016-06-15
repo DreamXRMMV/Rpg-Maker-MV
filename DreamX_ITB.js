@@ -1,49 +1,143 @@
 /*:
- * @plugindesc v1.14a Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
- * 
+ * @plugindesc v1.15 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
+ *
  * <DreamX ITB>
  * @author DreamX
  *
+ * @param ---Elemental Extra Actions---
+ * @default
+ * 
  * @param Max Elemental Extra Actions
  * @desc Eval. Max # extra actions battler can get in turn for hitting enemy weakness. 0 - none, -1: infinite. Default: 0
  * @default 0
- * 
+ *
  * @param Max Elemental Extra Actions Per Opponent Per Turn
  * @desc Eval. Max # extra actions battler can get in turn for hitting enemy weakness per opponent. <= 0: infinite. Default: 0
  * @default 0
  *
  * @param Elemental Weakness State
  * @desc Eval. State ID to apply to battler when they're hit in their elemental weakness. 0 - disable. Default: 0
- * @default 0 
+ * @default 0
  *
  * @param Elemental Weakness Animation
  * @desc Animation ID to play on battler when they get an extra action from hitting enemy in weakness. 0: disable. Default: 0
  * @default 0
- * 
+ *
+ * @param ---Turn Order Window---
+ * @default
+ *
  * @param Show Turn Orders
  * @desc Whether to show turn orders. Default: false
  * @default false
  * 
+ * @param Prevent Cutoff
+ * @desc Don't show an icon if it would get cutoff. Default: true
+ * @default true
+ *
+ * @param Turn Sheet Folder
+ * @desc Folder for turn sheet icons. Default: img/faces/
+ * @default img/faces/
+ * 
+ * @param Default Turn Sheet
+ * @desc Default turn sheet name if none is specified.
+ * @default 
+ * 
+ * @param Turn Sheet Columns
+ * @desc Default columns turn icon sheets. Default: 4
+ * @default 4
+ * 
+ * @param Turn Sheet Rows
+ * @desc Default rows for turn icon sheets. Default: 2
+ * @default 2
+ * 
+ * @param Turn Window Orientation
+ * @desc horizontal or vertical. default: horizontal
+ * @default horizontal
+ *
+ * @param Turn Window Width (Horizontal)
+ * @desc Width when turn window is orientated horizontally. Default: Graphics.boxWidth
+ * @default Graphics.boxWidth
+ * 
+ * @param Turn Window Width (Vertical)
+ * @desc Width when turn window is orientated vertically. Default: (this.standardPadding() * 2) + 144 
+ * @default (this.standardPadding() * 2) + parameterTurnIconWidth
+ *
+ * @param Turn Window Height (Horizontal)
+ * @desc Height when turn window is orientated horizontally. Default: (this.standardPadding() * 2) + 144
+ * @default (this.standardPadding() * 2) + parameterTurnIconHeight
+ * 
+ * @param Turn Window Height (Vertical)
+ * @desc Height vertically. Default: Graphics.boxHeight - Window_PartyCommand.prototype.windowHeight()
+ * @default Graphics.boxHeight - Window_PartyCommand.prototype.windowHeight()
+ *
+ * @param Turn Window X (Horizontal)
+ * @desc X when horizontal. Default: 0
+ * @default 0
+ * 
+ * @param Turn Window X (Vertical)
+ * @desc X when vertical. Default: Graphics.boxWidth - this.windowWidth()
+ * @default Graphics.boxWidth - this.windowWidth()
+ * 
+ * @param Turn Window Y (Horizontal)
+ * @desc Y when horizontal. Default: 0
+ * @default 0
+ * 
+ * @param Turn Window Y (Vertical)
+ * @desc Y when vertical. Default: 0
+ * @default 0
+ * 
+ * @param Turn Window Opacity
+ * @desc Opacity of the turn order window skin. Default: 255
+ * @default 255
+ * 
+ * @param Icon Spacing
+ * @desc Spacing between icons. Default: 12
+ * Default: 12
+ * @default 12
+ * 
+ * @param Max Icons
+ * @desc Max turn icons to show. 0 - infinite. Default: 0
+ * @default 0
+ * 
+ * @param Show Next Turn
+ * @desc Whether to show order of next turn. Default: false
+ * @default false
+ * 
+ * @param Show End Turn Icon
+ * @desc Whether to show an end turn icon. Default: false
+ * @default false
+ * 
+ * @param End Turn Sheet
+ * @desc Sheet that has end turn icon.
+ * @default 
+ * 
+ * @param End Turn Sheet Index
+ * @desc Index of end turn icon.
+ * @default 0
+ *
+ * @param ---Ready Overlay---
+ * @default
+ *
  * @param Ready Overlay
  * @desc Whether to have a looping overlay on actor when they are ready to act. Default: false
  * @default false
- * 
+ *
  * @param Ready Overlay Name
  * @desc Name of file in img/system that has ready animation. Default: States
  * @default States
- * 
+ *
  * @param Ready Overlay Index
  * @desc Index of ready overlay image to use, starting at 0.
  * @default 0
- * 
+ *
  * @param Ready Overlay Anchor X
  * @desc Anchor x position of ready overlay on sprite. Default: 0.5
  * @default 0.5
- * 
+ *
  * @param Ready Overlay Anchor Y
  * @desc Anchor y position of ready overlay on sprite. Default: 1
  * @default 1
- * 
+ *
  * @param ---Sound---
  * @default
  *
@@ -63,31 +157,60 @@
  * @desc This is the pan of the ready sound. Default: 0
  * @default 0
  *
- * @help 
+ * @help
  * ============================================================================
  * How To Use
  * ============================================================================
  Set the battle type to itb in Yanfly's Battle Engine Core.
- Use <free_itb_action:1> as a skill notetag to prevent
- that skill from consuming an action for the battler - they will be able to act 
- again after the skill is used. 
+ Use <free_itb_action> as a skill notetag to prevent
+ that skill from consuming an action for the battler - they will be able to act
+ again after the skill is used.
  
  Make sure to set the parameters to your liking.
- Put the <noExtraElemenWeaknessAction:1> notetag on a state to disallow opponents
+ Put the <noExtraElemenWeaknessAction> notetag on a state to disallow opponents
  from getting an extra action from hitting the battler in their weakness.
  
- Put <elemWeaknessState:x> with x as the state id as a notetag for an actor or 
- enemy to define which state is applied when they are hit in their weakness. 
- This overrides the parameter setting for that actor or enemy. Use 0 to disable 
+ Put <elemWeaknessState:x> with x as the state id as a notetag for an actor or
+ enemy to define which state is applied when they are hit in their weakness.
+ This overrides the parameter setting for that actor or enemy. Use 0 to disable
  states from being applied from being hit in the weakness.
  
- Use <reAddBattler:1> in a skill/item to readd a battler to the pool of battlers 
- if they had already finished their previous actions. Must be used with a state 
+ Use <reAddBattler> in a skill/item to readd a battler to the pool of battlers
+ if they had already finished their previous actions. Must be used with a state
  that increases action times.
  
- To use a custom ready overlay, use a file in the same folder and same style as 
- States.png in img/system, make sure the parameter is set to the custom file 
+ To use a custom ready overlay, use a file in the same folder and same style as
+ States.png in img/system, make sure the parameter is set to the custom file
  name.
+ * ============================================================================
+ * Turn Order Window
+ * ============================================================================
+ Use <ITBSheet: x y z> with x being the image filename, y being the number of 
+ columns and z being the number of rows, to specify the image sheet for the 
+ turn order window icon for the actor or enemy.
+ 
+ Use <ITBSheetIndex: 1> to specify the index used for that image.
+ 
+ Example:
+ <ITBSheet: TurnIcons 10 10>
+ <ITBSheetIndex: 1>
+ 
+ This will use the sheet TurnIcons 10 10 with 10 rows and 10 columns.
+ The index will be 1.
+ If you do not specify the rows and columns in the filename, the default 
+ parameters will be used instead.
+ 
+ You will name the end turn sheet used in the parameter "End Turn Sheet" 
+ the same way.
+ 
+ The plugin will trim the spaces in the beginning and end of the 
+ notetag/parameter so do not use leading and trailing spaces in your filename.
+ 
+ For example, use (without quotes)
+ "turnIcons.png"
+ 
+ instead of
+ "     turnIcons     .png"
  * ============================================================================
  * Patch Notes/Known Issues/Future Updates
  * ============================================================================
@@ -137,8 +260,62 @@ DreamX.ITB = DreamX.ITB || {};
             String(parameters['Elemental Weakness State'] || '0');
     var paramElementWeaknessAnimation =
             parseInt(parameters['Elemental Weakness Animation'] || 0);
-    var paramaterShowTurnOrder =
+
+    var parameterShowTurnOrder =
             eval(parameters['Show Turn Orders'] || false);
+    var parameterPreventCutoff =
+            eval(parameters['Prevent Cutoff'] || true);
+
+    var parameterTurnOpacity =
+            parseInt(parameters['Turn Window Opacity'] || 255);
+    var parameterTurnIconWidth =
+            parseInt(parameters['Icon Width'] || 144);
+    var parameterTurnIconHeight =
+            parseInt(parameters['Icon Height'] || 144);
+    var parameterMaxIcons =
+            parseInt(parameters['Max Icons'] || 0);
+
+    var parameterIconSheetCols =
+            parseInt(parameters['Turn Sheet Columns'] || 4);
+    var parameterIconSheetRows =
+            parseInt(parameters['Turn Sheet Rows'] || 2);
+    
+    var parameterTurnWindowXHorizontal =
+            String(parameters['Turn Window X (Horizontal)'] || 0);
+    var parameterTurnWindowXVertical =
+            String(parameters['Turn Window X (Vertical)'] || 0);
+    var parameterTurnWindowYHorizontal =
+            String(parameters['Turn Window Y (Horizontal)'] || 0);
+    var parameterTurnWindowYVertical =
+            String(parameters['Turn Window Y (Vertical)'] || 0);
+    
+    var parameterTurnIconSpacing =
+            parseInt(parameters['Icon Spacing']);
+    var parameterTurnIconOrientation =
+            String(parameters['Turn Window Orientation'] || 'horizontal');
+    var parameterTurnFolder =
+            String(parameters['Turn Sheet Folder'] || 'img/faces/');
+    var parameterTurnWindowWidthHorizontal =
+            String(parameters['Turn Window Width (Horizontal)'] || 'Graphics.boxWidth');
+    var parameterTurnWindowHeightHorizontal =
+            String(parameters['Turn Window Height (Horizontal)'] || '(this.standardPadding() * 2) + 144');
+
+    var parameterTurnDefaultSheet =
+            String(parameters['Default Turn Sheet']);
+    var parameterShowEndTurn =
+            eval(parameters['Show End Turn Icon'] || false);
+    var parameterShowNextTurn =
+            eval(parameters['Show Next Turn'] || false);
+
+    var parameterTurnWindowWidthVertical =
+            String(parameters['Turn Window Width (Vertical)']
+                    || '(this.standardPadding() * 2) + 144');
+    var parameterTurnWindowHeightVertical =
+            String(parameters['Turn Window Height (Vertical)'] || 'Graphics.boxHeight - Window_PartyCommand.prototype.windowHeight()');
+    var parameterTurnWindowEndSheet = String(parameters['End Turn Sheet']);
+    var parameterTurnWindowEndIndex =
+            parseInt(parameters['End Turn Sheet Index'] || 0);
+
     var parameterReadySound =
             String(parameters['Ready Sound'] || '-1');
     var parameterReadyVolume =
@@ -534,45 +711,6 @@ DreamX.ITB = DreamX.ITB || {};
         }
     };
 
-    BattleManager.makeITBOrders = function () {
-        var battlers = [];
-        if (!this._surprise) {
-            battlers = battlers.concat($gameParty.members());
-        }
-        if (!this._preemptive) {
-            battlers = battlers.concat($gameTroop.members());
-        }
-        this._ITBBattlers = battlers;
-        this.sortITBOrders();
-    };
-
-    BattleManager.sortITBOrders = function () {
-        this._ITBBattlers.sort(function (a, b) {
-            // if does not have same agi
-            if (b.agi !== a.agi) {
-                return b.agi - a.agi;
-            } else {
-                // if has same agi
-                // if both actors then return one with higher id
-                if (a.isActor() && b.isActor()) {
-                    return b.actorId() - a.actorId();
-                }
-                // give enemy priority
-                else if (b.isActor() && a.isEnemy()) {
-                    return -1;
-                }
-                // give enemy priority
-                else if (b.isEnemy() && a.isActor()) {
-                    return 1;
-                }
-                // if both enemies then return one with higher id
-                else if (b.isEnemy() && a.isEnemy()) {
-                    return b.enemyId() - a.enemyId();
-                }
-            }
-        });
-    };
-
     BattleManager.endITBAction = function () {
         if (Imported.YEP_BattleEngineCore) {
             if (this._processingForcedAction)
@@ -598,6 +736,293 @@ DreamX.ITB = DreamX.ITB || {};
             this._ITBBattlers.push(battler);
             this.sortITBOrders();
         }
+    };
+
+    BattleManager.ITBAllBattlers = function (disregardSurprise) {
+        var battlers = [];
+        if (!this._surprise || disregardSurprise) {
+            battlers = battlers.concat($gameParty.members());
+        }
+        if (!this._preemptive || disregardSurprise) {
+            battlers = battlers.concat($gameTroop.members());
+        }
+        return battlers;
+    };
+
+    // Creates battler array for this turn
+    BattleManager.makeITBOrders = function () {
+        this._ITBBattlers = this.ITBAllBattlers();
+        this.sortITBOrders();
+    };
+
+    // Sorts the ITB Battlers for this turn
+    BattleManager.sortITBOrders = function () {
+        this.sortITBBattlers(this._ITBBattlers);
+    };
+
+    // Sorts the battlers passed to it according to
+    // ITB specifications
+    BattleManager.sortITBBattlers = function (battlers) {
+        battlers.sort(function (a, b) {
+            // if does not have same agi
+            if (b.agi !== a.agi) {
+                return b.agi - a.agi;
+            } else {
+                // if has same agi
+                // if both actors then return one with higher id
+                if (a.isActor() && b.isActor()) {
+                    return b.actorId() - a.actorId();
+                }
+                // give enemy priority
+                else if (b.isActor() && a.isEnemy()) {
+                    return -1;
+                }
+                // give enemy priority
+                else if (b.isEnemy() && a.isActor()) {
+                    return 1;
+                }
+                // if both enemies then return one with higher id
+                else if (b.isEnemy() && a.isEnemy()) {
+                    return b.enemyId() - a.enemyId();
+                }
+            }
+        });
+    };
+
+    BattleManager.ITBBattlersThisTurn = function () {
+        return this._ITBBattlers;
+    };
+
+    BattleManager.ITBBattlers = function () {
+        var battlers = this.ITBAllBattlers();
+        this.sortITBBattlers(battlers);
+        return battlers;
+    };
+
+    //==========================================================================
+    // Turn Icon Stuff
+    //==========================================================================
+    Scene_Battle.prototype.pictureContainerSpritesetIndex = function () {
+        var s = this._spriteset;
+        return s.children.indexOf(s._pictureContainer);
+    };
+
+    DreamX.ITB.Scene_Battle_createSpriteset = Scene_Battle.prototype.createSpriteset;
+    Scene_Battle.prototype.createSpriteset = function () {
+        DreamX.ITB.Scene_Battle_createSpriteset.call(this);
+        if (parameterShowTurnOrder) {
+            this.createTurnOrderWindowITB();
+        }
+
+    };
+
+    Scene_Battle.prototype.createTurnOrderWindowITB = function () {
+        this._ITBTurnWindow = new Window_ITBTurnOrder();
+        this._spriteset.addChild(this._ITBTurnWindow);
+    };
+
+    //==========================================================================
+    // Window_ITBTurnOrder
+    //==========================================================================
+
+    function Window_ITBTurnOrder() {
+        this.initialize.apply(this, arguments);
+    }
+
+    Window_ITBTurnOrder.prototype = Object.create(Window_Selectable.prototype);
+    Window_ITBTurnOrder.prototype.constructor = Window_ITBTurnOrder;
+
+    Window_ITBTurnOrder.prototype.initialize = function () {
+
+        Window_Selectable.prototype.initialize.call(this, this.windowX(), 
+        this.windowY(), this.windowWidth(), this.windowHeight());
+
+        this.makeTurnOrders();
+        this.opacity = parameterTurnOpacity;
+    };
+
+    Window_ITBTurnOrder.prototype.windowX = function () {
+        return this.isHorizontal() ? this.windowXHorizontal()
+                : this.windowXVertical();
+    };
+    Window_ITBTurnOrder.prototype.windowY = function () {
+        return this.isHorizontal() ? this.windowYHorizontal()
+                : this.windowYVertical();
+    };
+    
+    Window_ITBTurnOrder.prototype.windowXHorizontal = function () {
+        return parseInt(eval(parameterTurnWindowXHorizontal));
+    };
+    Window_ITBTurnOrder.prototype.windowXVertical= function () {
+        return parseInt(eval(parameterTurnWindowXVertical));
+    };
+    
+    Window_ITBTurnOrder.prototype.windowYHorizontal = function () {
+        return parseInt(eval(parameterTurnWindowYHorizontal));
+    };
+    Window_ITBTurnOrder.prototype.windowYVertical= function () {
+        return parseInt(eval(parameterTurnWindowYVertical));
+    };
+    
+    Window_ITBTurnOrder.prototype.windowWidth = function () {
+        return this.isHorizontal() ? this.windowWidthHorizontal()
+                : this.windowWidthVertical();
+    };
+
+    Window_ITBTurnOrder.prototype.windowHeight = function () {
+        return this.isHorizontal() ? this.windowHeightHorizontal()
+                : this.windowHeightVertical();
+    };
+
+    Window_ITBTurnOrder.prototype.windowWidthHorizontal = function () {
+        return eval(parameterTurnWindowWidthHorizontal);
+    };
+    Window_ITBTurnOrder.prototype.windowWidthVertical = function () {
+        return eval(parameterTurnWindowWidthVertical);
+    };
+
+    Window_ITBTurnOrder.prototype.windowHeightHorizontal = function () {
+        return eval(parameterTurnWindowHeightHorizontal);
+    };
+    Window_ITBTurnOrder.prototype.windowHeightVertical = function () {
+        return eval(parameterTurnWindowHeightVertical);
+    };
+
+    Window_ITBTurnOrder.prototype.update = function () {
+        Window_Base.prototype.update.call(this);
+        this.refresh();
+    };
+
+    Window_ITBTurnOrder.prototype.makeTurnOrders = function () {
+        var turnBattlers = BattleManager.ITBBattlersThisTurn();
+        var allBattlers = BattleManager.ITBBattlers();
+        var data = [];
+
+        for (var i = 0; i < turnBattlers.length; i++) {
+            var battler = turnBattlers[i];
+            this.handleBattler(battler, data, true);
+        }
+        if (parameterShowEndTurn) {
+            data.push({sheetName: parameterTurnWindowEndSheet,
+                sheetIndex: parameterTurnWindowEndIndex,
+            });
+        }
+        if (parameterShowNextTurn) {
+            for (var i = 0; i < allBattlers.length; i++) {
+                var battler = allBattlers[i];
+                this.handleBattler(battler, data);
+            }
+        }
+
+        this._data = data;
+    };
+
+    Window_ITBTurnOrder.prototype.handleBattler = function (battler, array,
+            currentTurn) {
+        var sheetName = "";
+        var sheetIndex = -1;
+        var obj = {};
+        var dataBattler = battler.isActor() ? battler.actor()
+                : battler.enemy();
+        var actions = 1;
+
+        if (dataBattler.meta.ITBSheetIndex) {
+            sheetName = dataBattler.meta.ITBSheet ? dataBattler.meta.ITBSheet
+                    : parameterTurnDefaultSheet;
+            sheetName = sheetName.trim();
+            sheetIndex = parseInt(dataBattler.meta.ITBSheetIndex.trim());
+
+            obj = {
+                sheetName: sheetName,
+                sheetIndex: sheetIndex,
+            };
+
+            //actions = currentTurn ? battler.numITBActions() : 1;
+            actions = 1;
+            for (var i = 0; i < actions; i++) {
+                array.push(obj);
+            }
+        }
+    };
+
+    Window_ITBTurnOrder.prototype.iconWidth = function () {
+        return parameterTurnIconWidth;
+    };
+    Window_ITBTurnOrder.prototype.iconHeight = function (battler) {
+        return parameterTurnIconHeight;
+    };
+
+    Window_ITBTurnOrder.prototype.refresh = function () {
+        this.makeTurnOrders();
+        this.contents.clear();
+        this.drawTurnIcons();
+    };
+
+    Window_ITBTurnOrder.prototype.drawTurnIcon = function (battler, x, y) {
+        var columns = parameterIconSheetCols;
+        var rows = parameterIconSheetRows;
+        var sheetName = battler.sheetName;
+        var index = battler.sheetIndex;
+        var bitmap = ImageManager.loadBitmap(parameterTurnFolder, sheetName);
+        var width;
+        var height;
+        var newCoor;
+        var windowWidthHeight = this.isHorizontal() ? this.windowWidth()
+                : this.windowHeight();
+
+
+        if (sheetName.split(" ").length === 3) {
+            columns = sheetName.split(" ")[1];
+            rows = sheetName.split(" ")[2];
+        }
+
+        width = bitmap.width / columns;
+        height = bitmap.height / rows;
+
+        if (this.isHorizontal()) {
+            newCoor = x + width + parameterTurnIconSpacing;
+        } else {
+            newCoor = y + height + parameterTurnIconSpacing;
+
+        }
+
+        if (parameterPreventCutoff && newCoor > windowWidthHeight - this.standardPadding()) {
+            return -1;
+        }
+
+        var sx = (index % columns) * width;
+        var sy = Math.floor(index / columns) * height;
+
+        this.contents.blt(bitmap, sx, sy, width, height, x, y);
+
+        return newCoor;
+    };
+
+    Window_ITBTurnOrder.prototype.drawTurnIcons = function () {
+        var x = 0;
+        var y = 0;
+        var max = parameterMaxIcons ? parameterMaxIcons : this._data.length;
+
+        for (var i = 0; i < max; i++) {
+            var xY = this.drawTurnIcon(this._data[i], x, y);
+            if (this.isHorizontal()) {
+                x = xY;
+            } else {
+                y = xY;
+            }
+            if (x === -1 || y === -1) {
+                break;
+            }
+        }
+    };
+
+
+    Window_ITBTurnOrder.prototype.isHorizontal = function () {
+        return parameterTurnIconOrientation === 'horizontal';
+    };
+
+    Window_ITBTurnOrder.prototype.maxItems = function () {
+        return BattleManager.ITBBattlers().length * 2;
     };
 
 //=============================================================================
@@ -748,561 +1173,8 @@ DreamX.ITB = DreamX.ITB || {};
         }
     };
 
-//=============================================================================
-// Window_CTBIcon
-//=============================================================================
-    Game_Battler.prototype.itbIcon = function () {
-        return 0;
-    };
-
-    Game_Battler.prototype.itbBorderColor = function () {
-        return 0;
-    };
-
-    Game_Battler.prototype.itbBackgroundColor = function () {
-        return 0;
-    };
-
-    Game_Actor.prototype.itbIcon = function () {
-        // CHANGE ME: Have meta processed instead
-        if (this.actor().itbClassIcon) {
-            if (this.actor().itbClassIcon[this._classId]) {
-                return this.actor().itbClassIcon[this._classId];
-            }
-        }
-        return this.actor().itbIcon;
-    };
-
-    Game_Actor.prototype.itbBorderColor = function () {
-        // CHANGE ME: Have meta processed instead
-        return this.actor().itbBorderColor;
-    };
-
-    Game_Actor.prototype.itbBackgroundColor = function () {
-        // CHANGE ME: Have meta processed instead
-        return this.actor().itbBackgroundColor;
-    };
-
-    Game_Enemy.prototype.itbIcon = function () {
-        // CHANGE ME: Have meta processed instead
-        return this.enemy().itbIcon;
-    };
-
-    Game_Enemy.prototype.ctbBorderColor = function () {
-        // CHANGE ME: Have meta processed instead
-        return this.enemy().itbBorderColor;
-    };
-
-    Game_Enemy.prototype.ctbBackgroundColor = function () {
-        // CHANGE ME: Have meta processed instead
-        return this.enemy().itbBackgroundColor;
-    };
-
-    DreamX.ITB.Sprite_Battler_postSpriteInitialize =
-            Sprite_Battler.prototype.postSpriteInitialize;
-    Sprite_Battler.prototype.postSpriteInitialize = function () {
-        DreamX.ITB.Sprite_Battler_postSpriteInitialize.call(this);
-        if (BattleManager.isITB() && paramaterShowTurnOrder === true)
-            this.createITBIcon();
-    };
-
-    Sprite_Battler.prototype.createITBIcon = function () {
-        // CHANGE ME: Added parameter to decide whether to show turn order
-//        if (!Yanfly.Param.CTBTurnOrder)
-//            return;
-        this._ITBIcon = new Window_ITBIcon(this);
-    };
-
-    DreamX.ITB.Sprite_Battler_update = Sprite_Battler.prototype.update;
-    Sprite_Battler.prototype.update = function () {
-        DreamX.ITB.Sprite_Battler_update.call(this);
-        this.addITBIcon();
-    };
-
-    Sprite_Battler.prototype.addITBIcon = function () {
-        if (!this._ITBIcon)
-            return;
-        if (this._addedITBIcon)
-            return;
-        if (!SceneManager._scene)
-            return;
-        var scene = SceneManager._scene;
-        if (!scene._windowLayer)
-            return;
-        this._addedITBIcon = true;
-        this._ITBIcon.setWindowLayer(scene._windowLayer);
-        scene.addChild(this._ITBIcon);
-    };
-
-    function Window_ITBIcon() {
-        this.initialize.apply(this, arguments);
-    }
-
-    Window_ITBIcon.prototype = Object.create(Window_Base.prototype);
-    Window_ITBIcon.prototype.constructor = Window_ITBIcon;
-
-    Window_ITBIcon.prototype.initialize = function (mainSprite) {
-        this._mainSprite = mainSprite;
-        var width = this.iconWidth() + 8 + this.standardPadding() * 2;
-        var height = this.iconHeight() + 8 + this.standardPadding() * 2;
-        this._redraw = false;
-        // CHANGE ME: Add position and direction parameter
-        this._position = "center";
-        this._direction = "left";
-        // not really sure what this is, but since you need BEC anyway, okay to use?
-        this._lowerWindows = eval(Yanfly.Param.BECLowerWindows);
-        Window_Base.prototype.initialize.call(this, 0, 0, width, height);
-        this.opacity = 0;
-        this.contentsOpacity = 0;
-    };
-
-    Window_ITBIcon.prototype.iconWidth = function () {
-        // CHANGE ME: change to parameter
-        return 32;
-    };
-
-    Window_ITBIcon.prototype.iconHeight = function () {
-        // CHANGE ME: change to parameter
-        return 32;
-    };
-
-    Window_ITBIcon.prototype.setWindowLayer = function (windowLayer) {
-        this._windowLayer = windowLayer;
-    };
-
-    Window_ITBIcon.prototype.update = function () {
-        Window_Base.prototype.update.call(this);
-        this.updateBattler();
-        this.updateIconIndex();
-        this.updateRedraw();
-        this.updateDestinationX();
-        this.updateOpacity();
-        this.updatePositionX();
-        this.updatePositionY();
-    };
-
-    Window_ITBIcon.prototype.updateBattler = function () {
-        var changed = this._battler !== this._mainSprite._battler;
-
-        // CHANGE ME: Added transformation to ITB?
-//        if (this._battler && this._battler._ctbTransformed)
-//            changed = true;
-        if (!changed)
-            return;
-        this._battler = this._mainSprite._battler;
-
-        // if battler sprite doesn't exit, remove icon
-        if (!this._battler)
-            return this.removeITBIcon();
 
 
-        this._battler._itbTransformed = undefined;
-
-// CHANGE ME: Get index from function instead of constant
-//        this._iconIndex = this._battler.itbIcon();
-        this._iconIndex = 0;
-
-        if (this._iconIndex > 0) {
-            this._image = ImageManager.loadSystem('IconSet');
-        } else if (this._battler.isEnemy()) {
-            if (this.isUsingSVBattler()) {
-                var name = this._battler.svBattlerName();
-                this._image = ImageManager.loadSvActor(name);
-            } else {
-                var battlerName = this._battler.battlerName();
-                var battlerHue = this._battler.battlerHue();
-                if ($gameSystem.isSideView()) {
-                    this._image = ImageManager.loadSvEnemy(battlerName, battlerHue);
-                } else {
-                    this._image = ImageManager.loadEnemy(battlerName, battlerHue);
-                }
-            }
-        } else if (this._battler.isActor()) {
-            var faceName = this._battler.faceName();
-            this._image = ImageManager.loadFace(faceName);
-        }
-        this._redraw = true;
-    };
-
-    Window_ITBIcon.prototype.removeITBIcon = function () {
-        this.contents.clear();
-        this.opacity = 0;
-        this.contentsOpacity = 0;
-    };
-
-    Window_ITBIcon.prototype.isUsingSVBattler = function () {
-        if (!Imported.YEP_X_AnimatedSVEnemies)
-            return false;
-        if (!this._battler.hasSVBattler())
-            return false;
-        // CHANGE ME: Use Parameter
-        return false;
-    };
-
-    Window_ITBIcon.prototype.updateIconIndex = function () {
-        if (!this._battler)
-            return;
-        var changed = this._iconIndex !== this._battler.itbIcon();
-        if (changed) {
-            this._iconIndex = this._battler.itbIcon();
-            this._redraw = true;
-        }
-    };
-
-    Window_ITBIcon.prototype.updateRedraw = function () {
-        if (!this._redraw)
-            return;
-        if (!this._image)
-            return;
-        if (this._image.width <= 0)
-            return;
-        this._redraw = false;
-        this.contents.clear();
-        this.drawBorder();
-        if (this._iconIndex > 0) {
-            this.drawIcon(this._iconIndex, 4, 4);
-        } else if (this._battler.isActor()) {
-            this.redrawActorFace();
-        } else if (this._battler.isEnemy()) {
-            this.redrawEnemy();
-        }
-        this.redrawLetter();
-    };
-
-    Window_ITBIcon.prototype.drawBorder = function () {
-        var width = this.contents.width;
-        var height = this.contents.height;
-        this.contents.fillRect(0, 0, width, height, this.gaugeBackColor());
-        width -= 2;
-        height -= 2;
-        this.contents.fillRect(1, 1, width, height, this.ctbBorderColor());
-        width -= 4;
-        height -= 4;
-        this.contents.fillRect(3, 3, width, height, this.gaugeBackColor());
-        width -= 2;
-        height -= 2;
-        this.contents.fillRect(4, 4, width, height, this.ctbBackgroundColor());
-    };
-
-    Window_ITBIcon.prototype.ctbBorderColor = function () {
-        return this.textColor(0);
-        // CHANGE ME
-//        var colorId = this._battler.itbBorderColor() || 0;
-//        return this.textColor(colorId);
-    };
-
-    Window_ITBIcon.prototype.ctbBackgroundColor = function () {
-        return this.textColor(0);
-        // CHANGE ME
-//        var colorId = this._battler.ctbBackgroundColor() || 0;
-//        return this.textColor(colorId);
-    };
-
-    Window_ITBIcon.prototype.drawIcon = function (iconIndex, x, y) {
-        var bitmap = ImageManager.loadSystem('IconSet');
-        var pw = Window_Base._iconWidth;
-        var ph = Window_Base._iconHeight;
-        var sx = iconIndex % 16 * pw;
-        var sy = Math.floor(iconIndex / 16) * ph;
-        var ww = this.iconWidth();
-        var wh = this.iconHeight();
-        this.contents.blt(bitmap, sx, sy, pw, ph, x, y, ww, wh);
-    };
-
-    Window_ITBIcon.prototype.redrawActorFace = function () {
-        var width = Window_Base._faceWidth;
-        var height = Window_Base._faceHeight;
-        var faceIndex = this._battler.faceIndex();
-        var bitmap = this._image;
-        var pw = Window_Base._faceWidth;
-        var ph = Window_Base._faceHeight;
-        var sw = Math.min(width, pw);
-        var sh = Math.min(height, ph);
-        var dx = Math.floor(Math.max(width - pw, 0) / 2);
-        var dy = Math.floor(Math.max(height - ph, 0) / 2);
-        var sx = faceIndex % 4 * pw + (pw - sw) / 2;
-        var sy = Math.floor(faceIndex / 4) * ph + (ph - sh) / 2;
-        var dw = this.contents.width - 8;
-        var dh = this.contents.height - 8;
-        this.contents.blt(bitmap, sx, sy, sw, sh, dx + 4, dy + 4, dw, dh);
-    };
-
-    Window_ITBIcon.prototype.redrawEnemy = function () {
-        if (this.isUsingSVBattler()) {
-            return this.redrawSVEnemy();
-        }
-        ;
-        var bitmap = this._image;
-        var sw = bitmap.width;
-        var sh = bitmap.height;
-        var dw = this.contents.width - 8;
-        var dh = this.contents.height - 8;
-        var dx = 0;
-        var dy = 0;
-        if (sw >= sh) {
-            var rate = sh / sw;
-            dh *= rate;
-            dy += this.contents.height - 8 - dh;
-        } else {
-            var rate = sw / sh;
-            dw *= rate;
-            dx += Math.floor((this.contents.width - 8 - dw) / 2);
-        }
-        this.contents.blt(bitmap, 0, 0, sw, sh, dx + 4, dy + 4, dw, dh);
-    };
-
-    Window_ITBIcon.prototype.redrawSVEnemy = function () {
-        var bitmap = this._image;
-        var sw = bitmap.width / 9;
-        var sh = bitmap.height / 6;
-        var dw = this.contents.width - 8;
-        var dh = this.contents.height - 8;
-        var dx = 0;
-        var dy = 0;
-        if (sw >= sh) {
-            var rate = sh / sw;
-            dh *= rate;
-            dy += this.contents.height - 8 - dh;
-        } else {
-            var rate = sw / sh;
-            dw *= rate;
-            dx += Math.floor((this.contents.width - 8 - dw) / 2);
-        }
-        this.contents.blt(bitmap, 0, 0, sw, sh, dx + 4, dy + 4, dw, dh);
-    };
-
-    Window_ITBIcon.prototype.redrawLetter = function () {
-        if (!this._battler.isEnemy())
-            return;
-        if (!this._battler._plural)
-            return;
-        var letter = this._battler._letter;
-        var dy = this.contents.height - this.lineHeight();
-        this.drawText(letter, 0, dy, this.contents.width - 4, 'right');
-    };
-
-    Window_ITBIcon.prototype.destinationXConstant = function () {
-        return this.contents.width + 2;
-    };
-
-    Window_ITBIcon.prototype.updateDestinationX = function () {
-        if (!this._battler)
-            return;
-        if (this._battler.isDead())
-            return;
-        if (this._position === 'left')
-            this.updateDestinationLeftAlign();
-        if (this._position === 'center')
-            this.updateDestinationCenterAlign();
-        if (this._position === 'right')
-            this.updateDestinationRightAlign();
-        if (this._direction === 'left')
-            this.updateDestinationGoingLeft();
-        if (this._direction === 'right')
-            this.updateDestinationGoingRight();
-    };
-
-    Window_ITBIcon.prototype.updateDestinationLeftAlign = function () {
-        this._destinationX = 0;
-    };
-
-    Window_ITBIcon.prototype.updateDestinationCenterAlign = function () {
-        this._destinationX = 0;
-        var width = this.standardPadding() * 2;
-        var size = BattleManager.itbTurnOrder().length;
-        var constant = this.destinationXConstant();
-        width += constant * size;
-        width += constant / 2 - 2;
-        this._destinationX = Math.floor((Graphics.boxWidth - width) / 2);
-    };
-
-    Window_ITBIcon.prototype.updateDestinationRightAlign = function () {
-        this._destinationX = Graphics.boxWidth;
-        this._destinationX -= this.standardPadding() * 2;
-        var size = BattleManager.itbTurnOrder().length;
-        var constant = this.destinationXConstant();
-        this._destinationX -= constant * size;
-        this._destinationX -= constant / 2;
-        this._destinationX += 2;
-    };
-
-    BattleManager.itbTurnOrder = function () {
-        var ITBbattlers = BattleManager._ITBBattlers;
-        ITBbattlers.sort(function (a, b) {
-            // if does not have same agi
-            if (b.agi !== a.agi) {
-                return b.agi - a.agi;
-            } else {
-                // if has same agi
-                // if both actors then return one with higher id
-                if (a.isActor() && b.isActor()) {
-                    return b.actorId() - a.actorId();
-                }
-                // give enemy priority
-                else if (b.isActor() && a.isEnemy()) {
-                    return -1;
-                }
-                // give enemy priority
-                else if (b.isEnemy() && a.isActor()) {
-                    return 1;
-                }
-                // if both enemies then return one with higher id
-                else if (b.isEnemy() && a.isEnemy()) {
-                    return b.enemyId() - a.enemyId();
-                }
-            }
-        });
-        var battlers = BattleManager.allBattleMembers();
-        battlers.sort(function (a, b) {
-            // if does not have same agi
-            if (b.agi !== a.agi) {
-                return b.agi - a.agi;
-            } else {
-                // if has same agi
-                // if both actors then return one with higher id
-                if (a.isActor() && b.isActor()) {
-                    return b.actorId() - a.actorId();
-                }
-                // give enemy priority
-                else if (b.isActor() && a.isEnemy()) {
-                    return -1;
-                }
-                // give enemy priority
-                else if (b.isEnemy() && a.isActor()) {
-                    return 1;
-                }
-                // if both enemies then return one with higher id
-                else if (b.isEnemy() && a.isEnemy()) {
-                    return b.enemyId() - a.enemyId();
-                }
-            }
-        });
-
-
-        ITBbattlers = ITBbattlers.concat(battlers);
-
-        return ITBbattlers;
-    };
-
-    Window_ITBIcon.prototype.updateDestinationGoingLeft = function (index) {
-        var index = BattleManager.itbTurnOrder().indexOf(this._battler);
-        if (index < 0) {
-            index = BattleManager.itbTurnOrder().length + 5;
-        }
-
-        var constant = this.destinationXConstant();
-        this._destinationX += index * constant;
-        if (index !== 0) {
-            this._destinationX += constant / 2;
-        }
-    };
-
-    Window_ITBIcon.prototype.updateDestinationGoingRight = function (index) {
-        var index = BattleManager.itbTurnOrder().reverse().indexOf(this._battler);
-        if (index < 0)
-            index = -5;
-        var constant = this.destinationXConstant();
-        this._destinationX += index * constant;
-        if (index === BattleManager.itbTurnOrder().length - 1) {
-            this._destinationX += constant / 2;
-        }
-    };
-
-    Window_ITBIcon.prototype.updateOpacity = function () {
-        var rate = this.opacityFadeRate();
-        if (this._foreverHidden)
-            return this.reduceOpacity();
-        if (this.isReduceOpacity())
-            return this.reduceOpacity();
-        if (BattleManager._victoryPhase) {
-            this._foreverHidden = true;
-            return this.reduceOpacity();
-        }
-        if (BattleManager._escaped) {
-            this._foreverHidden = true;
-            return this.reduceOpacity();
-        }
-        if (this._battler) {
-            var index = BattleManager.itbTurnOrder().reverse().indexOf(this._battler);
-            if (index < 0)
-                return this.reduceOpacity();
-        }
-        this.contentsOpacity += rate;
-    };
-
-    Window_ITBIcon.prototype.opacityFadeRate = function () {
-        return 8;
-    };
-
-    Window_ITBIcon.prototype.isReduceOpacity = function () {
-        if (!this._lowerWindows) {
-            if (this.isLargeWindowShowing())
-                return true;
-        }
-        return this._windowLayer && this._windowLayer.x !== 0;
-    };
-
-    Window_ITBIcon.prototype.isLargeWindowShowing = function () {
-        if (SceneManager._scene._itemWindow.visible)
-            return true;
-        if (SceneManager._scene._skillWindow.visible)
-            return true;
-        return false;
-    };
-
-    Window_ITBIcon.prototype.reduceOpacity = function () {
-        this.contentsOpacity -= this.opacityFadeRate();
-    };
-
-    Window_ITBIcon.prototype.updatePositionX = function () {
-        if (this._destinationX === undefined)
-            return;
-        if (BattleManager._escaped)
-            return;
-        var desX = this._destinationX;
-        var moveAmount = Math.max(1, Math.abs(desX - this.x) / 4);
-        if (this.x > desX)
-            this.x = Math.max(this.x - moveAmount, desX);
-        if (this.x < desX)
-            this.x = Math.min(this.x + moveAmount, desX);
-    };
-
-    Window_ITBIcon.prototype.updatePositionY = function () {
-        if (BattleManager._escaped)
-            return;
-        if (this._destinationX !== this.x) {
-            var desX = this._destinationX;
-            var cap1 = this.destinationY() - this.contents.height / 2;
-            var cap2 = this.destinationY() + this.contents.height / 2;
-            var moveAmount = Math.max(1, Math.abs(cap2 - this.y) / 4);
-            if (this.x > desX)
-                this.y = Math.max(this.y - moveAmount, cap1);
-            if (this.x < desX)
-                this.y = Math.min(this.y + moveAmount, cap2);
-        } else if (this.destinationY() !== this.y) {
-            var desY = this.destinationY();
-            var moveAmount = Math.max(1, Math.abs(desY - this.y) / 4);
-            if (this.y > desY)
-                this.y = Math.max(this.y - moveAmount, desY);
-            if (this.y < desY)
-                this.y = Math.min(this.y + moveAmount, desY);
-        }
-    };
-
-    Window_ITBIcon.prototype.destinationY = function () {
-        // CHANGE ME: Use parameter instead of constant
-        var value = 54 - this.standardPadding();
-        var scene = SceneManager._scene;
-        if (scene && scene._helpWindow.visible) {
-            value = Math.max(value, scene._helpWindow.height);
-        }
-        if (!this._battler)
-            return value;
-        if (this._battler.isSelected()) {
-            value -= this.contents.height / 4;
-        }
-        return value;
-    };
 
 //=============================================================================
 // Compatibility
