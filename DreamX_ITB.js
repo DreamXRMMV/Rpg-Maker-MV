@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.15b Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
+ * @plugindesc v1.15c Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
  *
  * <DreamX ITB>
  * @author DreamX
@@ -37,6 +37,26 @@
  * @param Show Dead Battlers
  * @desc Show dead battlers. Default: false
  * @default false
+ * 
+ * @param Show Plural Text
+ * @desc Show plural letters for multiple of the same enemy type. Default: false
+ * @default false
+ * 
+ * @param Hide On Battle Results
+ * @desc Hide turn window on battle end. Default: true
+ * @default true
+ * 
+ * @param Plural Text X
+ * @desc X of plural text. Default: x
+ * @default x
+ * 
+ * @param Plural Text Y
+ * @desc Y of plural text. Default: y
+ * @default y
+ * 
+ * @param Plural Text Size
+ * @desc Font size of plural text. Default: Window_Base.prototype.standardFontSize()
+ * @default Window_Base.prototype.standardFontSize()
  *
  * @param Turn Sheet Folder
  * @desc Folder for turn sheet icons. Default: img/faces/
@@ -93,6 +113,10 @@
  * @param Turn Window Opacity
  * @desc Opacity of the turn order window skin. Default: 255
  * @default 255
+ * 
+ * @param Turn Window Padding
+ * @desc Opacity of the turn order window skin. Default: Window_Base.prototype.standardPadding()
+ * @default Window_Base.prototype.standardPadding()
  * 
  * @param Icon Spacing
  * @desc Spacing between icons. Default: 12
@@ -193,14 +217,15 @@
  columns and z being the number of rows, to specify the image sheet for the 
  turn order window icon for the actor or enemy.
  
- Use <ITBSheetIndex: 1> to specify the index used for that image.
+ Use <ITBSheetIndex: x> to specify the index used for that image with x as 
+ the index.
  
  Example:
  <ITBSheet: TurnIcons 10 10>
  <ITBSheetIndex: 1>
  
  This will use the sheet TurnIcons 10 10 with 10 rows and 10 columns.
- The index will be 1.
+ The index will be 1. Indices start at 0.
  If you do not specify the rows and columns in the filename, the default 
  parameters will be used instead.
  
@@ -271,6 +296,8 @@ DreamX.ITB = DreamX.ITB || {};
             eval(parameters['Show Turn Orders'] || false);
     var parameterPreventCutoff =
             eval(parameters['Prevent Cutoff'] || true);
+    var parameterHideOnBattleResults =
+            eval(parameters['Hide On Battle Results'] || true);
 
     var parameterTurnOpacity =
             parseInt(parameters['Turn Window Opacity'] || 255);
@@ -286,6 +313,10 @@ DreamX.ITB = DreamX.ITB || {};
     var parameterIconSheetRows =
             parseInt(parameters['Turn Sheet Rows'] || 2);
 
+    var parameterPluralSize =
+            String(parameters['Plural Text Size'] || 'Window_Base.prototype.standardFontSize()')
+    var paramPadding =
+            String(parameters['Turn Window Padding'] || 'Window_Base.prototype.standardPadding()');
     var parameterTurnWindowXHorizontal =
             String(parameters['Turn Window X (Horizontal)'] || 0);
     var parameterTurnWindowXVertical =
@@ -294,6 +325,13 @@ DreamX.ITB = DreamX.ITB || {};
             String(parameters['Turn Window Y (Horizontal)'] || 0);
     var parameterTurnWindowYVertical =
             String(parameters['Turn Window Y (Vertical)'] || 0);
+
+    var paramShowPlural =
+            eval(parameters['Show Plural Text'] || false);
+    var parameterPluralX =
+            String(parameters['Plural Text X'] || 'x');
+    var parameterPluralY =
+            String(parameters['Plural Text Y'] || 'y');
 
     var parameterTurnIconSpacing =
             parseInt(parameters['Icon Spacing']);
@@ -620,6 +658,19 @@ DreamX.ITB = DreamX.ITB || {};
             return true;
         return DreamX.ITB.BattleManager_isTurnBased.call(this);
     };
+
+//    DreamX.ITB.BattleManager.processVictory = BattleManager.processVictory;
+//    BattleManager.processVictory = function () {
+//        $gameParty.removeBattleStates();
+//        $gameParty.performVictory();
+//        this.playVictoryMe();
+//        this.replayBgmAndBgs();
+//        this.makeRewards();
+//        this.displayVictoryMessage();
+//        this.displayRewards();
+//        this.gainRewards();
+//        this.endBattle(0);
+//    };
     //==========================================================================
     // Original Functions
     //==========================================================================
@@ -897,6 +948,12 @@ DreamX.ITB = DreamX.ITB || {};
     Window_ITBTurnOrder.prototype.update = function () {
         Window_Base.prototype.update.call(this);
         this.refresh();
+
+        var battleEnded = Imported.YEP_VictoryAftermath
+                ? BattleManager.isVictoryPhase() : BattleManager.isBattleEnd();
+        if (parameterHideOnBattleResults && battleEnded) {
+            this.parent.removeChild(this);
+        }
     };
 
     Window_ITBTurnOrder.prototype.makeTurnOrders = function () {
@@ -934,6 +991,7 @@ DreamX.ITB = DreamX.ITB || {};
         var dataBattler = battler.isActor() ? battler.actor()
                 : battler.enemy();
         var actions = 1;
+        var letter = "";
 
         if (dataBattler.meta.ITBSheetIndex) {
             sheetName = dataBattler.meta.ITBSheet ? dataBattler.meta.ITBSheet
@@ -941,9 +999,15 @@ DreamX.ITB = DreamX.ITB || {};
             sheetName = sheetName.trim();
             sheetIndex = parseInt(dataBattler.meta.ITBSheetIndex.trim());
 
+            // check if more than one enemy of same type
+            if (battler._plural) {
+                letter = battler._letter;
+            }
+
             obj = {
                 sheetName: sheetName,
                 sheetIndex: sheetIndex,
+                letter: letter
             };
 
             //actions = currentTurn ? battler.numITBActions() : 1;
@@ -981,6 +1045,8 @@ DreamX.ITB = DreamX.ITB || {};
         var newCoor;
         var windowWidthHeight = this.isHorizontal() ? this.windowWidth()
                 : this.windowHeight();
+        var letterX = eval(parameterPluralX);
+        var letterY = eval(parameterPluralY);
 
 
         if (sheetName.split(" ").length === 3) {
@@ -1006,6 +1072,12 @@ DreamX.ITB = DreamX.ITB || {};
         var sy = Math.floor(index / columns) * height;
 
         this.contents.blt(bitmap, sx, sy, width, height, x, y);
+
+        if (paramShowPlural && battler.letter) {
+            console.log(eval(parameterPluralSize));
+            this.contents.fontSize = eval(parameterPluralSize);
+            this.drawText(battler.letter, letterX, letterY);
+        }
 
         return newCoor;
     };
@@ -1033,8 +1105,8 @@ DreamX.ITB = DreamX.ITB || {};
         return parameterTurnIconOrientation === 'horizontal';
     };
 
-    Window_ITBTurnOrder.prototype.maxItems = function () {
-        return BattleManager.ITBBattlers().length * 2;
+    Window_ITBTurnOrder.prototype.standardPadding = function () {
+        return eval(paramPadding);
     };
 
 //=============================================================================
