@@ -34,6 +34,10 @@
  * @desc Don't show an icon if it would get cutoff. Default: true
  * @default true
  * 
+ * @param Hide On Battle Results
+ * @desc Hide turn window on battle end. Default: true
+ * @default true
+ * 
  * @param Show Dead Battlers
  * @desc Show dead battlers. Default: false
  * @default false
@@ -41,10 +45,6 @@
  * @param Show Plural Text
  * @desc Show plural letters for multiple of the same enemy type. Default: false
  * @default false
- * 
- * @param Hide On Battle Results
- * @desc Hide turn window on battle end. Default: true
- * @default true
  * 
  * @param Plural Text X
  * @desc X of plural text. Default: x
@@ -1074,7 +1074,6 @@ DreamX.ITB = DreamX.ITB || {};
         this.contents.blt(bitmap, sx, sy, width, height, x, y);
 
         if (paramShowPlural && battler.letter) {
-            console.log(eval(parameterPluralSize));
             this.contents.fontSize = eval(parameterPluralSize);
             this.drawText(battler.letter, letterX, letterY);
         }
