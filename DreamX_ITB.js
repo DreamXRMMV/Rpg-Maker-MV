@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.15a Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
+ * @plugindesc v1.15b Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
  *
  * <DreamX ITB>
  * @author DreamX
@@ -33,6 +33,10 @@
  * @param Prevent Cutoff
  * @desc Don't show an icon if it would get cutoff. Default: true
  * @default true
+ * 
+ * @param Show Dead Battlers
+ * @desc Show dead battlers. Default: false
+ * @default false
  *
  * @param Turn Sheet Folder
  * @desc Folder for turn sheet icons. Default: img/faces/
@@ -261,6 +265,8 @@ DreamX.ITB = DreamX.ITB || {};
     var paramElementWeaknessAnimation =
             parseInt(parameters['Elemental Weakness Animation'] || 0);
 
+    var paramShowDead =
+            eval(parameters['Show Dead Battlers'] || false);
     var parameterShowTurnOrder =
             eval(parameters['Show Turn Orders'] || false);
     var parameterPreventCutoff =
@@ -919,6 +925,9 @@ DreamX.ITB = DreamX.ITB || {};
 
     Window_ITBTurnOrder.prototype.handleBattler = function (battler, array,
             currentTurn) {
+        if (!paramShowDead && battler.isDead()) {
+            return;
+        }
         var sheetName = "";
         var sheetIndex = -1;
         var obj = {};
