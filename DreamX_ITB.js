@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.15 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
+ * @plugindesc v1.15a Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
  *
  * <DreamX ITB>
  * @author DreamX
@@ -162,9 +162,9 @@
  * How To Use
  * ============================================================================
  Set the battle type to itb in Yanfly's Battle Engine Core.
- Use <free_itb_action> as a skill notetag to prevent
- that skill from consuming an action for the battler - they will be able to act
- again after the skill is used.
+ Use <free_itb_action> as a skill/item notetag to prevent
+ it from consuming an action for the battler - they will be able to act
+ again after it is used.
  
  Make sure to set the parameters to your liking.
  Put the <noExtraElemenWeaknessAction> notetag on a state to disallow opponents
@@ -279,7 +279,7 @@ DreamX.ITB = DreamX.ITB || {};
             parseInt(parameters['Turn Sheet Columns'] || 4);
     var parameterIconSheetRows =
             parseInt(parameters['Turn Sheet Rows'] || 2);
-    
+
     var parameterTurnWindowXHorizontal =
             String(parameters['Turn Window X (Horizontal)'] || 0);
     var parameterTurnWindowXVertical =
@@ -288,7 +288,7 @@ DreamX.ITB = DreamX.ITB || {};
             String(parameters['Turn Window Y (Horizontal)'] || 0);
     var parameterTurnWindowYVertical =
             String(parameters['Turn Window Y (Vertical)'] || 0);
-    
+
     var parameterTurnIconSpacing =
             parseInt(parameters['Icon Spacing']);
     var parameterTurnIconOrientation =
@@ -834,8 +834,8 @@ DreamX.ITB = DreamX.ITB || {};
 
     Window_ITBTurnOrder.prototype.initialize = function () {
 
-        Window_Selectable.prototype.initialize.call(this, this.windowX(), 
-        this.windowY(), this.windowWidth(), this.windowHeight());
+        Window_Selectable.prototype.initialize.call(this, this.windowX(),
+                this.windowY(), this.windowWidth(), this.windowHeight());
 
         this.makeTurnOrders();
         this.opacity = parameterTurnOpacity;
@@ -849,21 +849,21 @@ DreamX.ITB = DreamX.ITB || {};
         return this.isHorizontal() ? this.windowYHorizontal()
                 : this.windowYVertical();
     };
-    
+
     Window_ITBTurnOrder.prototype.windowXHorizontal = function () {
         return parseInt(eval(parameterTurnWindowXHorizontal));
     };
-    Window_ITBTurnOrder.prototype.windowXVertical= function () {
+    Window_ITBTurnOrder.prototype.windowXVertical = function () {
         return parseInt(eval(parameterTurnWindowXVertical));
     };
-    
+
     Window_ITBTurnOrder.prototype.windowYHorizontal = function () {
         return parseInt(eval(parameterTurnWindowYHorizontal));
     };
-    Window_ITBTurnOrder.prototype.windowYVertical= function () {
+    Window_ITBTurnOrder.prototype.windowYVertical = function () {
         return parseInt(eval(parameterTurnWindowYVertical));
     };
-    
+
     Window_ITBTurnOrder.prototype.windowWidth = function () {
         return this.isHorizontal() ? this.windowWidthHorizontal()
                 : this.windowWidthVertical();
@@ -959,6 +959,9 @@ DreamX.ITB = DreamX.ITB || {};
     };
 
     Window_ITBTurnOrder.prototype.drawTurnIcon = function (battler, x, y) {
+        if (!battler) {
+            return;
+        }
         var columns = parameterIconSheetCols;
         var rows = parameterIconSheetRows;
         var sheetName = battler.sheetName;
