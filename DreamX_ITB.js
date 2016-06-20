@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.15c Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
+ * @plugindesc v1.15d Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
  *
  * <DreamX ITB>
  * @author DreamX
@@ -41,6 +41,30 @@
  * @param Show Dead Battlers
  * @desc Show dead battlers. Default: false
  * @default false
+ * 
+ * @param # Action Display Type
+ * @desc 1: Show 1 icon per battler. 2: # icons same as # actions. 3: Display action # text. 4: Show both. Default: 1
+ * @default 1
+ * 
+ * @param Max Action # Icons
+ * @desc If using 2 as action display type, maximum amount of icons per battler. 0 - infinite Default: 0
+ * @default 0
+ * 
+ * @param Action # Text Min
+ * @desc If using 3 as action display type, minimum amount of actions required before showing action # text. Default: 2
+ * @default 2
+ * 
+ * @param Action # Text X
+ * @desc X of action # text. Default: x
+ * @default x
+ * 
+ * @param Action # Text Y
+ * @desc Y of action # text. Default: y
+ * @default y
+ * 
+ * @param Action # Font Size
+ * @desc Size of action # text. Default: Window_Base.prototype.standardFontSize()
+ * @default Window_Base.prototype.standardFontSize()
  * 
  * @param Show Plural Text
  * @desc Show plural letters for multiple of the same enemy type. Default: false
@@ -115,7 +139,7 @@
  * @default 255
  * 
  * @param Turn Window Padding
- * @desc Opacity of the turn order window skin. Default: Window_Base.prototype.standardPadding()
+ * @desc Padding of the window. Default: Window_Base.prototype.standardPadding()
  * @default Window_Base.prototype.standardPadding()
  * 
  * @param Icon Spacing
@@ -308,10 +332,16 @@ DreamX.ITB = DreamX.ITB || {};
     var parameterMaxIcons =
             parseInt(parameters['Max Icons'] || 0);
 
+
     var parameterIconSheetCols =
             parseInt(parameters['Turn Sheet Columns'] || 4);
     var parameterIconSheetRows =
             parseInt(parameters['Turn Sheet Rows'] || 2);
+
+    var parameterActionDisplayType =
+            parseInt(parameters['# Action Display Type'] || 1);
+    var parameterMaxActionIcons =
+            parseInt(parameters['Max Action # Icons'] || 0);
 
     var parameterPluralSize =
             String(parameters['Plural Text Size'] || 'Window_Base.prototype.standardFontSize()')
@@ -326,12 +356,25 @@ DreamX.ITB = DreamX.ITB || {};
     var parameterTurnWindowYVertical =
             String(parameters['Turn Window Y (Vertical)'] || 0);
 
+
+
+    var paramShowActionMin =
+            eval(parameters['Action # Text Min'] || 2);
+    var parameterActionNumSize =
+            String(parameters['Action # Font Size'] || 'Window_Base.prototype.standardFontSize()')
+    var parameterActionNumX =
+            String(parameters['Action # Text X'] || 'x');
+    var parameterActionNumY =
+            String(parameters['Action # Text Y'] || 'y');
+
     var paramShowPlural =
             eval(parameters['Show Plural Text'] || false);
     var parameterPluralX =
             String(parameters['Plural Text X'] || 'x');
     var parameterPluralY =
             String(parameters['Plural Text Y'] || 'y');
+
+
 
     var parameterTurnIconSpacing =
             parseInt(parameters['Icon Spacing']);
@@ -455,17 +498,32 @@ DreamX.ITB = DreamX.ITB || {};
         return this._previousTraitITBActions;
     };
 
-    // Returns extra actions from traits, plus the default one.
+    // Returns extra actions from traits.
     Game_Battler.prototype.traitITBActions = function () {
-        var actions = this.actionPlusSet().reduce(function (r, p) {
-            return Math.random() < p ? r + 1 : r;
-        }, 1);
+        var actions = this.actionPlusSet().length;
+//        for (var i = 0; i < this.actionPlusSet().length; i++) {
+//            var value = this.actionPlusSet()[i];
+//            var diceRoll = Math.random();
+//            if (value >= diceRoll) {
+//                actions++;
+//            }
+//        }
         return actions;
     };
 
     // Returns the current number of ITB actions left for the battler.
     Game_Battler.prototype.numITBActions = function () {
         return this._ITBActions;
+    };
+
+    // Returns the current number of ITB actions left for the battler.
+    // Plus one if inputting.
+    Game_Battler.prototype.numITBActionsForTurnWindow = function () {
+        var num = this.numITBActions();
+        if (this.isInputting()) {
+            num++;
+        }
+        return num;
     };
 
     // Resets the ITB action variables for the battler.
@@ -482,9 +540,7 @@ DreamX.ITB = DreamX.ITB || {};
         // and the previous number of them, add the difference to the battler's
         // itb action number
         var difference = this.traitITBActions() - this.previousTraitITBActions();
-        if (difference >= 1) {
-            this.addTraitITBActions(difference);
-        }
+        this.addTraitITBActions(difference);
     };
 
     Game_Battler.prototype.endTurnAllITB = function () {
@@ -523,6 +579,8 @@ DreamX.ITB = DreamX.ITB || {};
     BattleManager.endTurn = function () {
         DreamX.ITB.battleManager_endTurn.call(this);
         this.makeITBOrders();
+        // give every battler one action.
+        this.initializeITBActions();
     };
 
     DreamX.ITB.BattleManager_update = BattleManager.update;
@@ -557,6 +615,9 @@ DreamX.ITB = DreamX.ITB || {};
     BattleManager.startBattle = function () {
         DreamX.BattleManager_startBattle.call(this);
         this.makeITBOrders();
+
+        // give every battler one action.
+        this.initializeITBActions();
     };
 
     DreamX.ITB.BattleManager_selectNextCommand = BattleManager.selectNextCommand;
@@ -674,15 +735,32 @@ DreamX.ITB = DreamX.ITB || {};
     //==========================================================================
     // Original Functions
     //==========================================================================
+    // gives every battler one action.
+    BattleManager.initializeITBActions = function () {
+        for (var i = 0; i < this._ITBBattlers.length; i++) {
+            var battler = this._ITBBattlers[i];
+            battler.addITBActions(1);
+        }
+    };
+
+    // for every battler, decide ITB trait actions.
+    BattleManager.decideITBTraitActionsAll = function () {
+        for (var i = 0; i < this._ITBBattlers.length; i++) {
+            var battler = this._ITBBattlers[i];
+            battler.decideITBTraitActions();
+        }
+    };
+
     BattleManager.getReadyITBBattler = function () {
         this.sortITBOrders();
+        this.decideITBTraitActionsAll();
+
         // if the pool of ITB Battlers is empty, start the turn
         if (this._ITBBattlers.length <= 0) {
             this.startTurn();
             return;
         }
         firstBattler = this._ITBBattlers[0];
-        firstBattler.decideITBTraitActions();
 
         if (firstBattler.numITBActions() >= 1) {
             firstBattler.addITBActions(-1);
@@ -963,7 +1041,7 @@ DreamX.ITB = DreamX.ITB || {};
 
         for (var i = 0; i < turnBattlers.length; i++) {
             var battler = turnBattlers[i];
-            this.handleBattler(battler, data, true);
+            this.handleBattler(battler, data, false);
         }
         if (parameterShowEndTurn) {
             data.push({sheetName: parameterTurnWindowEndSheet,
@@ -973,7 +1051,7 @@ DreamX.ITB = DreamX.ITB || {};
         if (parameterShowNextTurn) {
             for (var i = 0; i < allBattlers.length; i++) {
                 var battler = allBattlers[i];
-                this.handleBattler(battler, data);
+                this.handleBattler(battler, data, true);
             }
         }
 
@@ -981,7 +1059,7 @@ DreamX.ITB = DreamX.ITB || {};
     };
 
     Window_ITBTurnOrder.prototype.handleBattler = function (battler, array,
-            currentTurn) {
+            nextTurn) {
         if (!paramShowDead && battler.isDead()) {
             return;
         }
@@ -990,8 +1068,9 @@ DreamX.ITB = DreamX.ITB || {};
         var obj = {};
         var dataBattler = battler.isActor() ? battler.actor()
                 : battler.enemy();
-        var actions = 1;
+        var icons = 1;
         var letter = "";
+        var numActions = battler.numITBActionsForTurnWindow();
 
         if (dataBattler.meta.ITBSheetIndex) {
             sheetName = dataBattler.meta.ITBSheet ? dataBattler.meta.ITBSheet
@@ -1004,15 +1083,30 @@ DreamX.ITB = DreamX.ITB || {};
                 letter = battler._letter;
             }
 
+            if (parameterActionDisplayType === 2
+                    || parameterActionDisplayType === 4) {
+                icons = numActions;
+
+                if (parameterMaxActionIcons > 1
+                        && icons > parameterMaxActionIcons) {
+                    icons = parameterActionDisplayType === 4 ? 1
+                            : parameterMaxActionIcons;
+                }
+            }
+
+            if (nextTurn) {
+                icons = 1;
+                numActions = 1;
+            }
+
             obj = {
                 sheetName: sheetName,
                 sheetIndex: sheetIndex,
-                letter: letter
+                letter: letter,
+                actions: numActions
             };
 
-            //actions = currentTurn ? battler.numITBActions() : 1;
-            actions = 1;
-            for (var i = 0; i < actions; i++) {
+            for (var i = 0; i < icons; i++) {
                 array.push(obj);
             }
         }
@@ -1047,6 +1141,8 @@ DreamX.ITB = DreamX.ITB || {};
                 : this.windowHeight();
         var letterX = eval(parameterPluralX);
         var letterY = eval(parameterPluralY);
+        var actionX = eval(parameterActionNumX);
+        var actionY = eval(parameterActionNumY);
 
 
         if (sheetName.split(" ").length === 3) {
@@ -1076,6 +1172,17 @@ DreamX.ITB = DreamX.ITB || {};
         if (paramShowPlural && battler.letter) {
             this.contents.fontSize = eval(parameterPluralSize);
             this.drawText(battler.letter, letterX, letterY);
+        }
+        var actions = battler.actions;
+        if (parameterActionDisplayType === 3
+                || (parameterActionDisplayType === 4
+                        && parameterMaxActionIcons > 1
+                        && actions > parameterMaxActionIcons)) {
+
+            if (paramShowActionMin <= actions) {
+                this.contents.fontSize = eval(parameterActionNumSize);
+                this.drawText(actions, actionX, actionY);
+            }
         }
 
         return newCoor;
