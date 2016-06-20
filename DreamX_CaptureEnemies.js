@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.8 Capture enemies 
+ * @plugindesc v1.8a Capture enemies 
  * 
  * <DreamX Capture Enemies>
  * @author DreamX
@@ -170,6 +170,11 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
                     DreamX.CaptureEnemy.captureEnemy(args[0], level);
                 }
                 break;
+            case 'SearchActorBaseId':
+                if (args[0] && args[1]) {
+                    DreamX.CaptureEnemy.searchBaseId(args[0], args[1]);
+                }
+                break;
         }
     };
 
@@ -246,6 +251,27 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
 //=============================================================================
 // Game_Enemy
 //=============================================================================
+    DreamX.CaptureEnemy.searchBaseId = function (variableId, baseId) {
+        if (!variableId || !baseId) {
+            return;
+        }
+
+        var partyMember = $gameParty.members().filter(function (member) {
+            return member.baseActorId() === baseId;
+        });
+        
+        if (!partyMember[0]) {
+            return;
+        }
+
+        var pMemberId = partyMember[0].actorId();
+
+        if (!pMemberId) {
+            return;
+        }
+        $gameVariables.setValue(variableId, pMemberId);
+    };
+
     DreamX.CaptureEnemy.performCollapse = Game_Enemy.prototype.performCollapse;
     Game_Enemy.prototype.performCollapse = function () {
         DreamX.CaptureEnemy.performCollapse.call(this);
