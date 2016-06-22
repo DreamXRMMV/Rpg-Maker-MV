@@ -2,7 +2,7 @@
  * @plugindesc v.03
  * @author DreamX
  * 
- * @param Show Variable
+ * @param Show Switch
  * @desc If on, show the battle status window. If off, don't.
  * @default 
  * 
@@ -48,7 +48,7 @@ DreamX.Param = DreamX.Param || {};
 
 DreamX.Param.RefreshRate = parseInt(DreamX.Parameters['Refresh Rate']
         || 60);
-DreamX.Param.ShowSwitch = parseInt(DreamX.Parameters['Show Variable']);
+DreamX.Param.ShowSwitch = parseInt(DreamX.Parameters['Show Switch']);
 
 DreamX.Param.X = String(DreamX.Parameters['X']
         || 'Graphics.boxWidth - Window_BattleStatus.prototype.windowWidth()');
