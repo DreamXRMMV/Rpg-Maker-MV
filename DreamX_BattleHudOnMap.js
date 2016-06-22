@@ -1,5 +1,5 @@
 /*:
- * @plugindesc
+ * @plugindesc v.02
  * @author DreamX
  * @help
  * ============================================================================
@@ -27,13 +27,19 @@ DreamX.REPLACEME = DreamX.REPLACEME || {};
     alias_Scene_Map_createAllWindows = Scene_Map.prototype.createAllWindows;
     Scene_Map.prototype.createAllWindows = function () {
         alias_Scene_Map_createAllWindows.call(this);
-        this.createNotificationWindow();
+        this.createBattleStatusWindow();
     };
 
-    Scene_Map.prototype.createNotificationWindow = function () {
+    Scene_Map.prototype.createBattleStatusWindow = function () {
         this._battleStatusWindow = new Window_BattleStatus();
         this.addChild(this._battleStatusWindow);
         this._battleStatusWindow.open();
+    };
+
+    alias_Scene_Map_update = Scene_Map.prototype.update;
+    Scene_Map.prototype.update = function () {
+        alias_Scene_Map_update.call(this);
+        this._battleStatusWindow.refresh();
     };
 
     Window_Message.prototype.battleStatusWindow = function () {
