@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v.03
+ * @plugindesc v.04
  * @author DreamX
  * 
  * @param Show Switch
@@ -67,7 +67,15 @@ DreamX.Param.WindowSkinOpacity = parseInt(DreamX.Parameters['Window Skin Opacity
     };
 
     Scene_Map.prototype.createBattleStatusWindow = function () {
-        this._battleStatusWindow = new Window_BattleStatus();
+        this._battleStatusWindow;
+        
+        if (Imported['VE - Battle Status Window']) {
+            this._battleStatusWindow = new Window_CustomBattleStatus();
+        }
+        else {
+            this._battleStatusWindow = new Window_BattleStatus();
+        }
+
         this._battleStatusWindow.x = eval(DreamX.Param.X);
         this._battleStatusWindow.y = eval(DreamX.Param.Y);
         this._battleStatusWindow.opacity = DreamX.Param.WindowSkinOpacity;
