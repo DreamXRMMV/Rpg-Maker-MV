@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v.02
+ * @plugindesc v.03
  * @author DreamX
  * 
  * @param Show Variable
