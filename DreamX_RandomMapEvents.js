@@ -20,10 +20,13 @@
  * Terms Of Use
  * ============================================================================
  * Free to use and modify for commercial and noncommercial games, with credit.
+ * Credit Yanfly as I used some of the same code/concepts from their 
+ * Item Core plugin.
  * ============================================================================
  * Credits
  * ============================================================================
  * DreamX
+ * Thanks to Yanfly for code/concepts from their Item Core plugin.
  */
 
 var Imported = Imported || {};
