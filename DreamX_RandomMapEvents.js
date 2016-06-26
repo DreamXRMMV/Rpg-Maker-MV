@@ -9,6 +9,10 @@
  * @desc Default fade type for generated map transfers. 0: Black 1: White 2: None Default: 0
  * @default 0
  * 
+ * @param Max Generated Maps
+ * @desc Maximum amount of generated maps stored in the save file. 0: Infinite Default: 2
+ * @default 2
+ * 
  * @author DreamX
  * @help
  * This plugin allows for randomly allocating events on the map
@@ -21,9 +25,9 @@
  * ============================================================================
  * AllocateEvents x y
  *  This command will randomly allocate events and transfer the player to the 
- *  new map. x - Fade Type. Use -1 to use default. y - tileset id of new 
- *  generated map. Use -1 or don't include it to use the same tileset id as 
- *  the base map. 
+ *  new map. 
+ *  x - Optional. Fade Type. Use -1 to use default. 
+ *  y - Optional. Tileset id of new generated map. 
  *  
  *  In order for events to be placed on the new map, they MUST have the 
  *  notetags <RandomRegion: x> or <AllocateSame>. 
@@ -47,13 +51,14 @@
  * is not allocated, the player will spawn on the same tile they were at when 
  * the map began allocating events.
  * 
- * <AllocatePriority: x> will determine the order that event is spawned. Lower 
+ * <AllocatePriority: x> will determine the order that event is allocated. Lower 
  * numbers get allocated first. Events without a priority get allocated last.
  * I recommend using the lowest value for the AllocateStart event.
  * 
  * <AllocateMin: x> will attempt to the spawn the event a minimum of x times. 
- * Use this only if you need to use a number other than 1. Do not use 
- * with <AllocateStart>
+ * Do not use if you want an event to only spawn 1 time, because that is the 
+ * default.
+ * Do not use with <AllocateStart>.
  * 
  * <AllocateMax: x> will attempt to the spawn the event a maximum of x times.
  * Use this only when you are also setting a minimum. Must be greater than the 
@@ -126,6 +131,14 @@
  * Example: 
  * DreamX.RandomMap.RandomNumber("1-4 7 10") will return numbers 1-4, 7 or 10.
  * ============================================================================
+ * Future Updates
+ * ============================================================================
+ * Be able to use events from other maps.
+ * Be able to choose the position on a wall to place an event.
+ * Be able to auto assign a region to any tile id.
+ * Be able to set limits for a region based on event tag. For example, you 
+ * could set a limit where only 2 events with the tag Enemy can be placed in it.
+ * ============================================================================
  * Terms Of Use
  * ============================================================================
  * Free to use and modify for commercial and noncommercial games, with credit.
@@ -149,6 +162,7 @@ DreamX.RandomMap = DreamX.RandomMap || {};
 
     var parameterStartingId = parseInt(parameters['Starting Map ID'] || 100);
     var parameterFadeType = parseInt(parameters['Fade Type'] || 0);
+    var parameterMaxGen = parseInt(parameters['Max Generated Maps'] || 2);
 
     DreamX.RandomMap.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
     DataManager.isDatabaseLoaded = function () {
@@ -527,16 +541,7 @@ DreamX.RandomMap = DreamX.RandomMap || {};
     };
 
     DXMapRandomElements.prototype.setEvents = function () {
-        var events = $dataMap.events.slice(0);
-        this._priorityEvents = [];
-        this._nonPriorityEvents = [];
         var allocateEvents = [];
-
-        for (var i = 0; i < events.length; i++) {
-            // make a deep copy
-            var event = JSON.parse(JSON.stringify(events[i]));
-            this.handleEvent(event);
-        }
 
         this._priorityEvents.sort(function (a, b) {
             return a.priority - b.priority;
@@ -566,6 +571,18 @@ DreamX.RandomMap = DreamX.RandomMap || {};
         DataManager._generatedMapInfos.push(dataMapInfoCopy);
         $dataMapInfos.push(dataMapInfoCopy);
 
+        if (DataManager._generatedMaps.length > parameterMaxGen 
+                && parameterMaxGen >= 1) {
+            // find the first one that isn't null and set it to null
+            for (var i = 0; i < DataManager._generatedMaps.length; i++) {
+                if (DataManager._generatedMaps[i] !== null) {
+                    DataManager._generatedMaps[i] = null;
+                    DataManager._generatedMapInfos[i] = null;
+                    break;
+                }
+            }
+        }
+
         return newId;
     };
 
@@ -574,7 +591,20 @@ DreamX.RandomMap = DreamX.RandomMap || {};
                 this._fadeType);
     };
 
+    DXMapRandomElements.prototype.processEvents = function () {
+        var events = $dataMap.events.slice(0);
+        this._priorityEvents = [];
+        this._nonPriorityEvents = [];
+
+        for (var i = 0; i < events.length; i++) {
+            // make a deep copy
+            var event = JSON.parse(JSON.stringify(events[i]));
+            this.handleEvent(event);
+        }
+    };
+
     DXMapRandomElements.prototype.allocate = function () {
+        this.processEvents();
         this.setRegionTiles();
         this.setEvents();
 
