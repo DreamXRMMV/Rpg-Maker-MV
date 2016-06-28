@@ -5,6 +5,8 @@
  * ============================================================================
  * How To Use
  * ============================================================================
+ * Use these notetags in the notebox for items.
+ * 
  * <UseSE: x> with x as the sound effect name.
  * 
  * <UseSEVol: x> with x as the volume. Optional, it will use the default item 
