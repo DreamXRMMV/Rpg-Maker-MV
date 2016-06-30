@@ -151,9 +151,9 @@
  * ---
  * <OverlayIcon>
  * This will allow the new item derived from this item to have its icon 
- * overlay or by overlayed with another item. It must exist at least two of the 
- * following items when the new item is being made: the base item, prefix item 
- * or suffix item.
+ * overlay or by overlayed with another item. It must exist on at least two of  
+ * the following items when the new item is being made: the base item, prefix  
+ * item or suffix item.
  * --
  * <OverlayIconOrder: x> with x as the order. This will determine the order 
  * in which the icons are overlayed. Lower values are placed first, with 
@@ -1132,7 +1132,7 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
             newItem.battleDisplayIcon = newItem.iconIndex;
         }
 
-        if (originalItem.meta.OverlayIcon) {
+        if (newItem.overlayIcons) {
             if (!$gameSystem.overlayIcons) {
                 $gameSystem.overlayIcons = [];
             }
