@@ -158,8 +158,6 @@
  * <OverlayIconOrder: x> with x as the order. This will determine the order 
  * in which the icons are overlayed. Lower values are placed first, with 
  * higher values overlayed on top of those.
- * --
- * Regular (non-weapon, non-armor) items only.
  * ============================================================================
  * Affix Parameters
  * ============================================================================
