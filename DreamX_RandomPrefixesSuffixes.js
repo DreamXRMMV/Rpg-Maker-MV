@@ -1,10 +1,18 @@
 /*:
- * @plugindesc v1.21a Random prefixes/suffixes
+ * @plugindesc v1.23 Random prefixes/suffixes
  * @author DreamX
  *
  * @param Default Chance
  * @desc If using chances for the prefix/suffix, this is the default chance.
  * @default 10
+ * 
+ * @param Always Choose Prefix/Suffix
+ * @desc Even if the chances for a prefix/suffix item are under 100%, add one. default: true
+ * @default true
+ * 
+ * @param Always Add Item
+ * @desc If no prefix/suffix/bonus was selected, return the base item. default: false
+ * @default false
  *
  * @param Bonus Parameter Text
  * @desc Text to add when an item got bonus parameter values. Default: %1%2
@@ -17,6 +25,10 @@
  * @param Edit Database For Old Notetags
  * @desc Edits the database to convert old notetags to new notetags. Default: false
  * @default false
+ * 
+ * @param Icon Combination Starting Index
+ * @desc Use a number higher than the number of normal icons you have in the icon sheet. Default: 6000
+ * @default 6000
  *
  * @help
  * This plugin must be named DreamX_RandomPrefixesSuffixes in order for
@@ -137,6 +149,20 @@
  * item.
  * Regular (non-weapon, non-armor) items only.
  * ---
+ * <OverlayIcon>
+ * This will allow the new item derived from this item to have its icon 
+ * overlay or by overlayed with another item. It must exist at least two of the 
+ * following items when the new item is being made: the base item, prefix item 
+ * or suffix item.
+ * --
+ * <OverlayIconOrder: x> with x as the order. This will determine the order 
+ * in which the icons are overlayed. Lower values are placed first, with 
+ * higher values overlayed on top of those.
+ * --
+ * Regular (non-weapon, non-armor) items only.
+ * ============================================================================
+ * Affix Parameters
+ * ============================================================================
  * <prefixSuffixParameters: ATK 5|10 DEF -10|20>
  * Here is an example of how to add random bonus parameter values. Put this in
  * a prefix or suffix item.
@@ -153,7 +179,9 @@
  * %1 - The + sign if the bonus is positive.
  * %2 - The highest value of the random parameter bonuses applied on the item.
  * Can be negative.
- * ---
+ * ============================================================================
+ * Affix Requirements
+ * ============================================================================
  * <Prefix Suffix Requirement>
  * x
  * </Prefix Suffix Requirement>
@@ -164,7 +192,9 @@
  * $gameSwitches.value(1);
  * </Prefix Suffix Requirement>
  * In this example, it requires that switch 1 is on.
- * ---
+ * ============================================================================
+ * Affix Effects
+ * ============================================================================
  * <Prefix Suffix Effect>
  * var atkBonus = Math.floor((Math.random() * 100) + 50);
  * newItem.params[2] += atkBonus;
@@ -183,7 +213,9 @@
  * item - the prefix/suffix item the effect is taken from.
  * baseItem - the baseItem.
  * newItem = the new item to be created.
- * ---
+ * ============================================================================
+ * Affix Chance
+ * ============================================================================
  * <prefixSuffixChance:x>
  * Replace x with the percent chance of getting that prefix or suffix.
  * Example: <prefixSuffixChance:25> for a 25% chance.
@@ -251,6 +283,10 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
     var paramBonusParamText = String(parameters['Bonus Parameter Text']);
     var paramMultiplier = parseInt(parameters['Bonus Parameter Price Multiplier'] || 10);
     var paramEditOld = eval(parameters['Edit Database For Old Notetags'] || false);
+    var paramAlwaysChoose = eval(parameters['Always Choose Prefix/Suffix'] || true);
+    var paramAlwaysItem = eval(parameters['Always Add Item'] || false);
+    var paramCombIconStarting = parseInt(parameters['Icon Combination Starting Index'] || 6000);
+
 
     DreamX.RandomPrefixSuffix.DataManager_loadDatabase = DataManager.loadDatabase;
     DataManager.loadDatabase = function () {
@@ -410,7 +446,7 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
         var percentMap = new Map();
         var diceRoll;
         var choseIDPool = false;
-        var poolIndex;
+        var poolIndex = -1;
 
         // get rid of bad ids
         for (var i = 0; i < arrayOfIDs.length; i++) {
@@ -464,8 +500,12 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
                     choseIDPool = true;
                 }
             }
-        } else {
+        } else if (paramAlwaysChoose === true) {
             poolIndex = mapArray.length - 1;
+        }
+
+        if (poolIndex === -1) {
+            return undefined;
         }
 
         return mapArray[poolIndex].ids;
@@ -553,44 +593,7 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
         newItem.tpGain += prefixSuffixItem.tpGain;
     };
 
-    DreamX.RandomPrefixSuffix.combineWithBaseItem = function (prefixSuffixItem, newItem, itemType) {
-        var prefixSuffixName = prefixSuffixItem.meta.prefixSuffixName
-                ? prefixSuffixItem.meta.prefixSuffixName : prefixSuffixItem.name;
 
-        if (itemType === "prefix") {
-            newItem.name = prefixSuffixName + " " + newItem.name;
-        } else if (itemType === "suffix") {
-            newItem.name = newItem.name + " " + prefixSuffixName;
-        }
-
-        // combine prices
-        newItem.price += prefixSuffixItem.price;
-        // combine descriptions
-        newItem.description += prefixSuffixItem.description;
-        // combine notes
-        newItem.note += prefixSuffixItem.note + "\n";
-
-        // change meta
-        for (var notetag in prefixSuffixItem.meta) {
-            newItem.meta[notetag] = prefixSuffixItem.meta[notetag];
-        }
-
-        if (prefixSuffixItem.meta.prefixSuffixReplaceAnim) {
-            newItem.animationId = prefixSuffixItem.animationId;
-        }
-
-        if (prefixSuffixItem.meta.prefixSuffixReplaceIcon) {
-            newItem.iconIndex = prefixSuffixItem.iconIndex;
-        }
-
-        // if weapon or armor
-        if (newItem.wtypeId || newItem.atypeId) {
-            this.combineWithArmorWeapon(prefixSuffixItem, newItem);
-        } else {
-            // if regular item
-            this.combineWithRegularItem(prefixSuffixItem, newItem);
-        }
-    };
 
     DreamX.RandomPrefixSuffix.randomizeBonusParameters = function (notetag, newItem) {
         var parameterSplit = notetag.trim().split(new RegExp("\\s"));
@@ -652,7 +655,7 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
 
         var choices = this.makeChoices(itemArray, dataType);
 
-        if (choices.length >= 1) {
+        if (choices && choices.length >= 1) {
             var itemID = choices[Math.floor(Math.random() * choices.length)];
             return dataType[itemID];
         }
@@ -982,6 +985,58 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
         delete item.meta.suffix;
     };
 
+    DreamX.RandomPrefixSuffix.combineWithBaseItem = function (prefixSuffixItem, newItem, itemType) {
+        var prefixSuffixName = prefixSuffixItem.meta.prefixSuffixName
+                ? prefixSuffixItem.meta.prefixSuffixName : prefixSuffixItem.name;
+
+        if (itemType === "prefix") {
+            newItem.name = prefixSuffixName + " " + newItem.name;
+        } else if (itemType === "suffix") {
+            newItem.name = newItem.name + " " + prefixSuffixName;
+        }
+
+        // combine prices
+        newItem.price += prefixSuffixItem.price;
+        // combine descriptions
+        newItem.description += prefixSuffixItem.description;
+        // combine notes
+        newItem.note += prefixSuffixItem.note + "\n";
+
+        // change meta
+        for (var notetag in prefixSuffixItem.meta) {
+            newItem.meta[notetag] = prefixSuffixItem.meta[notetag];
+        }
+
+        if (prefixSuffixItem.meta.prefixSuffixReplaceAnim) {
+            newItem.animationId = prefixSuffixItem.animationId;
+        }
+
+        if (prefixSuffixItem.meta.prefixSuffixReplaceIcon) {
+            newItem.iconIndex = prefixSuffixItem.iconIndex;
+        } else if (prefixSuffixItem.meta.OverlayIcon && newItem.meta.OverlayIcon) {
+            this.addIconOverlay(prefixSuffixItem, newItem);
+        }
+
+        // if weapon or armor
+        if (newItem.wtypeId || newItem.atypeId) {
+            this.combineWithArmorWeapon(prefixSuffixItem, newItem);
+        } else {
+            // if regular item
+            this.combineWithRegularItem(prefixSuffixItem, newItem);
+        }
+    };
+
+    DreamX.RandomPrefixSuffix.addIconOverlay = function (source, dest) {
+        var overlayIconOrder = source.meta.OverlayIconOrder || 0;
+        overlayIconOrder = parseInt(overlayIconOrder);
+
+        if (!dest.overlayIcons) {
+            dest.overlayIcons = [];
+        }
+        dest.overlayIcons.push({index: source.iconIndex,
+                order: overlayIconOrder});
+    };
+
     DreamX.RandomPrefixSuffix.makeItem = function (originalItem, presetPrefixId, presetSuffixId) {
         // make a deep copy of the original item
         var newItem = JSON.parse(JSON.stringify(originalItem));
@@ -998,6 +1053,11 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
             dataType = $dataArmors;
         } else {
             dataType = $dataItems;
+        }
+
+        // add icon of original icon index if overlay
+        if (originalItem.meta.OverlayIcon) {
+            this.addIconOverlay(originalItem, newItem);
         }
 
         if (newItem.meta.prefixSuffixUseArmorDatabase) {
@@ -1028,7 +1088,12 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
         // return undefined
         if (!prefixItem && !suffixItem
                 && (!newItem._DXHighestParamBonus || newItem._DXHighestParamBonus === 0)) {
-            return undefined;
+            if (paramAlwaysItem) {
+                return newItem;
+            } else {
+
+                return undefined;
+            }
         }
 
         // at this point we can mark the newItem as being as prefixsuffixitem
@@ -1069,7 +1134,34 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
             newItem.battleDisplayIcon = newItem.iconIndex;
         }
 
+        if (originalItem.meta.OverlayIcon) {
+            if (!$gameSystem.overlayIcons) {
+                $gameSystem.overlayIcons = [];
+            }
+            var newCombIconId = paramCombIconStarting
+                    + $gameSystem.overlayIcons.length;
+            newItem.overlayIcons.sort(function(a,b) {
+               return a.order - b.order; 
+            });
+            $gameSystem.overlayIcons.push(newItem.overlayIcons);
+            newItem.iconIndex = newCombIconId;
+        }
+
         return newItem;
+    };
+
+    DreamX.RandomPrefixSuffix.Window_Base_drawIcon = Window_Base.prototype.drawIcon;
+    Window_Base.prototype.drawIcon = function (iconIndex, x, y) {
+        if (iconIndex >= paramCombIconStarting) {
+            var overlayArrayIndex = iconIndex - paramCombIconStarting;
+            var overlayIcons = $gameSystem.overlayIcons[overlayArrayIndex];
+            for (var i = 0; i < overlayIcons.length; i++) {
+                var iconId = overlayIcons[i].index;
+                DreamX.RandomPrefixSuffix.Window_Base_drawIcon.call(this, iconId, x, y);
+            }
+            return;
+        }
+        DreamX.RandomPrefixSuffix.Window_Base_drawIcon.call(this, iconIndex, x, y);
     };
 
     DreamX.RandomPrefixSuffix.GainPrefixSuffixItem = function (item, amount, includeEquip) {
@@ -1213,25 +1305,6 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
     }
 
     if (Imported.YEP_X_ItemUpgrades) {
-        DreamX.RandomPrefixSuffix.baseItemSpecialFunc = function (func) {
-            var funcs = [];
-            funcs.push(Window_ItemInfo.prototype.drawSlotsInfo);
-            funcs.push(Window_ItemInfo.prototype.drawSlotUpgradesUsed);
-
-            return funcs.indexOf(func) !== -1;
-        };
-
-        DreamX.RandomPrefixSuffix.DataManager_getBaseItem = DataManager.getBaseItem;
-        DataManager.getBaseItem = function (item) {
-//            if (item.DXRPSItem) {
-//                var caller = arguments.callee.caller;
-//                if (DreamX.RandomPrefixSuffix.baseItemSpecialFunc(caller)) {
-//                    return item;
-//                }
-//            }
-            return DreamX.RandomPrefixSuffix.DataManager_getBaseItem.call(this, item);
-        };
-
         DreamX.RandomPrefixSuffix.Window_ItemInfo_drawSlotsInfo = Window_ItemInfo.prototype.drawSlotsInfo;
         Window_ItemInfo.prototype.drawSlotsInfo = function (dy) {
             var item = this._item;
