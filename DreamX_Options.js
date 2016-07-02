@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.0 Options for the option menu
+ * @plugindesc v1.01 Options for the option menu
  * @author DreamX
  * 
  * @param Switches
@@ -175,6 +175,20 @@ DreamX.Options = DreamX.Options || {};
 
     Window_Options.prototype.booleanStatusText = function (value) {
         return value ? paramOnText : paramOffText;
+    };
+
+    DreamX.Options.Window_Options_processOk = Window_Options.prototype.processOk;
+    Window_Options.prototype.processOk = function () {
+
+        var index = this.index();
+        var symbol = this.commandSymbol(index);
+        var switchId = this.getSwitchId(symbol);
+        if (switchId !== -1) {
+            var value = $gameSwitches.value(switchId);
+            this.changeValue(symbol, !value);
+            return;
+        }
+        DreamX.Options.Window_Options_processOk.call(this);
     };
 
 })();
