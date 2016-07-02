@@ -14,6 +14,14 @@
  * @desc Test to display for options that are set to OFF. Default: OFF
  * @default OFF
  * 
+ * @param Window X
+ * @desc X for the window. Processed as eval. Default: (Graphics.boxWidth - this.width) / 2
+ * @default (Graphics.boxWidth - this.width) / 2
+ * 
+ * @param Window Y
+ * @desc Y for the window. Processed as eval. Default: (Graphics.boxHeight - this.height) / 2
+ * @default (Graphics.boxHeight - this.height) / 2
+ * 
  * @param Window Width
  * @desc Width for the window. Default: 400
  * @default 400
@@ -37,6 +45,14 @@
  * 
  * In the options menu, the name you use for these switches will appear.
  * ============================================================================
+ * Tips & Tricks
+ * ============================================================================
+ * To make a window the size of game window, use:
+ *  Graphics.boxWidth for width
+ *  Graphics.boxHeight for height
+ *  You can also use those for calculations.
+ *  
+ * ============================================================================
  * Terms Of Use
  * ============================================================================
  * Free to use and modify for commercial and noncommercial games, with credit.
@@ -57,14 +73,24 @@ DreamX.Options = DreamX.Options || {};
     var paramSwitches = String(parameters['Switches']);
     var paramOnText = String(parameters['ON Text']);
     var paramOffText = String(parameters['OFF Text']);
+
     var paramWindowWidth = String(parameters['Window Width']);
     var paramWindowHeight = String(parameters['Window Height']);
+
+    var paramWindowX = String(parameters['Window X']);
+    var paramWindowY = String(parameters['Window Y']);
+
     var paramStatusWidth = String(parameters['Status Width']);
 
     DreamX.Options.Window_Options_makeCommandList = Window_Options.prototype.makeCommandList;
     Window_Options.prototype.makeCommandList = function () {
         DreamX.Options.Window_Options_makeCommandList.call(this);
         this.addSwitchOptions();
+    };
+
+    Window_Options.prototype.updatePlacement = function () {
+        this.x = eval(paramWindowX);
+        this.y = eval(paramWindowY);
     };
 
     Window_Options.prototype.windowWidth = function () {
