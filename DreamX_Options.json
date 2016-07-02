@@ -1,0 +1,28 @@
+{
+    "VIDEO": {
+        "816x624": {
+            "w": "816",
+            "h": "624"
+        },
+        "768x576": {
+            "w": "768",
+            "h": "576"
+        },
+        "256x196": {
+            "w": "256",
+            "h": "196"
+        },
+        "942x672": {
+            "w": "942",
+            "h": "672"
+        }
+    },
+    "HELP_TEXT": {
+        "bgmVolume": "This changes the volume of bgm.",
+        "alwaysDash": "If on, always dash even without holding dash button.",
+        "resolution": "Requires exit and restart.",
+        "fullscreen": "Toggle Fullscreen.",
+        "switch_1": "If on, does something really neat.",
+        "switch_5": "If on, does something incredible."
+    }
+}
