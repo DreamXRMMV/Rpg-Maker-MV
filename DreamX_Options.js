@@ -275,6 +275,7 @@ DreamX.Options = DreamX.Options || {};
 
             this._optionsWindow.setHelpWindow(this._helpWindow);
             this.addWindow(this._helpWindow);
+            this._optionsWindow.setHelpText(0);
         }
 
     };
@@ -286,13 +287,20 @@ DreamX.Options = DreamX.Options || {};
             return;
         }
 
+        if (index >= 0) {
+            this.setHelpText(index);
+        }
+    };
+
+    Window_Options.prototype.setHelpText = function (index) {
         var helpWindow = SceneManager._scene._helpWindow;
-        if (helpWindow && index >= 0) {
-            var symbol = this.commandSymbol(index);
-            var helpText = DreamX.Options.helpText[symbol];
-            if (helpText) {
-                helpWindow.setText(helpText);
-            }
+        if (!helpWindow) {
+            return;
+        }
+        var symbol = this.commandSymbol(index);
+        var helpText = DreamX.Options.helpText[symbol];
+        if (helpText) {
+            helpWindow.setText(helpText);
         }
     };
 
@@ -336,6 +344,16 @@ DreamX.Options = DreamX.Options || {};
             this.addCommand(name, symbol);
         }
     };
+    
+//    DreamX.Options.Graphics_switchFullScreen = Graphics._switchFullScreen;
+//    Graphics._switchFullScreen = function () {
+//        DreamX.Options.Graphics_switchFullScreen.call(this);
+//        if (this._isFullScreen()) {
+//            this._requestFullScreen();
+//        } else {
+//            this._cancelFullScreen();
+//        }
+//    };
 
     DreamX.Options.Window_Options_changeValue = Window_Options.prototype.changeValue;
     Window_Options.prototype.changeValue = function (symbol, value) {
