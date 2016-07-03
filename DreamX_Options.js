@@ -116,6 +116,8 @@
  * ============================================================================
  * Tips & Tricks
  * ============================================================================
+ * Resolution and fullscreen options require YEP Core Engine.
+ * 
  * Any option change meant to persist between all saves (like the always dash 
  * option) is only saved when you close out of the options menu, which is how 
  * the default program and most other games in general work. 
