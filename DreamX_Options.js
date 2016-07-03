@@ -116,6 +116,10 @@
  * ============================================================================
  * Tips & Tricks
  * ============================================================================
+ * Any option change meant to persist between all saves (like the always dash 
+ * option) is only saved when you close out of the options menu, which is how 
+ * the default program and most other games in general work. 
+ * 
  * To make a window the size of game window, use:
  *  Graphics.boxWidth for width
  *  Graphics.boxHeight for height
@@ -245,6 +249,7 @@ DreamX.Options = DreamX.Options || {};
             paramHelpX = 0;
             paramHelpY = 0;
             paramHelpLines = 3;
+            paramShowHelp = true;
         }
 
         DreamX.Options.Scene_Options_createOptionsWindow.call(this);

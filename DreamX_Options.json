@@ -18,8 +18,12 @@
         }
     },
     "HELP_TEXT": {
-        "bgmVolume": "This changes the volume of bgm.",
         "alwaysDash": "If on, always dash even without holding dash button.",
+        "commandRemember": "Remember commands.",
+        "bgmVolume": "This changes the volume of bgm.",
+        "bgsVolume": "This changes the volume of bgs.",
+        "meVolume": "This changes the volume of me sound effects.",
+        "seVolume": "This changes the volume of sound effects.",
         "resolution": "Requires exit and restart.",
         "fullscreen": "Toggle Fullscreen.",
         "switch_1": "If on, does something really neat.",
