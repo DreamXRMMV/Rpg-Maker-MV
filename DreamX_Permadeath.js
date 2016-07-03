@@ -21,7 +21,9 @@
  * that when on, disables permadeath for the actor.
  * 
  * Use <NoPermadeathVariable: x> with x as the variable id to specify a 
- * variable that when greater than 0, disables permadeath for the actor.
+ * variable that when greater than 0, disables permadeath for the actor. 
+ * This variable decrements each time the battler dies unless permadeath is 
+ * disabled for them otherwise.
  * ============================================================================
  * Terms Of Use
  * ============================================================================
