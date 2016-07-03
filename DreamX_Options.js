@@ -120,11 +120,12 @@
  * option) is only saved when you close out of the options menu, which is how 
  * the default program and most other games in general work. 
  * 
- * To make a window the size of game window, use:
- *  Graphics.boxWidth for width
- *  Graphics.boxHeight for height
- *  You can also use those for calculations.
- *  
+ * Make sure that your game's default resolution (whatever the resolution is 
+ * when you haven't set any in-game options is put into the json file somewhere, 
+ * before enabling the resolution option. The sample json are provide already 
+ * includes the default 816 x 624 resolution that occurs in RPG Maker MV 
+ * without any plugins.
+ *
  * If you made a mistake with your options, you can delete the config.rpgsave 
  * file in the save folder to reset them.
  * 
@@ -142,6 +143,11 @@
  * what is best for your game.
  * 
  * When writing help text, you can use \n to do a line break.
+ * 
+ * To make a window the size of game window, use:
+ *  Graphics.boxWidth for width
+ *  Graphics.boxHeight for height
+ *  You can also use those for calculations.
  * ============================================================================
  * Terms Of Use
  * ============================================================================
@@ -150,6 +156,7 @@
  * Credits
  * ============================================================================
  * DreamX
+ * Thanks to Yanfly for resolution changing snippet from YEP Core Engine.
  */
 
 var Imported = Imported || {};
