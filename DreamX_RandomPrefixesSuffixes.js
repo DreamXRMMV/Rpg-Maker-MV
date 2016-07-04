@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.23 Random prefixes/suffixes
+ * @plugindesc v1.23a Random prefixes/suffixes
  * @author DreamX
  *
  * @param Default Chance
@@ -602,7 +602,7 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
             var min = parseInt(parameterSplit[i].split("|")[0]) || 0;
             var max = parseInt(parameterSplit[i].split("|")[1]) || 0;
             if (parameterID) {
-                var paramRoll = Math.floor((Math.random() * max) + min);
+                var paramRoll = Math.floor((Math.random() * (max - min + 1) ) + min);
                 if (parameterID >= 0 && parameterID < newItem.params.length) {
                     newItem.params[parameterID] += paramRoll;
                     newItem.price += paramRoll * paramMultiplier;
