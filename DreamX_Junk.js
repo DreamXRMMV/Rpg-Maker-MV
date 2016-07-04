@@ -83,6 +83,7 @@
  * Credits
  * ============================================================================
  * DreamX
+ * Thanks to Yanfly for Item Core and Shop Core plugins.
  */
 
 
