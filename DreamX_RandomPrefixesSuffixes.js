@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.23a Random prefixes/suffixes
+ * @plugindesc v1.23b Random prefixes/suffixes
  * @author DreamX
  *
  * @param Default Chance
@@ -602,7 +602,7 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
             var min = parseInt(parameterSplit[i].split("|")[0]) || 0;
             var max = parseInt(parameterSplit[i].split("|")[1]) || 0;
             if (parameterID) {
-                var paramRoll = Math.floor((Math.random() * (max - min + 1) ) + min);
+                var paramRoll = Math.floor((Math.random() * (max - min + 1)) + min);
                 if (parameterID >= 0 && parameterID < newItem.params.length) {
                     newItem.params[parameterID] += paramRoll;
                     newItem.price += paramRoll * paramMultiplier;
@@ -663,6 +663,8 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
 
 
     DataManager.processYanflyWeaponArmorTags = function (processArray) {
+        var item = processArray[1];
+        
         if (Imported.YEP_AbsorptionBarrier) {
             this.processABRNotetags2(processArray);
         }
@@ -702,6 +704,10 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
         }
         if (Imported.YEP_InstantCast) {
             this.processInstantNotetags2(processArray);
+        }
+        if (Imported.YEP_X_ItemUpgrades) {
+            item.originalUpgradeSlots = item.upgradeSlots;
+            ItemManager.randomizeSlots(item, item);
         }
         if (Imported.YEP_JobPoints) {
             this.processJPNotetags4(processArray);
@@ -893,7 +899,6 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
         }
         if (Imported.YEP_X_ItemUpgrades) {
             this.processUpgradeNotetags1(processArray);
-            processArray[1].originalUpgradeSlots = processArray[1].upgradeSlots;
         }
         if (Imported.YEP_X_SkillCooldowns) {
             this.processSCDNotetags2(processArray);
@@ -1032,7 +1037,7 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
             dest.overlayIcons = [];
         }
         dest.overlayIcons.push({index: source.iconIndex,
-                order: overlayIconOrder});
+            order: overlayIconOrder});
     };
 
     DreamX.RandomPrefixSuffix.makeItem = function (originalItem, presetPrefixId, presetSuffixId) {
@@ -1138,8 +1143,8 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
             }
             var newCombIconId = paramCombIconStarting
                     + $gameSystem.overlayIcons.length;
-            newItem.overlayIcons.sort(function(a,b) {
-               return a.order - b.order; 
+            newItem.overlayIcons.sort(function (a, b) {
+                return a.order - b.order;
             });
             $gameSystem.overlayIcons.push(newItem.overlayIcons);
             newItem.iconIndex = newCombIconId;
