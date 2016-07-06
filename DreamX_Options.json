@@ -17,6 +17,18 @@
             "h": "672"
         }
     },
+    "VARIABLES": {
+        "1": {
+            "step": "5",
+            "min": "100",
+            "max": "150"
+        },
+        "2": {
+            "step": "1",
+            "min": "10",
+            "max": "15"
+        }
+    },
     "HELP_TEXT": {
         "alwaysDash": "If on, always dash even without holding dash button.",
         "commandRemember": "Remember commands.",
@@ -27,6 +39,8 @@
         "resolution": "Requires exit and restart.",
         "fullscreen": "Toggle Fullscreen.",
         "switch_1": "If on, does something really neat.",
-        "switch_5": "If on, does something incredible."
+        "switch_5": "If on, does something incredible.",
+        "variable_1": "Great variable",
+        "variable_8": "Variable 8 is my favorite."
     }
 }

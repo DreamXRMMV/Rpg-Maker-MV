@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.1 Options for the option menu
+ * @plugindesc v1.2 Options for the option menu
  * @author DreamX
  * 
  * @param --General Options--
@@ -104,6 +104,12 @@
  * placed improperly. A comma needs to placed for every entry in a list 
  * aside from the last one. The last one must not have a comma.
  * 
+ * A "step" for the variable is the interval that is increased or decreased 
+ * when changing the value.
+ * 
+ * If a variable option's value is less than the mininimum, greater than the 
+ * maximum or not a multiple of the step value, then it will get reinitialized 
+ * to the minimum.
  * ============================================================================
  * Switches Parameter Help
  * ============================================================================
@@ -211,6 +217,7 @@ DreamX.Options = DreamX.Options || {};
     DreamX.Options.callback = function (data) {
         DreamX.Options.loaded = true;
         DreamX.Options.helpText = data.HELP_TEXT;
+        DreamX.Options.variables = data.VARIABLES;
 
         DreamX.Options.videoSettingsSizes = [];
         DreamX.Options.videoSettingNames = [];
@@ -300,7 +307,11 @@ DreamX.Options = DreamX.Options || {};
             return;
         }
         var symbol = this.commandSymbol(index);
-        var helpText = DreamX.Options.helpText[symbol];
+        var helpTextData = DreamX.Options.helpText;
+        if (!helpTextData) {
+            return;
+        }
+        var helpText = helpTextData[symbol];
         if (helpText) {
             helpWindow.setText(helpText);
         }
@@ -314,6 +325,51 @@ DreamX.Options = DreamX.Options || {};
         }
 
         this.addSwitchOptions();
+        this.addVariableOptions();
+    };
+
+    Window_Options.prototype.addSwitchOptions = function () {
+        var ids = DreamX.parseNumberRanges(paramSwitches);
+        for (var i = 0; i < ids.length; i++) {
+            var id = ids[i];
+            if (id <= 0) {
+                continue;
+            }
+            var name = $dataSystem.switches[id];
+            var symbol = 'switch_' + id;
+
+            this.addCommand(name, symbol);
+        }
+    };
+
+    Window_Options.prototype.addVariableOptions = function () {
+        var vars = DreamX.Options.variables;
+        for (var key in vars) {
+            var data = vars[key];
+            var min = parseInt(data.min);
+            var max = parseInt(data.max);
+            
+            if (min >= max) {
+                continue;
+            }
+            
+            var step = data.step;
+            
+            if (!step) {
+                continue;
+            }
+
+            var id = parseInt(key);
+            var symbol = 'variable_' + id;
+            var name = $dataSystem.variables[id];
+            var curr = $gameVariables.value(id);
+
+            if (curr > max || curr < min || curr % step !== 0) {
+                $gameVariables.setValue(id, min);
+            }
+
+            this.addCommand(name, symbol);
+        }
     };
 
     Window_Options.prototype.updatePlacement = function () {
@@ -333,20 +389,8 @@ DreamX.Options = DreamX.Options || {};
         return eval(paramStatusWidth);
     };
 
-    Window_Options.prototype.addSwitchOptions = function () {
-        var ids = DreamX.parseNumberRanges(paramSwitches);
-        for (var i = 0; i < ids.length; i++) {
-            var id = ids[i];
-            if (id <= 0) {
-                continue;
-            }
-            var name = $dataSystem.switches[id];
-            var symbol = 'switch_' + id;
 
-            this.addCommand(name, symbol);
-        }
-    };
-    
+
 //    DreamX.Options.Graphics_switchFullScreen = Graphics._switchFullScreen;
 //    Graphics._switchFullScreen = function () {
 //        DreamX.Options.Graphics_switchFullScreen.call(this);
@@ -356,6 +400,13 @@ DreamX.Options = DreamX.Options || {};
 //            this._cancelFullScreen();
 //        }
 //    };
+
+    Window_Options.prototype.getVariableId = function (symbol) {
+        if (symbol.indexOf("variable_") === -1) {
+            return -1;
+        }
+        return symbol.split("variable_")[1];
+    }
 
     DreamX.Options.Window_Options_changeValue = Window_Options.prototype.changeValue;
     Window_Options.prototype.changeValue = function (symbol, value) {
@@ -370,15 +421,25 @@ DreamX.Options = DreamX.Options || {};
             return;
         }
 
+        var variableId = this.getVariableId(symbol);
+        if (variableId !== -1) {
+            this.changeVariableValue(symbol, value, variableId);
+            return;
+        }
+
         if (symbol === 'fullscreen') {
             Graphics._switchFullScreen();
         }
         DreamX.Options.Window_Options_changeValue.call(this, symbol, value);
     };
 
-    Window_Options.prototype.redrawAndPlayCursor = function (symbol) {
-        this.redrawItem(this.findSymbol(symbol));
-        SoundManager.playCursor();
+    Window_Options.prototype.changeVariableValue = function (symbol,
+            value, variableId) {
+        var lastValue = $gameVariables.value(variableId);
+        if (lastValue !== value) {
+            $gameVariables.setValue(variableId, value);
+            this.redrawAndPlayCursor(symbol);
+        }
     };
 
     Window_Options.prototype.changeSwitchValue = function (symbol,
@@ -389,6 +450,12 @@ DreamX.Options = DreamX.Options || {};
             this.redrawAndPlayCursor(symbol);
         }
     };
+
+    Window_Options.prototype.redrawAndPlayCursor = function (symbol) {
+        this.redrawItem(this.findSymbol(symbol));
+        SoundManager.playCursor();
+    };
+
 
     Window_Options.prototype.getSwitchId = function (symbol) {
         if (symbol.indexOf("switch_") === -1) {
@@ -409,7 +476,17 @@ DreamX.Options = DreamX.Options || {};
         if (switchId !== -1) {
             return this.switchStatusText(switchId);
         }
+
+        var variableId = this.getVariableId(symbol);
+        if (variableId !== -1) {
+            return this.variableStatusText(variableId);
+        }
+
         return DreamX.Options.Window_Options_statusText.call(this, index);
+    };
+
+    Window_Options.prototype.variableStatusText = function (variableId) {
+        return $gameVariables.value(variableId);
     };
 
     Window_Options.prototype.switchStatusText = function (switchId) {
@@ -459,7 +536,70 @@ DreamX.Options = DreamX.Options || {};
             return;
         }
 
+        var variableId = this.getVariableId(symbol);
+        if (variableId !== -1) {
+            this.variableChange(symbol, true, 'forward', variableId);
+            return;
+        }
+
         DreamX.Options.Window_Options_processOk.call(this);
+    };
+
+
+    Window_Options.prototype.variableChange = function (symbol, wrap, type, variableId) {
+        var data = DreamX.Options.variables[variableId];
+        var step = parseInt(data.step);
+        var min = parseInt(data.min);
+        var max = parseInt(data.max);
+        var curr = $gameVariables.value(variableId);
+
+        var next = type === 'forward' ? curr + step : curr - step;
+
+        if (next > max) {
+            next = min;
+        } else if (next < min) {
+            next = max;
+        }
+
+        this.changeValue(symbol, next);
+    };
+
+    DreamX.Options.Window_Options_cursorRight = Window_Options.prototype.cursorRight;
+    Window_Options.prototype.cursorRight = function (wrap) {
+        var index = this.index();
+        var symbol = this.commandSymbol(index);
+
+        if (symbol === 'resolution') {
+            this.resolutionChange(symbol, false, 'forward');
+            return;
+        }
+
+        var variableId = this.getVariableId(symbol);
+        if (variableId !== -1) {
+            this.variableChange(symbol, true, 'forward', variableId);
+            return;
+        }
+
+        DreamX.Options.Window_Options_cursorRight.call(this, wrap);
+    };
+
+    DreamX.Options.Window_Options_cursorLeft = Window_Options.prototype.cursorLeft;
+    Window_Options.prototype.cursorLeft = function (wrap) {
+        var index = this.index();
+        var symbol = this.commandSymbol(index);
+
+        if (symbol === 'resolution') {
+            this.resolutionChange(symbol, false, 'backward');
+            return;
+        }
+
+        var variableId = this.getVariableId(symbol);
+        if (variableId !== -1) {
+            this.variableChange(symbol, true, 'backward', variableId);
+            return;
+        }
+
+        DreamX.Options.Window_Options_cursorLeft.call(this, wrap);
     };
 
 //=============================================================================
@@ -568,28 +708,6 @@ DreamX.Options = DreamX.Options || {};
         if (next) {
             this.changeValue(symbol, next);
         }
-    };
-
-    DreamX.Options.Window_Options_cursorRight = Window_Options.prototype.cursorRight;
-    Window_Options.prototype.cursorRight = function (wrap) {
-        var index = this.index();
-        var symbol = this.commandSymbol(index);
-        if (symbol === 'resolution') {
-            this.resolutionChange(symbol, false, 'forward');
-            return;
-        }
-        DreamX.Options.Window_Options_cursorRight.call(this, wrap);
-    };
-
-    DreamX.Options.Window_Options_cursorLeft = Window_Options.prototype.cursorLeft;
-    Window_Options.prototype.cursorLeft = function (wrap) {
-        var index = this.index();
-        var symbol = this.commandSymbol(index);
-        if (symbol === 'resolution') {
-            this.resolutionChange(symbol, false, 'backward');
-            return;
-        }
-        DreamX.Options.Window_Options_cursorLeft.call(this, wrap);
     };
 
 })();
