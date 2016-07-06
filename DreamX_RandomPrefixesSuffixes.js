@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.23b Random prefixes/suffixes
+ * @plugindesc v1.23c Random prefixes/suffixes
  * @author DreamX
  *
  * @param Default Chance
@@ -601,7 +601,7 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
             i++;
             var min = parseInt(parameterSplit[i].split("|")[0]) || 0;
             var max = parseInt(parameterSplit[i].split("|")[1]) || 0;
-            if (parameterID) {
+            if (parameterID !== undefined) {
                 var paramRoll = Math.floor((Math.random() * (max - min + 1)) + min);
                 if (parameterID >= 0 && parameterID < newItem.params.length) {
                     newItem.params[parameterID] += paramRoll;
@@ -664,7 +664,7 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
 
     DataManager.processYanflyWeaponArmorTags = function (processArray) {
         var item = processArray[1];
-        
+
         if (Imported.YEP_AbsorptionBarrier) {
             this.processABRNotetags2(processArray);
         }
@@ -1308,6 +1308,16 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
     }
 
     if (Imported.YEP_X_ItemUpgrades) {
+        DreamX.RandomPrefixSuffix.DataManager_getBaseItem = DataManager.getBaseItem;
+        DataManager.getBaseItem = function (item) {
+            if (arguments.callee.caller === ItemManager.initSlotUpgradeNotes
+                    && this.isDXRPSItem(item)) {
+                return item;
+            }
+            return DreamX.RandomPrefixSuffix.DataManager_getBaseItem.call(this, item);
+        };
+
+
         DreamX.RandomPrefixSuffix.Window_ItemInfo_drawSlotsInfo = Window_ItemInfo.prototype.drawSlotsInfo;
         Window_ItemInfo.prototype.drawSlotsInfo = function (dy) {
             var item = this._item;
