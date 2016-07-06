@@ -22,7 +22,7 @@
             "step": "5",
             "min": "100",
             "max": "150",
-            "percent": "false"
+            "percent": "true"
         },
         "2": {
             "step": "1",
