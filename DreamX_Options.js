@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.2 Options for the option menu
+ * @plugindesc v1.3 Options for the option menu
  * @author DreamX
  * 
  * @param --General Options--
@@ -92,6 +92,32 @@
  * @param Fullscreen Option Text
  * @desc Text for fullscreen option.
  * @default Fullscreen
+ * 
+ * @param --Default Options--
+ * 
+ * @param Show Always Dash
+ * @desc Whether to show always dash option. Default: true
+ * @default true
+ * 
+ * @param Show Command Remember
+ * @desc Whether to show command remember option. Default: true
+ * @default true
+ * 
+ * @param Show BGM Volume
+ * @desc Whether to show bgm volume option. Default: true
+ * @default true
+ * 
+ * @param Show BGS Volume
+ * @desc Whether to show bgs volume option. Default: true
+ * @default true
+ * 
+ * @param Show ME Volume
+ * @desc Whether to show me volume option. Default: true
+ * @default true
+ * 
+ * @param Show SE Volume
+ * @desc Whether to show se volume option. Default: true
+ * @default true
  * 
  * @help
  * ============================================================================
@@ -201,6 +227,12 @@ DreamX.Options = DreamX.Options || {};
     var paramHelpLines = String(parameters['Help Lines']);
 
     var paramRecommended = eval(parameters['Recommended Window Settings']);
+    var paramShowAlwaysDash = eval(parameters['Show Always Dash']);
+    var paramShowCommandRemember = eval(parameters['Show Command Remember']);
+    var paramShowBgmVolume = eval(parameters['Show BGM Volume']);
+    var paramShowBgsVolume = eval(parameters['Show BGS Volume']);
+    var paramShowMeVolume = eval(parameters['Show ME Volume']);
+    var paramShowSeVolume = eval(parameters['Show SE Volume']);
 
     DreamX.Options.Scene_Boot_isReady = Scene_Boot.prototype.isReady;
     Scene_Boot.prototype.isReady = function () {
@@ -317,9 +349,42 @@ DreamX.Options = DreamX.Options || {};
         }
     };
 
+    Window_Options.prototype.removeDefaultOptions = function () {
+        var cmdsToRemove = [];
+        if (!paramShowAlwaysDash) {
+            cmdsToRemove.push('alwaysDash');
+        }
+        if (!paramShowCommandRemember) {
+            cmdsToRemove.push('commandRemember');
+        }
+        if (!paramShowBgmVolume) {
+            cmdsToRemove.push('bgmVolume');
+        }
+        if (!paramShowBgsVolume) {
+            cmdsToRemove.push('bgsVolume');
+        }
+        if (!paramShowMeVolume) {
+            cmdsToRemove.push('meVolume');
+        }
+        if (!paramShowSeVolume) {
+            cmdsToRemove.push('seVolume');
+        }
+
+        for (var i = 0; i < cmdsToRemove.length; i++) {
+            var symbol = cmdsToRemove[i];
+            var cmd = this._list.filter(function (c) {
+                return c.symbol === symbol;
+            })[0];
+            var index = this._list.indexOf(cmd);
+            this._list.splice(index, 1);
+        }
+    };
+
     DreamX.Options.Window_Options_makeCommandList = Window_Options.prototype.makeCommandList;
     Window_Options.prototype.makeCommandList = function () {
         DreamX.Options.Window_Options_makeCommandList.call(this);
+        this.removeDefaultOptions();
+
         if (Imported.YEP_CoreEngine) {
             this.addVideoOptions();
         }
@@ -348,13 +413,13 @@ DreamX.Options = DreamX.Options || {};
             var data = vars[key];
             var min = parseInt(data.min);
             var max = parseInt(data.max);
-            
+
             if (min >= max) {
                 continue;
             }
-            
+
             var step = data.step;
-            
+
             if (!step) {
                 continue;
             }
@@ -486,7 +551,12 @@ DreamX.Options = DreamX.Options || {};
     };
 
     Window_Options.prototype.variableStatusText = function (variableId) {
-        return $gameVariables.value(variableId);
+        var string = $gameVariables.value(variableId);
+        var data = DreamX.Options.variables[variableId.toString()];
+        if (data.percent && eval(data.percent)) {
+            string += '%';
+        }
+        return string;
     };
 
     Window_Options.prototype.switchStatusText = function (switchId) {
