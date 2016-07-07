@@ -243,7 +243,8 @@
  * ============================================================================
  Use <ITBSheet: x y z> with x being whatever you want, y being the number of 
  columns and z being the number of rows, to specify the image sheet for the 
- turn order window icon for the actor or enemy.
+ turn order window icon for the actor or enemy. The filename required for the 
+ image will be the notetag without leading spaces. See example below.
  
  Use <ITBSheetIndex: x> to specify the index used for that image with x as 
  the index.
