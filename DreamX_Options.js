@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.4 Options for the option menu
+ * @plugindesc v1.4a Options for the option menu
  * @author DreamX
  * 
  * @param --General Options--
@@ -711,10 +711,10 @@ DreamX.Options = DreamX.Options || {};
         }
     };
 
-    DreamX.Options.SceneManager_run = SceneManager.run;
-    SceneManager.run = function (sceneClass) {
-        ConfigManager.load();
-        if (Imported.YEP_CoreEngine) {
+    if (Imported.YEP_CoreEngine) {
+        DreamX.Options.SceneManager_run = SceneManager.run;
+        SceneManager.run = function (sceneClass) {
+            ConfigManager.load();
             if (!ConfigManager.resolution || !Utils.isNwjs()) {
                 DreamX.Options.SceneManager_run.call(this, sceneClass);
             } else {
@@ -724,8 +724,8 @@ DreamX.Options = DreamX.Options || {};
             if (ConfigManager.fullscreen) {
                 Graphics._requestFullScreen();
             }
-        }
-    };
+        };
+    }
 
     DreamX.Options.ConfigManager_makeData = ConfigManager.makeData;
     ConfigManager.makeData = function () {
