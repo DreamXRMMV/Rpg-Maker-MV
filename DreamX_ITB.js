@@ -34,6 +34,10 @@
  * @desc Don't show an icon if it would get cutoff. Default: true
  * @default true
  * 
+ * @param Generate Default Icons
+ * @desc Show generated icons if a sheet name and index isn't specified. Default: false
+ * @default false
+ * 
  * @param Hide On Battle Results
  * @desc Hide turn window on battle end. Default: true
  * @default true
@@ -237,7 +241,7 @@
  * ============================================================================
  * Turn Order Window
  * ============================================================================
- Use <ITBSheet: x y z> with x being the image filename, y being the number of 
+ Use <ITBSheet: x y z> with x being whatever you want, y being the number of 
  columns and z being the number of rows, to specify the image sheet for the 
  turn order window icon for the actor or enemy.
  
@@ -356,8 +360,8 @@ DreamX.ITB = DreamX.ITB || {};
     var parameterTurnWindowYVertical =
             String(parameters['Turn Window Y (Vertical)'] || 0);
 
-
-
+    var paramGenerateIcons =
+            eval(parameters['Generate Default Icons'] || false);
     var paramShowActionMin =
             eval(parameters['Action # Text Min'] || 2);
     var parameterActionNumSize =
@@ -1071,12 +1075,15 @@ DreamX.ITB = DreamX.ITB || {};
         var icons = 1;
         var letter = "";
         var numActions = battler.numITBActionsForTurnWindow();
+        var generate = paramGenerateIcons && !dataBattler.meta.ITBSheetIndex;
 
         if (dataBattler.meta.ITBSheetIndex) {
-            sheetName = dataBattler.meta.ITBSheet ? dataBattler.meta.ITBSheet
-                    : parameterTurnDefaultSheet;
-            sheetName = sheetName.trim();
-            sheetIndex = parseInt(dataBattler.meta.ITBSheetIndex.trim());
+            if (dataBattler.meta.ITBSheetIndex) {
+                sheetName = dataBattler.meta.ITBSheet ? dataBattler.meta.ITBSheet
+                        : parameterTurnDefaultSheet;
+                sheetName = sheetName.trim();
+                sheetIndex = parseInt(dataBattler.meta.ITBSheetIndex.trim());
+            }
 
             // check if more than one enemy of same type
             if (battler._plural) {
@@ -1103,7 +1110,9 @@ DreamX.ITB = DreamX.ITB || {};
                 sheetName: sheetName,
                 sheetIndex: sheetIndex,
                 letter: letter,
-                actions: numActions
+                actions: numActions,
+                generate: generate,
+                gameBattler: battler
             };
 
             for (var i = 0; i < icons; i++) {
@@ -1115,7 +1124,7 @@ DreamX.ITB = DreamX.ITB || {};
     Window_ITBTurnOrder.prototype.iconWidth = function () {
         return parameterTurnIconWidth;
     };
-    Window_ITBTurnOrder.prototype.iconHeight = function (battler) {
+    Window_ITBTurnOrder.prototype.iconHeight = function () {
         return parameterTurnIconHeight;
     };
 
@@ -1125,25 +1134,28 @@ DreamX.ITB = DreamX.ITB || {};
         this.drawTurnIcons();
     };
 
-    Window_ITBTurnOrder.prototype.drawTurnIcon = function (battler, x, y) {
-        if (!battler) {
-            return;
-        }
+    Window_ITBTurnOrder.prototype.getSheetBitmap = function (battler) {
+        var sheetName = battler.sheetName;
+        return ImageManager.loadBitmap(parameterTurnFolder, sheetName);
+    };
+
+    Window_ITBTurnOrder.prototype.drawTurnIconGenerated = function (battler, x, y) {
+        var bitmap = this.getBitmap(battler);
+        var width = Window_Base._faceWidth;
+
+    };
+
+    Window_ITBTurnOrder.prototype.drawTurnIconSheet = function (battler, x, y) {
+        var bitmap = this.getSheetBitmap(battler);
         var columns = parameterIconSheetCols;
         var rows = parameterIconSheetRows;
         var sheetName = battler.sheetName;
         var index = battler.sheetIndex;
-        var bitmap = ImageManager.loadBitmap(parameterTurnFolder, sheetName);
         var width;
         var height;
         var newCoor;
         var windowWidthHeight = this.isHorizontal() ? this.windowWidth()
                 : this.windowHeight();
-        var letterX = eval(parameterPluralX);
-        var letterY = eval(parameterPluralY);
-        var actionX = eval(parameterActionNumX);
-        var actionY = eval(parameterActionNumY);
-
 
         if (sheetName.split(" ").length === 3) {
             columns = sheetName.split(" ")[1];
@@ -1157,7 +1169,6 @@ DreamX.ITB = DreamX.ITB || {};
             newCoor = x + width + parameterTurnIconSpacing;
         } else {
             newCoor = y + height + parameterTurnIconSpacing;
-
         }
 
         if (parameterPreventCutoff && newCoor > windowWidthHeight - this.standardPadding()) {
@@ -1168,6 +1179,18 @@ DreamX.ITB = DreamX.ITB || {};
         var sy = Math.floor(index / columns) * height;
 
         this.contents.blt(bitmap, sx, sy, width, height, x, y);
+
+        return newCoor;
+    };
+
+    Window_ITBTurnOrder.prototype.drawTurnIcon = function (battler, x, y) {
+        var letterX = eval(parameterPluralX);
+        var letterY = eval(parameterPluralY);
+        var actionX = eval(parameterActionNumX);
+        var actionY = eval(parameterActionNumY);
+
+        var newCoor = battler.generate ? 0
+                : this.drawTurnIconSheet(battler, x, y);
 
         if (paramShowPlural && battler.letter) {
             this.contents.fontSize = eval(parameterPluralSize);
