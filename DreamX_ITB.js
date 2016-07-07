@@ -253,7 +253,7 @@
  <ITBSheet: TurnIcons 10 10>
  <ITBSheetIndex: 1>
  
- This will use the sheet TurnIcons 10 10 with 10 rows and 10 columns.
+ This will use the sheet "TurnIcons 10 10.png" with 10 rows and 10 columns.
  The index will be 1. Indices start at 0.
  If you do not specify the rows and columns in the filename, the default 
  parameters will be used instead.
