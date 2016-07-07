@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.3 Options for the option menu
+ * @plugindesc v1.4 Options for the option menu
  * @author DreamX
  * 
  * @param --General Options--
@@ -7,7 +7,15 @@
  * @param Switches
  * @desc Ids of switches to have in the menu. Keep blank for none.
  * @default 
+ * 
+ * @param Persistent Switches
+ * @desc Ids of switches that are persistent. Keep blank for none.
+ * @default 
  *  
+ * @param Persistent Variables
+ * @desc Ids of variables that are persistent. Keep blank for none.
+ * @default 
+ * 
  * @param ON Text
  * @desc Test to display for options that are set to ON. Default: ON
  * @default ON
@@ -146,6 +154,18 @@
  * 
  * In the options menu, the name you use for these switches will appear.
  * ============================================================================
+ * Persistency Help
+ * ============================================================================
+ * Switches and variables made persistent will be the same for every 
+ * playthrough of your game. If whenever a persistent switch/variable is 
+ * changed in one playthrough, it will also be changed in another playthrough, 
+ * including when loading saves.
+ * 
+ * To reset this and the game options, delete config.rpgsave from the 
+ * save folder. When sending your game to your players, don't send them this 
+ * file, so they don't have your playthrough data and option choices 
+ * affecting their playthrough.
+ * ============================================================================
  * Tips & Tricks
  * ============================================================================
  * Resolution and fullscreen options require YEP Core Engine.
@@ -202,6 +222,9 @@ DreamX.Options = DreamX.Options || {};
 (function () {
     var parameters = PluginManager.parameters('DreamX_Options');
     var paramSwitches = String(parameters['Switches']);
+    var paramPersistentSwitches = String(parameters['Persistent Switches']);
+    var paramPersistentVariables = String(parameters['Persistent Variables']);
+
     var paramOnText = String(parameters['ON Text']);
     var paramOffText = String(parameters['OFF Text']);
     var paramWindowWidth = String(parameters['Window Width']);
@@ -376,6 +399,7 @@ DreamX.Options = DreamX.Options || {};
                 return c.symbol === symbol;
             })[0];
             var index = this._list.indexOf(cmd);
+
             this._list.splice(index, 1);
         }
     };
@@ -687,10 +711,10 @@ DreamX.Options = DreamX.Options || {};
         }
     };
 
-    if (Imported.YEP_CoreEngine) {
-        DreamX.Options.SceneManager_run = SceneManager.run;
-        SceneManager.run = function (sceneClass) {
-            ConfigManager.load();
+    DreamX.Options.SceneManager_run = SceneManager.run;
+    SceneManager.run = function (sceneClass) {
+        ConfigManager.load();
+        if (Imported.YEP_CoreEngine) {
             if (!ConfigManager.resolution || !Utils.isNwjs()) {
                 DreamX.Options.SceneManager_run.call(this, sceneClass);
             } else {
@@ -700,15 +724,16 @@ DreamX.Options = DreamX.Options || {};
             if (ConfigManager.fullscreen) {
                 Graphics._requestFullScreen();
             }
-
-        };
-    }
+        }
+    };
 
     DreamX.Options.ConfigManager_makeData = ConfigManager.makeData;
     ConfigManager.makeData = function () {
         var config = DreamX.Options.ConfigManager_makeData.call(this);
         config.resolution = this.resolution;
         config.fullscreen = this.fullscreen;
+        config.switches = this.switches;
+        config.variables = this.variables;
         return config;
     };
 
@@ -717,6 +742,8 @@ DreamX.Options = DreamX.Options || {};
         DreamX.Options.ConfigManager_applyData.call(this, config);
         this.resolution = config.resolution;
         this.fullscreen = config.fullscreen;
+        this.switches = config.switches;
+        this.variables = config.variables;
     };
 
     Window_Options.prototype.currentResString = function () {
@@ -777,6 +804,76 @@ DreamX.Options = DreamX.Options || {};
 
         if (next) {
             this.changeValue(symbol, next);
+        }
+    };
+
+    DreamX.Options.DataManager_createGameObjects = DataManager.createGameObjects;
+    DataManager.createGameObjects = function () {
+        DreamX.Options.DataManager_createGameObjects.call(this);
+        $gameSwitches.setPersistence();
+        $gameVariables.setPersistence();
+    };
+
+    DreamX.Options.DataManager_extractSaveContents = DataManager.extractSaveContents;
+    DataManager.extractSaveContents = function (contents) {
+        DreamX.Options.DataManager_extractSaveContents.call(this, contents);
+        $gameSwitches.setPersistence();
+        $gameVariables.setPersistence();
+    };
+
+    Game_Variables.prototype.setPersistence = function () {
+        if (!paramPersistentVariables) {
+            return;
+        }
+
+        if (!ConfigManager.variables) {
+            ConfigManager.variables = {};
+        }
+
+        var variables = DreamX.parseNumberRanges(paramPersistentVariables);
+        for (var i = 0; i < variables.length; i++) {
+            var variableId = variables[i];
+            if (ConfigManager.variables[variableId] !== undefined) {
+                this.setValue(variables, ConfigManager.variables[variableId]);
+            }
+        }
+    };
+
+    Game_Switches.prototype.setPersistence = function () {
+        if (!paramPersistentSwitches) {
+            return;
+        }
+
+        if (!ConfigManager.switches) {
+            ConfigManager.switches = {};
+        }
+
+        var switches = DreamX.parseNumberRanges(paramPersistentSwitches);
+        for (var i = 0; i < switches.length; i++) {
+            var switchId = switches[i];
+            if (ConfigManager.switches[switchId] !== undefined) {
+                this.setValue(switchId, ConfigManager.switches[switchId]);
+            }
+        }
+    };
+
+    DreamX.Options.Game_Variables_setValue = Game_Variables.prototype.setValue;
+    Game_Variables.prototype.setValue = function (variableId, value) {
+        DreamX.Options.Game_Variables_setValue.call(this, variableId, value);
+        var variables = DreamX.parseNumberRanges(paramPersistentVariables);
+        if (variables.indexOf(parseInt(variableId)) !== -1) {
+            ConfigManager.variables[variableId] = value;
+            ConfigManager.save();
+        }
+    };
+
+    DreamX.Options.Game_Switches_setValue = Game_Switches.prototype.setValue;
+    Game_Switches.prototype.setValue = function (switchId, value) {
+        DreamX.Options.Game_Switches_setValue.call(this, switchId, value);
+        var switches = DreamX.parseNumberRanges(paramPersistentSwitches);
+        if (switches.indexOf(parseInt(switchId)) !== -1) {
+            ConfigManager.switches[switchId] = !!value;
+            ConfigManager.save();
         }
     };
 
