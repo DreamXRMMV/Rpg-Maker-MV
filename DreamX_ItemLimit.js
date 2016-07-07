@@ -30,7 +30,7 @@ DreamX.ItemLimit = DreamX.ItemLimit || {};
             if (limit) {
                 limit = parseInt(limit);
                 var current = $gameParty.numItems(item);
-                amount = Math.max(0, Math.min(amount, limit - current));
+                amount = Math.min(amount, limit - current);
             }
         }
         DreamX.ItemLimit.Game_Party_gainItem.call(this, item, amount, includeEquip);
