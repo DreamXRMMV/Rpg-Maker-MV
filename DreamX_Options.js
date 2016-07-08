@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.4a Options for the option menu
+ * @plugindesc v1.4b Options for the option menu
  * @author DreamX
  * 
  * @param --General Options--
@@ -726,6 +726,16 @@ DreamX.Options = DreamX.Options || {};
             }
         };
     }
+    
+    if (Imported.YEP_KeyboardConfig) {
+        DreamX.Options.ConfigManager_applyKeyConfig = ConfigManager.applyKeyConfig;
+        ConfigManager.applyKeyConfig = function () {
+            if (SceneManager._scene) {
+                DreamX.Options.ConfigManager_applyKeyConfig.call(this);
+            }
+        };
+    }
+
 
     DreamX.Options.ConfigManager_makeData = ConfigManager.makeData;
     ConfigManager.makeData = function () {
