@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.4b Options for the option menu
+ * @plugindesc v1.4c Options for the option menu
  * @author DreamX
  * 
  * @param --General Options--
@@ -726,7 +726,7 @@ DreamX.Options = DreamX.Options || {};
             }
         };
     }
-    
+
     if (Imported.YEP_KeyboardConfig) {
         DreamX.Options.ConfigManager_applyKeyConfig = ConfigManager.applyKeyConfig;
         ConfigManager.applyKeyConfig = function () {
@@ -785,12 +785,19 @@ DreamX.Options = DreamX.Options || {};
             this.openConsole();
     };
 
-
+    DreamX.Options.Scene_Title_start = Scene_Title.prototype.start;
+    Scene_Title.prototype.start = function () {
+        if ($gameTemp._resetOnTitle && Utils.isNwjs()) {
+            location.reload();
+        }
+        DreamX.Options.Scene_Title_start.call(this);
+    };
 
     Window_Options.prototype.changeResolutionValue = function (symbol, value) {
         if (ConfigManager.resolution !== value) {
             ConfigManager.resolution = value;
             this.redrawAndPlayCursor(symbol);
+            $gameTemp._resetOnTitle = true;
         }
     };
 
