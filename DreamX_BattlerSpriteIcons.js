@@ -1,10 +1,7 @@
 /*:
- * @plugindesc 1.2b
+ * @plugindesc 1.3
  * @author DreamX
- *
- * @param ---Battler Sprite Icon Window---
- * @default
- *
+ * 
  * @param Maximum State/Buffs Per Line
  * @desc Maximum states/buffs to show per battler per line. Default: 4
  * @default 4
@@ -64,141 +61,95 @@
  * @desc default: false
  * @default false
  * 
- * @param Tooltip Refresh Rate
- * @desc The number of frames to wait for before refreshing the tooltip window. Default: 60
- * @default 60
- * 
- * @param Buff Description
- * @desc Whether to show a buff/debuff tooltip description. Default: false
- * @default false
- * 
- * @param Default Buff Description State
- * @desc The state in the database to draw the default buff/debuff description from. 0: Use plugin default Default: 0
- * @default 0
- *
- * @param ---Turn Indicator---
+ * @param ---Turns---
  * @default
  *
- * @param Show Actor Turns
- * @desc Show turns remaining for buffs and states for actors?
+ * @param Show Actor State Turns
+ * @desc Show turns remaining for states for actors?
  * NO - false     YES - true
  * @default true
- *
- * @param Show Enemy Turns
- * @desc Show turns remaining for buffs and states for enemies?
+ * 
+ * @param Show Actor Buff Turns
+ * @desc Show turns remaining for buffs/debuffs for actors?
  * NO - false     YES - true
  * @default true
- *
- * @param Font Size
- * @desc The default font size used for turn count.
- * Default: 16
- * @default 16
- *
- * @param Turn Alignment
- * @desc How do you want to align the turns?
- * left     center     right
- * @default right
- *
- * @param Turn Buffer X
- * @desc Buffer the x position of the turn by this much.
- * @default -3
- *
- * @param Turn Buffer Y
- * @desc Buffer the y position of the turn by this much.
- * @default -6
- *
- * @param State Color
- * @desc The default text color used for state turns.
- * @default 0
- *
- * @param Buff Color
- * @desc The default text color used for buffs.
- * @default 24
- *
- * @param Debuff Color
- * @desc The default text color used for debuffs.
- * @default 2
- *
+ * 
+ * @param ---Counters---
+ * 
+ * @param Show Actor Counters
+ * @desc Show counters for states for actors?
+ * NO - false     YES - true
+ * @default true
+ * 
+ * @param ---Buff/Debuffs---
+ * 
+ * @param Show Buff Rate
+ * @desc Show rate for buff/debuffs?
+ * NO - false     YES - true
+ * @default true
+ * 
  * @help
  * Requires Yanfly Battle Engine Core.
+ * 
+ * Showing turns, counters and buff rates requires YEP Buff States Core. How 
+ * they are displayed depends on the parameters you choose for that plugin.
+ * 
  * ---
  * State Notetags:
+ *      <DXBSI_Description: x>
+ *      Replace x with the description of the state. This will appear in the 
+ *      tooltip if tooltips are turned on.
+
+ *      <DXBSIBadState>
+ *      Designates state as a bad state. It will appear on its own line.
+ *
+ *      <DXBSIHideIcon>
+ *      Prevent state's icon from showing next to sprite.
+ * ---
+ * Actor/Enemy Notetags:
+ *      <DXBSIHideIcons>
+ *      Prevent state/buffs icons from being shown for battler sprite.
+ * ---
+ * Special State Tooltip Code
+ *      You should use this only if you know some javascript.
  *      <DXBSI TOOLTIP CODE>
  *      x
  *      </DXBSI TOOLTIP CODE>
- *      This is required if you want a tooltip description for a state. 
- *      Replace x  with javascript. Since it is javascript you can technically 
- *      put whatever you want there, but it's intended for putting things in the 
- *      tooltip window. I recommend using this.drawLine(text, y)
+ *      This will determine a custom tooltip for the state.
+ *      Replace x  with javascript. Using this.drawLine(text, y) is 
+ *      required to show text properly.
  *      
  *      Replace text with a variable containing the text you want to display, 
  *      and y with the height of the line. For y, I recommend using the highest 
  *      height of what you are displaying in the line, such as font size or 
- *      an icon. 
+ *      an icon, plus 8.
  *      
  *      Here is an example of this notetag set. This example was done with 
  *      Yanfly Message Core on, so that \\fs could be used to change font size.
  *      Notice that this example uses \\ instead of just \. You'll need to do 
  *      that here when using message codes.
  *      
- *      <DXBSI TOOLTIP CODE>
- *      var name = "\\fs[20]\\C[6]" + state.name;
- *      var defenseRate = state.traits[0].value * 100;
- *      var description = "\\fs[16]Increases defense by \\C[3]" + defenseRate 
- *          + "%\\C[0].";
- *      var turns = "\\fs[16]\\C[6]" + this.turns() + " turns remaining.";
+ *      Use this._buffState to reference the state.
  *      
- *      this.drawLine(name, 20);
- *      this.drawLine(description, 16);
- *      if (turns) {
- *      this.drawLine(turns, 16);
+ *      <DXBSI TOOLTIP CODE>
+ *      var name = "\\fs[20]\\C[6]" + this._buffState.name;
+ *      var defenseRate = this._buffState.traits[0].value * 100;
+ *      var description = "\\fs[16]Increases defense by \\C[3]" + defenseRate + "%\\C[0].";
+ *      var turns = "\\fs[16]\\C[6]" + this.turns() + " turns remaining.";
+ *      this.drawLine(name, 28);
+ *      this.drawLine(description, 24);
+ *      if (this.turns()) {
+ *      this.drawLine(turns, 24);
  *      }
  *      </DXBSI TOOLTIP CODE>
  *      
- *      If you require javascript assistance, I recommend either asking in the
- *      thread for this plugin or elsewhere.
- *      
- *      <DXBSIBadState:1>
- *      Designates state as a bad state. It will appear on its own line.
- *
- *      <DXBSIHideIcon:1>
- *      Prevent state's icon from showing next to sprite.
- *
- *      <DXBSIHideTurns: 1>
- *      Prevent state's turns from showing.
- *
- *      <DXBSITurnFontSize: x>
- *      Sets the font size used for this specific state to be x. This will
- *      override the default setting.
- *
- *      <DXBSITurnAlignment: x>
- *      This sets the text alignment for the turn count indicator. This will
- *      override the default setting. X can be left right or center.
- *
- *      <DXBSITurnBufferX: +x>
- *      <DXBSITurnBufferX: -x>
- *      <DXBSITurnBufferY: +x>
- *      <DXBSITurnBufferY: -x>
- *      Allows you to adjust the x/y position manually for the turn count for
- *      this particular state. This will override the default settings.
- *
- *      <DXBSITurnColor: x>
- *      This will set the turn count display color to text color x. This will
- *      override the default setting.
- *
- * Actor/Enemy Notetags:
- *      <DXBSIHideIcons:1>
- *      Prevent state/buffs icons from being shown for battler sprite.
- *
- *      <DXBSIHideTurns:1>
- *      Prevent turns from being shown for the battler sprite.
+ *      Here's an example of how to set a requirement for the state to appear 
+ *      next to the sprite. You'll need to know some javascript.
+ *      <DXBSI SHOW REQUIREMENT>
+ *      $gameSwitches.value(1)
+ *      </DXBSI SHOW REQUIREMENT>
+ *      This will require that the switch 1 is on.
  * --
- * Here's an example of how to set a requirement for the state to appear next
- * to the sprite. You'll need to know some javascript.
- * <DXBSI SHOW REQUIREMENT>
- * $gameSwitches.value(1)
- * </DXBSI SHOW REQUIREMENT>
- * This will require that the switch 1 is on.
  * ===========================================================================
  * Terms Of Use
  * ===========================================================================
@@ -233,26 +184,19 @@ DreamX.Param.BSIIconHeight = eval(String(DreamX.Parameters['Icon Height']) || Wi
 DreamX.Param.BSIShowStates = eval(String(DreamX.Parameters['Show States']) || true);
 DreamX.Param.BSIShowBuffsDebuffs = eval(String(DreamX.Parameters['Show Buffs/Debuffs']) || true);
 DreamX.Param.BSIDebuffsBad = eval(String(DreamX.Parameters['Debuffs Considered Bad']) || true);
-DreamX.Param.ToolTipRefreshRate = eval(String(DreamX.Parameters['Tooltip Refresh Rate']) || 60);
 DreamX.Param.IconWindowRefreshRate = eval(String(DreamX.Parameters['Icon Window Refresh Rate']) || 60);
 DreamX.Param.BSIShowActorIcons = eval(String(DreamX.Parameters['Show Icons For Actor']) || true);
 DreamX.Param.BSIShowEnemyIcons = eval(String(DreamX.Parameters['Show Icons For Enemy']) || true);
 DreamX.Param.BSIShowIconsOnDeath = eval(String(DreamX.Parameters['Show Icons On Death']) || true);
 DreamX.Param.BSIShowDefaultBuffDesc = eval(String(DreamX.Parameters['Buff Description']) || true);
 DreamX.Param.BSIDefaultBuffDesc = Number(DreamX.Parameters['Default Buff Description State']);
-
-
 DreamX.Param.BSIShowTooltips = eval(String(DreamX.Parameters['Show Tooltips']));
 
-DreamX.Param.BSIShowActorTurns = eval(String(DreamX.Parameters['Show Actor Turns']));
-DreamX.Param.BSIShowEnemyTurns = eval(String(DreamX.Parameters['Show Enemy Turns']));
-DreamX.Param.BSIFontSize = String(DreamX.Parameters['Font Size']);
-DreamX.Param.BSITurnAlign = String(DreamX.Parameters['Turn Alignment']);
-DreamX.Param.BSITurnBufferX = Number(DreamX.Parameters['Turn Buffer X']);
-DreamX.Param.BSITurnBufferY = Number(DreamX.Parameters['Turn Buffer Y']);
-DreamX.Param.BSITurnColor = Number(DreamX.Parameters['State Color']);
-DreamX.Param.BSIBuffColor = Number(DreamX.Parameters['Buff Color']);
-DreamX.Param.BSIDebuffColor = Number(DreamX.Parameters['Debuff Color']);
+DreamX.Param.BSIShowActorTurns = eval(String(DreamX.Parameters['Show Actor State Turns']));
+DreamX.Param.BSIShowActorCounters = eval(String(DreamX.Parameters['Show Actor Counters']));
+DreamX.Param.BSIShowActorBuffTurns = eval(String(DreamX.Parameters['Show Actor Buff Turns']));
+
+DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']));
 
 (function () {
     //==========================================================================
@@ -297,67 +241,111 @@ DreamX.Param.BSIDebuffColor = Number(DreamX.Parameters['Debuff Color']);
         }
     };
 
-    //=============================================================================
-    // Scene_Battle
-    //=============================================================================
+    DreamX.BattlerSpriteIcons.Scene_Battle_createDisplayObjects = Scene_Battle.prototype.createDisplayObjects;
+    Scene_Battle.prototype.createDisplayObjects = function () {
+        DreamX.BattlerSpriteIcons.Scene_Battle_createDisplayObjects.call(this);
+        this.addBattlerStateWindows();
+    };
+
+    DreamX.BattlerSpriteIcons.Scene_Battle_update = Scene_Battle.prototype.update;
+    Scene_Battle.prototype.update = function () {
+        DreamX.BattlerSpriteIcons.Scene_Battle_update.call(this);
+        if (!this._tooltipWindow) {
+            return;
+        }
+
+        var hover = false;
+        for (var i = 0; i < this._stateIconWindows.length; i++) {
+            var window = this._stateIconWindows[i];
+            var windowHitIndex = window.hitIndex();
+            if (windowHitIndex !== -1) {
+                this._currentTooltipHitIndex = windowHitIndex;
+                hover = true;
+                this._currentTooltipHitWindow = window;
+                break;
+            }
+        }
+
+        if (!hover) {
+            this._tooltipWindow.clear();
+            this._tooltipWindow.hide();
+        } else {
+            if (this._previousTooltipHitIndex
+                    !== this._currentTooltipHitWindow
+                    || this._previousTooltipHitIndex
+                    !== this._currentTooltipHitIndex) {
+                this._tooltipWindow.clear();
+            }
+            this._previousTooltipHitWindow = this._currentTooltipHitWindow;
+            this._previousTooltipHitIndex = this._currentTooltipHitIndex;
+
+
+            var buffState = this._currentTooltipHitWindow.
+                    iconsArray()[this._currentTooltipHitIndex];
+            var battler = this._currentTooltipHitWindow.battler();
+
+            this._tooltipWindow.showAndMove(this._currentTooltipHitWindow,
+                    this._currentTooltipHitIndex, buffState, battler);
+        }
+    };
+
     Scene_Battle.prototype.DXBSIIconWindowSpritesetChildIndex = function () {
         var spritesetLayer = this._spriteset;
-        
+
         return spritesetLayer.children.indexOf(spritesetLayer._pictureContainer);
     };
 
-    //==========================================================================
-    // Sprite_StateIcon
-    //==========================================================================
+    Scene_Battle.prototype.addBattlerStateWindows = function () {
+
+        this._stateIconWindows = [];
+        this._currentTooltipHitIndex = -1;
+        this._previousTooltipHitIndex = -1;
+        this._currentTooltipHitWindow = undefined;
+        this._previousTooltipHitWindow = undefined;
+
+        var spriteset = this._spriteset;
+        this._stateIconLayer = new Sprite();
+        spriteset.addChildAt(this._stateIconLayer,
+                this.DXBSIIconWindowSpritesetChildIndex());
+
+        var battlers = BattleManager.allBattleMembers();
+        for (var i = 0; i < battlers.length; i++) {
+            var battler = battlers[i];
+            var dataBattler = battler.isActor() ? battler.actor()
+                    : battler.enemy();
+
+            if (dataBattler.meta.DXBSIHideIcons) {
+                continue;
+            }
+            if (battler.isActor() && !$gameSystem.isSideView())
+                continue;
+            if (battler.isActor() && !DreamX.Param.BSIShowActorIcons) {
+                continue;
+            }
+            if (battler.isEnemy() && !DreamX.Param.BSIShowEnemyIcons) {
+                continue;
+            }
+
+            var normalWindow = new Window_BattleNormalStateIcon(battler);
+            var badWindow = new Window_BattleBadStateIcon(battler);
+
+            this._stateIconLayer.addChild(normalWindow);
+            this._stateIconLayer.addChild(badWindow);
+
+            this._stateIconWindows.push(normalWindow);
+            this._stateIconWindows.push(badWindow);
+        }
+        
+                if (DreamX.Param.BSIShowTooltips) {
+            this._tooltipWindow = new Window_StateToolTip();
+            this._stateIconLayer.addChild(this._tooltipWindow);
+        }
+
+
+    };
+
     DreamX.BattlerSpriteIcons.Sprite_StateIcon_update = Sprite_StateIcon.prototype.update;
     Sprite_StateIcon.prototype.update = function () {
-    };
-
-    //==========================================================================
-    // Sprite_Battler
-    //==========================================================================
-    DreamX.BattlerSpriteIcons.Sprite_Battler_update = Sprite_Battler.prototype.update;
-    Sprite_Battler.prototype.update = function () {
-        DreamX.BattlerSpriteIcons.Sprite_Battler_update.call(this);
-        this.addStateIconWindows();
-    };
-
-    Sprite_Battler.prototype.addStateIconWindows = function () {
-        if (this._DXBSI_addedStateIconWindows)
-            return;
-        var battler = this._battler;
-        if (!battler)
-            return;
-
-        if (battler.isActor() && !$gameSystem.isSideView())
-            return;
-        if (battler.isActor() && !DreamX.Param.BSIShowActorIcons) {
-            return;
-        }
-        if (battler.isEnemy() && !DreamX.Param.BSIShowEnemyIcons) {
-            return;
-        }
-
-        var scene = SceneManager._scene;
-        var spriteset = scene._spriteset;
-        
-        if (!spriteset) {
-            return;
-        }
-
-        this._DXBSI_NormalStateIconWindow = new Window_BattleNormalStateIcon(battler);
-        this._DXBSI_BadStateIconWindow = new Window_BattleBadStateIcon(battler);
-
-        if (!scene._stateIconLayer) {
-            scene._stateIconLayer = new Sprite();
-            spriteset.addChildAt(scene._stateIconLayer,
-                    scene.DXBSIIconWindowSpritesetChildIndex());
-        }
-
-        scene._stateIconLayer.addChild(this._DXBSI_NormalStateIconWindow);
-        scene._stateIconLayer.addChild(this._DXBSI_BadStateIconWindow);
-
-        this._DXBSI_addedStateIconWindows = true;
     };
 
     //=============================================================================
@@ -376,10 +364,11 @@ DreamX.Param.BSIDebuffColor = Number(DreamX.Parameters['Debuff Color']);
         this._battler = battler;
         Window_Selectable.prototype.initialize.call(this, 0, 0, this.windowWidth(), this.windowHeight());
         this.opacity = 0;
-        this.z = 0;
-        if (DreamX.Param.BSIShowTooltips === true) {
-            this.createToolTipWindows();
-        }
+        this._hitIndex = -1;
+    };
+
+    Window_BattleStateIcon.prototype.hitIndex = function () {
+        return this._hitIndex;
     };
 
     Window_BattleStateIcon.prototype.update = function () {
@@ -393,11 +382,7 @@ DreamX.Param.BSIDebuffColor = Number(DreamX.Parameters['Debuff Color']);
     Window_BattleStateIcon.prototype.refresh = function () {
         var battler = this._battler;
 
-        if (this.contents) {
-            this.contents.clear();
-        }
-        if (!battler)
-            return;
+        this.contents.clear();
 
         if (!battler.isAppeared())
             return;
@@ -406,58 +391,23 @@ DreamX.Param.BSIDebuffColor = Number(DreamX.Parameters['Debuff Color']);
             return;
         }
 
-        var dataBattler = battler.isActor() ? battler.actor() : battler.enemy();
-
-        if (dataBattler.meta.DXBSIHideIcons) {
-            return;
-        }
-
         if (battler.isDead() && DreamX.Param.BSIShowIconsOnDeath === false) {
             return;
         }
         this.drawAllItems();
         this.updateWindowPosition();
-        if (DreamX.Param.BSIShowTooltips === true) {
-            this.updateToolTipWindows();
-        }
-    };
-
-    Window_BattleStateIcon.prototype.createToolTipWindows = function () {
-        if (this._DXBSI_addedTooltipWindows)
-            return;
-        var scene = SceneManager._scene;
-        if (!scene._windowLayer)
-            return;
-        var childIndex = scene.children.indexOf(scene._windowLayer);
-        this._tooltipWindows = [];
-        for (var i = 0; i < this.maxItems(); i++) {
-            var tooltipWindow = new Window_StateToolTip(this, i);
-            this._tooltipWindows.push(tooltipWindow);
-            scene.addChildAt(tooltipWindow, childIndex);
-        }
-        this._DXBSI_addedTooltipWindows = true;
-    };
-
-    Window_BattleStateIcon.prototype.hideAllToolTips = function () {
-        for (var i = 0; i < this._tooltipWindows.length; i++) {
-            this._tooltipWindows[i].hide();
-        }
     };
 
     Window_BattleStateIcon.prototype.processTouch = function () {
-        if (!this._tooltipWindows)
-            return;
         var x = this.canvasToLocalX(TouchInput._mouseOverX);
         // TouchInput.x
         var y = this.canvasToLocalY(TouchInput._mouseOverY);
         // TouchInput.y
         var hitIndex = this.hitTest(x, y);
-        this.hideAllToolTips();
         if (hitIndex >= 0 && hitIndex < this.iconsArray().length) {
-            if (!this._tooltipWindows[hitIndex]) {
-                return;
-            }
-            this._tooltipWindows[hitIndex].showAndMove(hitIndex);
+            this._hitIndex = hitIndex;
+        } else {
+            this._hitIndex = -1;
         }
     };
 
@@ -490,15 +440,6 @@ DreamX.Param.BSIDebuffColor = Number(DreamX.Parameters['Debuff Color']);
 
     // overwrite me
     Window_BattleStateIcon.prototype.iconsArray = function () {
-    };
-
-    Window_BattleStateIcon.prototype.updateToolTipWindows = function () {
-        for (var i = 0; i < this.iconsArray().length; i++) {
-            var buffState = this.iconsArray()[i];
-            if (!buffState)
-                continue;
-            this._tooltipWindows[i].setBuffState(buffState);
-        }
     };
 
     Window_BattleStateIcon.prototype.itemWidth = function () {
@@ -540,23 +481,67 @@ DreamX.Param.BSIDebuffColor = Number(DreamX.Parameters['Debuff Color']);
 
         this.drawIcon(icon, x, y);
 
-        if (turns <= 0 || dataBattler.meta.DXBSIHideTurns) {
+        if (!Imported.YEP_BuffsStatesCore) {
             return;
         }
 
-        var textX = x + this.turnXOffset(stateBuff);
-        var textY = y + this.turnYOffset(stateBuff);
-        var fontSize = this.turnFontSize(stateBuff);
-        var alignment = this.turnAlignment(stateBuff);
-        var color = this.turnColor(stateBuff);
+        if (stateBuff.state) {
+            if (Yanfly.Param.BSCShowTurns
+                    && (DreamX.Param.BSIShowActorTurns
+                            && this._battler.isActor())
+                    || (Yanfly.Param.BSCEnemyTurn
+                            && this._battler.isEnemy())) {
+                this.drawStateTurns(this._battler, $dataStates[stateBuff.id], x, y);
+            }
 
-        this.changePaintOpacity(true);
-        this.changeTextColor(this.textColor(color));
-        this.contents.fontSize = fontSize;
-        this.drawText(turns, textX, textY, DreamX.Param.BSIIconWidth, alignment);
-        this.resetFontSettings();
-        this.resetTextColor();
+            if ((DreamX.Param.BSIShowActorCounters
+                    && this._battler.isActor())
+                    || (Yanfly.Param.BSCEnemyCounter
+                            && this._battler.isEnemy())) {
+                this.drawStateCounter(this._battler, $dataStates[stateBuff.id], x, y);
+            }
+
+        } else {
+            if ((DreamX.Param.BSIShowActorBuffTurns
+                    && this._battler.isActor())
+                    || (Yanfly.Param.BSCEnemyBTurn
+                            && this._battler.isEnemy())) {
+                this.drawBuffTurns(this._battler, stateBuff.id, x, y);
+            }
+
+            if (DreamX.Param.BSIShowBuffRate) {
+                this.drawBuffRate(this._battler, stateBuff.id, x, y);
+            }
+        }
     };
+
+//    Window_BattleStateIcon.prototype.drawStateCounters = function (x, y, index, array, dataBattler) {
+//        var stateBuff = array[index];
+//
+//        if (!stateBuff || !stateBuff.state)
+//            return;
+//
+//        var value = stateBuff.counters;
+//        if (value === undefined)
+//            return;
+//
+//        var settings = stateBuff.stateCounterSettings;
+//        value = Yanfly.Util.toGroup(value);
+//        var wx = x + settings.bufferX;
+//        var wy = y + settings.bufferY - 2;
+//        var ww = Window_Base._iconWidth;
+//        var wh = Window_Base.prototype.lineHeight.call(this);
+//        
+//        var contents = this._turnCounterSprite.bitmap;
+//        this.contents.fontSize = settings.size;
+//        this.changeTextColor(this.textColor(settings.color));
+//        
+//        contents.textColor = this.textColor();
+//        contents.drawText(value, wx, wy, ww, wh, settings.align);
+//
+//        this.resetFontSettings();
+//        this.resetTextColor();
+//    };
 
     Window_BattleStateIcon.prototype.highestLineIconCount = function () {
         var battler = this._battler;
@@ -611,6 +596,10 @@ DreamX.Param.BSIDebuffColor = Number(DreamX.Parameters['Debuff Color']);
         }
 
         return DreamX.Param.BSITurnBufferY;
+    };
+
+    Window_BattleStateIcon.prototype.battler = function () {
+        return this._battler;
     };
 
     Window_BattleStateIcon.prototype.turnAlignment = function (stateBuff) {
@@ -703,192 +692,32 @@ DreamX.Param.BSIDebuffColor = Number(DreamX.Parameters['Debuff Color']);
     Window_StateToolTip.prototype = Object.create(Window_Base.prototype);
     Window_StateToolTip.prototype.constructor = Window_StateToolTip;
 
-    Window_StateToolTip.prototype.initialize = function (iconWindow, index) {
+    Window_StateToolTip.prototype.initialize = function () {
         Window_Base.prototype.initialize.call(this, 0, 0, Graphics.boxWidth, Graphics.boxHeight);
-        this._index = index;
-        this._iconWindow = iconWindow;
-        this._battler = iconWindow._battler;
+        //this.hide();
+        this._lineTextWidth = 0;
+        this._lineTextHeight = 0;
+    };
+
+    Window_StateToolTip.prototype.clear = function () {
+        this.contents.clear();
+    };
+
+    Window_StateToolTip.prototype.showAndMove = function (iconWindow, index,
+            buffState, battler) {
+        var iconWindow = iconWindow;
+
         this._lineTextWidth = 0;
         this._lineTextHeight = 0;
 
-        // whether a manual refresh is requested
-        this._requestRefresh = false;
-
-
-        // whether the window's contents have been cleared
-        this._contentsCleared = false;
-
-        this._isBuff = false;
-    };
-
-    Window_StateToolTip.prototype.setBuffState = function (buffState) {
-        var stateChanged;
-
-        if (!this._isBuff && this._buffState !== $dataStates[buffState.id]) {
-            stateChanged = true;
-        }
-
-        this._buffState = buffState;
-
-        if (buffState.state) {
-            this._buffState = $dataStates[buffState.id];
-        } else {
-            this._isBuff = true;
-        }
-
-        // if the state changed, then request a refresh
-        if (stateChanged) {
-            this._requestRefresh = true;
-        }
-    };
-
-    Window_StateToolTip.prototype.update = function () {
-        Window_Base.prototype.update.call(this);
-        // if a manual refresh wasn't requested, then refresh every second
-        // (60 frames) instead
-        if (!this._requestRefresh) {
-            return;
-        }
-
-        this.refresh();
-    };
-
-    Window_StateToolTip.prototype.defaultBuffDescription = function () {
-        var buff = this._buffState;
-
-        var name = TextManager.param(buff.id);
-        var symbol = buff.value > 0 ? "+" : "-";
-        var nameTextSize = this.contents.fontSize - 12;
-        var nameLine = "\\\\}\\\\C[6]" + symbol + name;
-        var nameCode = "this.drawLine(\"" + nameLine + "\", " + nameTextSize + ");";
-
-        var turnLine = "\\\\}" + this.turns() + " turns remaining.";
-        var turnCode = "this.drawLine(\"" + turnLine + "\", " + nameTextSize + ");";
-
-        var code = nameCode + turnCode;
-
-        return code;
-    };
-
-    Window_StateToolTip.prototype.refresh = function () {
-        if (this.contents && !this._contentsCleared) {
-            this.contents.clear();
-            this._contentsCleared = true;
-        }
-        if (this._battler && this._buffState) {
-            this._lineTextWidth = 0;
-            this._lineTextHeight = 0;
-            this.drawDescription();
-            this.updateSize();
-            this._requestRefresh = false;
-            this._contentsCleared = false;
-        }
-    };
-
-    Window_StateToolTip.prototype.drawLine = function (text, height) {
-        if (!text) {
-            return;
-        }
-
-        if (!height) {
-            height = this.standardFontSize();
-        }
-        if (this.hasTextIcon(text)) {
-            height += (DreamX.Param.BSIIconHeight - height) / 2;
-        }
-        height += 8;
-
-        var width = this.drawTextEx(text, 0, this._lineTextHeight);
-
-        if (width > this._lineTextWidth) {
-            this._lineTextWidth = width;
-        }
-
-        this._lineTextHeight += height;
-    };
-
-    Window_StateToolTip.prototype.hasTextIcon = function (text) {
-        return new RegExp("\\\\I").test(text);
-    };
-
-    Window_StateToolTip.prototype.updateSize = function () {
-        this.width = this._lineTextWidth + this.standardPadding() * 2;
-        this.height = this._lineTextHeight + this.standardPadding() * 2;
-    };
-
-    Window_StateToolTip.prototype.turns = function () {
-        var buffState = this._buffState;
-        var battler = this._battler;
-
-        if (!buffState || !battler) {
-            return;
-        }
-
-        if (this._isBuff) {
-            return battler._buffTurns[buffState.id];
-        }
-
-        var stateTurns = battler._stateTurns[buffState.id];
-
-        if (stateTurns)
-            return stateTurns;
-
-        return "";
-    };
-
-    Window_StateToolTip.prototype.buffDescriptionCode = function () {
-        if (!DreamX.Param.BSIShowDefaultBuffDesc) {
-            return "";
-        }
-        if (DreamX.Param.BSIDefaultBuffDesc) {
-            return $dataStates[DreamX.Param.BSIDefaultBuffDesc].DXBSITooltipCode;
-        }
-
-        return this.defaultBuffDescription();
-    };
-
-    Window_StateToolTip.prototype.drawDescription = function () {
-        var state = this._buffState;
-        var buff = this._buffState;
-        var description = this.descriptionCode();
-
-        if (!description) {
-            return;
-        }
-        eval(description);
-    };
-
-    Window_StateToolTip.prototype.stateDescriptionCode = function () {
-        var buffState = this._buffState;
-        if (buffState && !this._isBuff) {
-            if (buffState.DXBSITooltipCode) {
-                return buffState.DXBSITooltipCode;
-            }
-        }
-        return "";
-    };
-
-    Window_StateToolTip.prototype.descriptionCode = function () {
-        var buffState = this._buffState;
-        if (buffState) {
-            var description = this._isBuff ? this.buffDescriptionCode()
-                    : this.stateDescriptionCode();
-            if (description)
-                return description;
-        }
-        return "";
-    };
-
-    Window_StateToolTip.prototype.showAndMove = function () {
-        var iconWindow = this._iconWindow;
-        var index = this._index;
-
-        if (!this.descriptionCode()) {
-            return;
-        }
+        this.setBuffState(buffState);
+        this._battler = battler;
 
         var rect = iconWindow.itemRect(index);
+
         var x = iconWindow.x + rect.x + this.standardPadding();
+
+        this.drawDescription();
 
         x = (x - this.width / 2) + DreamX.Param.BSIIconWidth / 2;
 
@@ -915,6 +744,142 @@ DreamX.Param.BSIDebuffColor = Number(DreamX.Parameters['Debuff Color']);
         this.y = y;
 
         this.show();
+    };
+
+    Window_StateToolTip.prototype.setBuffState = function (buffState) {
+        this._buffState = buffState;
+
+        if (buffState.state) {
+            this._isBuff = false;
+            this._buffState = $dataStates[buffState.id];
+        } else {
+            this._isBuff = true;
+        }
+    };
+
+    Window_StateToolTip.prototype.drawDefaultDescription = function () {
+        var buffState = this._buffState;
+        var lineHeightAdd = 8;
+
+        var nameFontSize = 20;
+        var nameHeightSize = nameFontSize + lineHeightAdd;
+        var name = "";
+        var nameLine = "\\fs[" + nameFontSize + "]\\C[6]";
+        var buffValue = "";
+        var symbol = "";
+
+        if (this._isBuff) {
+            name = TextManager.param(buffState.id);
+            buffValue = this._battler.buff(buffState.id);
+            symbol = buffValue > 0 ? "+" : "-";
+            name = symbol + name;
+        } else {
+            name = buffState.name;
+        }
+        nameLine += name;
+
+        var description = "";
+        var descriptionLine = "";
+        var descriptionFontSize = 16;
+        var descriptionHeightSize = descriptionFontSize + lineHeightAdd;
+
+        if (!this._isBuff && buffState.meta.DXBSI_Description) {
+            description = buffState.meta.DXBSI_Description.trim();
+        } else if (this._isBuff && Imported.YEP_BuffsStatesCore) {
+            description = this._battler.paramBuffRate(buffState.id) * 100 + "% "
+                    + TextManager.param(buffState.id);
+        }
+
+        descriptionLine = "\\fs[" + descriptionFontSize + "]" + description;
+
+        var turnFontSize = 16;
+        var turnHeightSize = turnFontSize + lineHeightAdd;
+        var turns = "\\fs[" + turnFontSize + "]\\C[6]" + this.turns() + " turns remaining.";
+
+        this.drawLine(nameLine, nameHeightSize);
+        if (description) {
+            this.drawLine(descriptionLine, descriptionHeightSize);
+        }
+        if (this.turns()) {
+            this.drawLine(turns, turnHeightSize);
+        }
+    };
+
+    Window_StateToolTip.prototype.drawLine = function (text, height) {
+        if (!text) {
+            return;
+        }
+
+        var width = this.drawTextEx(text, 0, this._lineTextHeight);
+
+        if (width > this._lineTextWidth) {
+            this._lineTextWidth = width;
+        }
+
+        this._lineTextHeight += height;
+    };
+
+    Window_StateToolTip.prototype.hasTextIcon = function (text) {
+        return new RegExp("\\\\I").test(text);
+    };
+
+    Window_StateToolTip.prototype.updateSize = function () {
+        this.width = this._lineTextWidth + this.standardPadding() * 2;
+        this.height = this._lineTextHeight + this.standardPadding() * 2 + 4;
+    };
+
+    Window_StateToolTip.prototype.turns = function () {
+        var buffState = this._buffState;
+        var battler = this._battler;
+
+        if (!buffState || !battler) {
+            return;
+        }
+
+        if (this._isBuff) {
+            return battler._buffTurns[buffState.id];
+        }
+
+        var stateTurns = battler._stateTurns[buffState.id];
+
+        if (stateTurns)
+            return stateTurns;
+
+        return "";
+    };
+
+    Window_StateToolTip.prototype.buffDescriptionCode = function () {
+        if (DreamX.Param.BSIDefaultBuffDesc) {
+            return $dataStates[DreamX.Param.BSIDefaultBuffDesc].DXBSITooltipCode;
+        }
+
+        return false;
+    };
+
+    Window_StateToolTip.prototype.stateDescriptionCode = function () {
+        var buffState = this._buffState;
+        if (buffState.DXBSITooltipCode) {
+            return buffState.DXBSITooltipCode;
+        }
+        return false;
+    };
+
+    Window_StateToolTip.prototype.drawDescription = function () {
+        var descriptionCode = this.descriptionCode();
+
+        if (descriptionCode) {
+            eval(descriptionCode);
+        } else {
+            this.drawDefaultDescription();
+        }
+
+        this.updateSize();
+    };
+
+    Window_StateToolTip.prototype.descriptionCode = function () {
+        var description = this._isBuff ? this.buffDescriptionCode()
+                : this.stateDescriptionCode();
+        return description;
     };
 
 //=============================================================================
@@ -1009,7 +974,14 @@ DreamX.Param.BSIDebuffColor = Number(DreamX.Parameters['Debuff Color']);
                 ? JSON.parse(JSON.stringify(this._stateTurns[state.id])) : 0;
         if (state.autoRemovalTiming <= 0 || state.meta.DXBSIHideTurns)
             stateTurns = 0;
-        return {icon: state.iconIndex, turns: stateTurns, id: state.id, state: true};
+        var obj = {icon: state.iconIndex, turns: stateTurns, id: state.id,
+            state: true};
+        if (Imported.YEP_BuffsStatesCore) {
+            var counters = this.getStateCounter(state.id);
+            obj.counters = counters;
+        }
+
+        return obj;
     };
 
     Game_BattlerBase.prototype.DreamX_BSI_AllValidDataStates = function () {
@@ -1068,7 +1040,5 @@ DreamX.Param.BSIDebuffColor = Number(DreamX.Parameters['Debuff Color']);
 
         return eval(jsScript);
     };
-
-
 
 })();
