@@ -61,6 +61,14 @@
  * @desc default: false
  * @default false
  * 
+ * @param Default Turns Remaining Text (Singular)
+ * @desc Text to display for default turns remaining text in tooltip. For one turn only.
+ * @default turn remaining.
+ * 
+ * @param Default Turns Remaining Text (Plural)
+ * @desc Text to display for default turns remaining text in tooltip. For multiple turns only.
+ * @default turns remaining.
+ * 
  * @param ---Turns---
  * @default
  *
@@ -197,6 +205,9 @@ DreamX.Param.BSIShowActorCounters = eval(String(DreamX.Parameters['Show Actor Co
 DreamX.Param.BSIShowActorBuffTurns = eval(String(DreamX.Parameters['Show Actor Buff Turns']));
 
 DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']));
+DreamX.Param.BSITurnsRemainingTextSingular = String(DreamX.Parameters['Default Turns Remaining Text (Singular)']);
+DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Turns Remaining Text (Plural)']);
+
 
 (function () {
     //==========================================================================
@@ -794,13 +805,20 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
 
         var turnFontSize = 16;
         var turnHeightSize = turnFontSize + lineHeightAdd;
-        var turns = "\\fs[" + turnFontSize + "]\\C[6]" + this.turns() + " turns remaining.";
+        var numTurns = this.turns();
+        var turns = "\\fs[" + turnFontSize + "]\\C[6]" + numTurns + " ";
 
         this.drawLine(nameLine, nameHeightSize);
         if (description) {
             this.drawLine(descriptionLine, descriptionHeightSize);
         }
-        if (this.turns()) {
+        if (numTurns) {
+            if (numTurns === 1) {
+                turns += DreamX.Param.BSITurnsRemainingTextSingular;
+            }
+            else {
+                turns += DreamX.Param.BSITurnsRemainingTextPlural;
+            }
             this.drawLine(turns, turnHeightSize);
         }
     };
