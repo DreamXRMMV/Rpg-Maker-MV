@@ -1,5 +1,5 @@
 /*:
- * @plugindesc 1.4c
+ * @plugindesc 1.5
  * @author DreamX
  *
  * @param Maximum State/Buffs Per Line
@@ -60,7 +60,7 @@
  * @param Show Tooltips
  * @desc default: false
  * @default false
- * 
+ *
  * @param Max Y Value (Battle)
  * @desc The maximum y value for the tooltip window in battle. Default: scene._statusWindow.y - this.height
  * @default scene._statusWindow.y - this.height
@@ -263,15 +263,21 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
         }
     };
 
+    DreamX.BattlerSpriteIcons.Scene_MenuBase_create = Scene_MenuBase.prototype.create;
+    Scene_MenuBase.prototype.create = function () {
+        DreamX.BattlerSpriteIcons.Scene_MenuBase_create.call(this);
+        this.addStateWindows();
+    };
+
     DreamX.BattlerSpriteIcons.Scene_Battle_createDisplayObjects = Scene_Battle.prototype.createDisplayObjects;
     Scene_Battle.prototype.createDisplayObjects = function () {
         DreamX.BattlerSpriteIcons.Scene_Battle_createDisplayObjects.call(this);
-        this.addBattlerStateWindows();
+        this.addStateWindows();
     };
 
-    DreamX.BattlerSpriteIcons.Scene_Battle_update = Scene_Battle.prototype.update;
-    Scene_Battle.prototype.update = function () {
-        DreamX.BattlerSpriteIcons.Scene_Battle_update.call(this);
+    DreamX.BattlerSpriteIcons.Scene_Base_update = Scene_Base.prototype.update;
+    Scene_Base.prototype.update = function () {
+        DreamX.BattlerSpriteIcons.Scene_Base_update.call(this);
         if (!this._tooltipWindow) {
             return;
         }
@@ -334,18 +340,20 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
         return this.children.indexOf(this._windowLayer);
     };
 
-    Scene_Battle.prototype.addBattlerStateWindows = function () {
-        this._stateIconWindows = [];
-        this._currentTooltipHitIndex = -1;
-        this._previousTooltipHitIndex = -1;
-        this._currentTooltipHitWindow = undefined;
-        this._previousTooltipHitWindow = undefined;
+    Scene_Base.prototype.addStateIconWindowLayer = function () {
 
-        var spriteset = this._spriteset;
-        this._stateIconLayer = new Sprite();
-        spriteset.addChildAt(this._stateIconLayer,
+    };
+
+    Scene_MenuBase.prototype.addStateIconWindowLayer = function () {
+        this.addChild(this._stateIconLayer);
+    };
+
+    Scene_Battle.prototype.addStateIconWindowLayer = function () {
+        this._spriteset.addChildAt(this._stateIconLayer,
                 this.DXBSIIconWindowSpritesetChildIndex());
+    };
 
+    Scene_Battle.prototype.addBattlerStateWindows = function () {
         var battlers = BattleManager.allBattleMembers();
         for (var i = 0; i < battlers.length; i++) {
             var battler = battlers[i];
@@ -373,6 +381,22 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
             this._stateIconWindows.push(normalWindow);
             this._stateIconWindows.push(badWindow);
         }
+    };
+
+    Scene_Base.prototype.addStateWindows = function () {
+        this._stateIconWindows = [];
+        this._currentTooltipHitIndex = -1;
+        this._previousTooltipHitIndex = -1;
+        this._currentTooltipHitWindow = undefined;
+        this._previousTooltipHitWindow = undefined;
+
+        this._stateIconLayer = new Sprite();
+
+        this.addStateIconWindowLayer();
+
+        if (this instanceof Scene_Battle) {
+            this.addBattlerStateWindows();
+        }
 
         if (DreamX.Param.BSIShowTooltips) {
             this._tooltipWindow = new Window_StateToolTip();
@@ -389,7 +413,7 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
     Sprite_StateIcon.prototype.update = function () {
     };
 
-    Scene_Battle.prototype.addDummyWindow = function (buffState, battler, isState, bindingWindow, x, y) {
+    Scene_Base.prototype.addDummyWindow = function (buffState, battler, isState, bindingWindow, x, y) {
         var newDummyWindow = new Window_DXHoverableDummy(buffState, battler, isState, bindingWindow, x, y);
         this._stateIconLayer.addChild(newDummyWindow);
         this._hudIconWindows.push(newDummyWindow);
@@ -407,7 +431,7 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
     DreamX.BattlerSpriteIcons.Window_Base_drawStateCounter = Window_Base.prototype.drawStateCounter;
     Window_Base.prototype.drawStateCounter = function (actor, state, wx, wy) {
         var scene = SceneManager._scene;
-        if (scene instanceof Scene_Battle && !(this instanceof Window_BattleStateIcon)) {
+        if (!(this instanceof Window_BattleStateIcon)) {
             scene.addDummyWindow(state, actor, true, this, wx, wy);
         }
         DreamX.BattlerSpriteIcons.Window_Base_drawStateCounter.call(this, actor, state, wx, wy);
@@ -416,7 +440,7 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
     DreamX.BattlerSpriteIcons.Window_Base_drawBuffTurns = Window_Base.prototype.drawBuffTurns;
     Window_Base.prototype.drawBuffTurns = function (actor, paramId, wx, wy) {
         var scene = SceneManager._scene;
-        if (scene instanceof Scene_Battle && !(this instanceof Window_BattleStateIcon)) {
+        if (!(this instanceof Window_BattleStateIcon)) {
             scene.addDummyWindow(paramId, actor, false, this, wx, wy);
         }
         DreamX.BattlerSpriteIcons.Window_Base_drawBuffTurns.call(this, actor, paramId, wx, wy);
@@ -841,7 +865,7 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
 
     Window_StateToolTip.prototype.initialize = function () {
         Window_Base.prototype.initialize.call(this, 0, 0, Graphics.boxWidth, Graphics.boxHeight);
-        //this.hide();
+        this.hide();
         this._lineTextWidth = 0;
         this._lineTextHeight = 0;
     };
