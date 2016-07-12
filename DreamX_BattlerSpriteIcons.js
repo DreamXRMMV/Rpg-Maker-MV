@@ -1,5 +1,5 @@
 /*:
- * @plugindesc 1.4
+ * @plugindesc 1.4a
  * @author DreamX
  *
  * @param Maximum State/Buffs Per Line
@@ -309,6 +309,10 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
                         iconsArray()[this._currentTooltipHitIndex];
             } else {
                 buffState = this._currentTooltipHitWindow.buffState();
+            }
+            
+            if (!buffState) {
+                return;
             }
 
             var battler = this._currentTooltipHitWindow.battler();
