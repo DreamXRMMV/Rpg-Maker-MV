@@ -1,5 +1,5 @@
 /*:
- * @plugindesc 1.4b
+ * @plugindesc 1.4c
  * @author DreamX
  *
  * @param Maximum State/Buffs Per Line
@@ -389,27 +389,10 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
     Sprite_StateIcon.prototype.update = function () {
     };
 
-    Scene_Battle.prototype.addUpdateDummyWindow = function (buffState, battler, isState, bindingWindow, x, y) {
-        var windows = this._stateIconWindows;
-        var shouldAdd = true;
-
-        for (var i = 0; i < windows.length; i++) {
-            var window = windows[i];
-            if (!window.isDummyWindow()) {
-                continue;
-            }
-            if (!window.shouldAdd(bindingWindow, x, y)) {
-                window.updateVariables(buffState, battler);
-                shouldAdd = false;
-                break;
-            }
-        }
-
-        if (shouldAdd) {
-            var newDummyWindow = new Window_DXHoverableDummy(buffState, battler, isState, bindingWindow, x, y);
-            this._stateIconLayer.addChild(newDummyWindow);
-            this._hudIconWindows.push(newDummyWindow);
-        }
+    Scene_Battle.prototype.addDummyWindow = function (buffState, battler, isState, bindingWindow, x, y) {
+        var newDummyWindow = new Window_DXHoverableDummy(buffState, battler, isState, bindingWindow, x, y);
+        this._stateIconLayer.addChild(newDummyWindow);
+        this._hudIconWindows.push(newDummyWindow);
     };
 
     DreamX.BattlerSpriteIcons.BattleManager_refreshStatus = BattleManager.refreshStatus;
@@ -425,7 +408,7 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
     Window_Base.prototype.drawStateCounter = function (actor, state, wx, wy) {
         var scene = SceneManager._scene;
         if (scene instanceof Scene_Battle && !(this instanceof Window_BattleStateIcon)) {
-            scene.addUpdateDummyWindow(state, actor, true, this, wx, wy);
+            scene.addDummyWindow(state, actor, true, this, wx, wy);
         }
         DreamX.BattlerSpriteIcons.Window_Base_drawStateCounter.call(this, actor, state, wx, wy);
     };
@@ -434,7 +417,7 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
     Window_Base.prototype.drawBuffTurns = function (actor, paramId, wx, wy) {
         var scene = SceneManager._scene;
         if (scene instanceof Scene_Battle && !(this instanceof Window_BattleStateIcon)) {
-            scene.addUpdateDummyWindow(paramId, actor, false, this, wx, wy);
+            scene.addDummyWindow(paramId, actor, false, this, wx, wy);
         }
         DreamX.BattlerSpriteIcons.Window_Base_drawBuffTurns.call(this, actor, paramId, wx, wy);
     };
