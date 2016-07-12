@@ -60,6 +60,10 @@
  * @param Show Tooltips
  * @desc default: false
  * @default false
+ * 
+ * @param Max Y Value (Battle)
+ * @desc The maximum y value for the tooltip window in battle. Default: scene._statusWindow.y - this.height
+ * @default scene._statusWindow.y - this.height
  *
  * @param Default Turns Remaining Text (Singular)
  * @desc Text to display for default turns remaining text in tooltip. For one turn only.
@@ -190,6 +194,8 @@ DreamX.Param.BSIShowEnemyIcons = eval(String(DreamX.Parameters['Show Icons For E
 DreamX.Param.BSIShowIconsOnDeath = eval(String(DreamX.Parameters['Show Icons On Death']) || true);
 DreamX.Param.BSIShowDefaultBuffDesc = eval(String(DreamX.Parameters['Buff Description']) || true);
 DreamX.Param.BSIDefaultBuffDesc = Number(DreamX.Parameters['Default Buff Description State']);
+
+DreamX.Param.BSITooltipMaxYBattle = String(DreamX.Parameters['Max Y Value (Battle)']);
 DreamX.Param.BSIShowTooltips = eval(String(DreamX.Parameters['Show Tooltips']));
 
 DreamX.Param.BSIShowActorTurns = eval(String(DreamX.Parameters['Show Actor State Turns']));
@@ -314,7 +320,6 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
 
     Scene_Battle.prototype.DXBSIIconWindowSpritesetChildIndex = function () {
         var spritesetLayer = this._spriteset;
-        console.log(spritesetLayer);
 
         return spritesetLayer.children.indexOf(spritesetLayer._pictureContainer);
     };
@@ -852,6 +857,8 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
     Window_StateToolTip.prototype.showAndMove = function (iconWindow, index,
             buffState, battler) {
         var iconWindow = iconWindow;
+        var scene = SceneManager._scene;
+        var userMaxY;
 
         this._lineTextWidth = 0;
         this._lineTextHeight = 0;
@@ -884,6 +891,13 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
         }
         if (y + this.height >= Graphics.boxHeight) {
             y = Graphics.boxWidth - this.width;
+        }
+        if (scene instanceof Scene_Battle) {
+            userMaxY = eval(DreamX.Param.BSITooltipMaxYBattle);
+        }
+        
+        if (userMaxY && y > userMaxY) {
+            y = userMaxY;
         }
 
         this.x = x;
