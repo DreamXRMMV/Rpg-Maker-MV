@@ -1,5 +1,5 @@
 /*:
- * @plugindesc 1.4a
+ * @plugindesc 1.4b
  * @author DreamX
  *
  * @param Maximum State/Buffs Per Line
@@ -277,8 +277,10 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
         }
 
         var hover = false;
-        for (var i = 0; i < this._stateIconWindows.length; i++) {
-            var window = this._stateIconWindows[i];
+        var windows = this._stateIconWindows.concat(this._hudIconWindows);
+
+        for (var i = 0; i < windows.length; i++) {
+            var window = windows[i];
             var windowHitIndex = window.hitIndex();
             if (windowHitIndex !== -1) {
                 this._currentTooltipHitIndex = windowHitIndex;
@@ -310,8 +312,8 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
             } else {
                 buffState = this._currentTooltipHitWindow.buffState();
             }
-            
-            if (!buffState) {
+
+            if (!buffState || !buffState.id) {
                 return;
             }
 
@@ -374,6 +376,7 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
 
         if (DreamX.Param.BSIShowTooltips) {
             this._tooltipWindow = new Window_StateToolTip();
+            this._hudIconWindows = [];
 
             this._stateToolTipLayer = new Sprite();
             this.addChild(this._stateToolTipLayer);
@@ -405,8 +408,14 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
         if (shouldAdd) {
             var newDummyWindow = new Window_DXHoverableDummy(buffState, battler, isState, bindingWindow, x, y);
             this._stateIconLayer.addChild(newDummyWindow);
-            this._stateIconWindows.push(newDummyWindow);
+            this._hudIconWindows.push(newDummyWindow);
         }
+    };
+
+    DreamX.BattlerSpriteIcons.BattleManager_refreshStatus = BattleManager.refreshStatus;
+    BattleManager.refreshStatus = function () {
+        DreamX.BattlerSpriteIcons.BattleManager_refreshStatus.call(this);
+        SceneManager._scene._hudIconWindows = [];
     };
 
     //==========================================================================
@@ -899,7 +908,7 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
         if (scene instanceof Scene_Battle) {
             userMaxY = eval(DreamX.Param.BSITooltipMaxYBattle);
         }
-        
+
         if (userMaxY && y > userMaxY) {
             y = userMaxY;
         }
