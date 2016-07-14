@@ -1,5 +1,5 @@
 /*:
- * @plugindesc 1.5
+ * @plugindesc 1.6
  * @author DreamX
  *
  * @param Maximum State/Buffs Per Line
@@ -139,7 +139,7 @@
  *      var name = "\\fs[20]\\C[6]" + this._buffState.name;
  *      var defenseRate = this._buffState.traits[0].value * 100;
  *      var description = "\\fs[16]Increases defense by \\C[3]" + defenseRate + "%\\C[0].";
- *      var turns = "\\fs[16]\\C[6]" + this.turns() + " turns remaining.";
+ *      var turns = "\\fs[16]\\C[6]" + Math.ceil(this.turns()) + " turns remaining.";
  *      this.drawLine(name, 28);
  *      this.drawLine(description, 24);
  *      if (this.turns()) {
@@ -244,21 +244,27 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
                 continue;
 
             state.DXBSITooltipCode = '';
+            state.DXBSIIconRequirement = '';
             var notedata = state.note.split(/[\r\n]+/);
 
-            for (var j = 0; j < notedata.length && !evalMode.match('finish'); j++) {
+            for (var j = 0; j < notedata.length; j++) {
                 var line = notedata[j];
                 if (line.match(/<(?:DXBSI TOOLTIP CODE)>/i)) {
                     evalMode = 'tooltipCode';
                 } else if (line.match(/<\/(?:DXBSI TOOLTIP CODE)>/i)) {
-                    evalMode = 'finish';
+                    evalMode = 'none';
+                } else if (line.match(/<(?:DXBSI SHOW REQUIREMENT)>/i)) {
+                    evalMode = 'requirement';
+                } else if (line.match(/<\/(?:DXBSI SHOW REQUIREMENT)>/i)) {
+                    evalMode = 'none';
+                } else if (evalMode === 'requirement') {
+                    state.DXBSIIconRequirement += line + '\n';
                 } else if (evalMode === 'tooltipCode') {
                     state.DXBSITooltipCode += line + '\n';
                 } else {
                     evalMode = 'none';
                 }
             }
-
             evalMode = 'none';
         }
     };
@@ -266,67 +272,46 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
     DreamX.BattlerSpriteIcons.Scene_MenuBase_create = Scene_MenuBase.prototype.create;
     Scene_MenuBase.prototype.create = function () {
         DreamX.BattlerSpriteIcons.Scene_MenuBase_create.call(this);
-        this.addStateWindows();
+        this.addToolTipWindow();
     };
 
     DreamX.BattlerSpriteIcons.Scene_Battle_createDisplayObjects = Scene_Battle.prototype.createDisplayObjects;
     Scene_Battle.prototype.createDisplayObjects = function () {
         DreamX.BattlerSpriteIcons.Scene_Battle_createDisplayObjects.call(this);
-        this.addStateWindows();
+        this.addToolTipWindow();
     };
 
     DreamX.BattlerSpriteIcons.Scene_Base_update = Scene_Base.prototype.update;
     Scene_Base.prototype.update = function () {
         DreamX.BattlerSpriteIcons.Scene_Base_update.call(this);
-        if (!this._tooltipWindow) {
+
+        if (!this._tooltipHitObjs) {
             return;
         }
-
+        var objs = this._tooltipHitObjs;
+        var touchX = TouchInput._mouseOverX;
+        var touchY = TouchInput._mouseOverY;
         var hover = false;
-        var windows = this._stateIconWindows.concat(this._hudIconWindows);
 
-        for (var i = 0; i < windows.length; i++) {
-            var window = windows[i];
-            var windowHitIndex = window.hitIndex();
-            if (windowHitIndex !== -1) {
-                this._currentTooltipHitIndex = windowHitIndex;
+        for (var i = 0; i < objs.length; i++) {
+            var obj = objs[i];
+            var iconX = obj.window.x + obj.xOffset + Math.floor(DreamX.Param.BSIIconWidth / 2) + 2;
+            var iconY = obj.window.y + obj.yOffset + 4 + Math.floor(DreamX.Param.BSIIconHeight / 2);
+            if (touchX >= iconX && touchX <= iconX + DreamX.Param.BSIIconWidth
+                    && touchY >= iconY
+                    && touchY <= iconY + DreamX.Param.BSIIconHeight) {
+                if (this._lastTooltipObjHoveredOver !== obj) {
+                    this._tooltipWindow.refresh(iconX, iconY, obj, obj.battler);
+                }
+                this._tooltipWindow.show();
+                this._lastTooltipObjHoveredOver = obj;
                 hover = true;
-                this._currentTooltipHitWindow = window;
                 break;
             }
         }
 
         if (!hover) {
-            this._tooltipWindow.clear();
             this._tooltipWindow.hide();
-        } else {
-            if (this._previousTooltipHitIndex
-                    !== this._currentTooltipHitWindow
-                    || this._previousTooltipHitIndex
-                    !== this._currentTooltipHitIndex) {
-                this._tooltipWindow.clear();
-            }
-            this._previousTooltipHitWindow = this._currentTooltipHitWindow;
-            this._previousTooltipHitIndex = this._currentTooltipHitIndex;
-
-
-            var buffState;
-            var battler;
-            if (!this._currentTooltipHitWindow.isDummyWindow()) {
-                buffState = this._currentTooltipHitWindow.
-                        iconsArray()[this._currentTooltipHitIndex];
-            } else {
-                buffState = this._currentTooltipHitWindow.buffState();
-            }
-
-            if (!buffState || !buffState.id) {
-                return;
-            }
-
-            var battler = this._currentTooltipHitWindow.battler();
-
-            this._tooltipWindow.showAndMove(this._currentTooltipHitWindow,
-                    this._currentTooltipHitIndex, buffState, battler);
         }
     };
 
@@ -336,24 +321,12 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
         return spritesetLayer.children.indexOf(spritesetLayer._pictureContainer);
     };
 
-    Scene_Battle.prototype.DXBSITooltipWindowSpritesetChildIndex = function () {
-        return this.children.indexOf(this._windowLayer);
-    };
-
-    Scene_Base.prototype.addStateIconWindowLayer = function () {
-
-    };
-
-    Scene_MenuBase.prototype.addStateIconWindowLayer = function () {
-        this.addChild(this._stateIconLayer);
-    };
-
-    Scene_Battle.prototype.addStateIconWindowLayer = function () {
+    Scene_Battle.prototype.addBattlerStateWindows = function () {
+        this._stateIconWindows = [];
+        this._stateIconLayer = new Sprite();
         this._spriteset.addChildAt(this._stateIconLayer,
                 this.DXBSIIconWindowSpritesetChildIndex());
-    };
 
-    Scene_Battle.prototype.addBattlerStateWindows = function () {
         var battlers = BattleManager.allBattleMembers();
         for (var i = 0; i < battlers.length; i++) {
             var battler = battlers[i];
@@ -383,24 +356,11 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
         }
     };
 
-    Scene_Base.prototype.addStateWindows = function () {
-        this._stateIconWindows = [];
-        this._currentTooltipHitIndex = -1;
-        this._previousTooltipHitIndex = -1;
-        this._currentTooltipHitWindow = undefined;
-        this._previousTooltipHitWindow = undefined;
-
-        this._stateIconLayer = new Sprite();
-
-        this.addStateIconWindowLayer();
-
-        if (this instanceof Scene_Battle) {
-            this.addBattlerStateWindows();
-        }
-
+    Scene_Base.prototype.addToolTipWindow = function () {
         if (DreamX.Param.BSIShowTooltips) {
+            this._tooltipHitObjs = [];
+            this._lastTooltipObjHoveredOver = undefined;
             this._tooltipWindow = new Window_StateToolTip();
-            this._hudIconWindows = [];
 
             this._stateToolTipLayer = new Sprite();
             this.addChild(this._stateToolTipLayer);
@@ -413,16 +373,29 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
     Sprite_StateIcon.prototype.update = function () {
     };
 
-    Scene_Base.prototype.addDummyWindow = function (buffState, battler, isState, bindingWindow, x, y) {
-        var newDummyWindow = new Window_DXHoverableDummy(buffState, battler, isState, bindingWindow, x, y);
-        this._stateIconLayer.addChild(newDummyWindow);
-        this._hudIconWindows.push(newDummyWindow);
+    DreamX.BattlerSpriteIcons.Window_BattleStatus_refresh = Window_BattleStatus.prototype.refresh;
+    Window_BattleStatus.prototype.refresh = function () {
+        var scene = SceneManager._scene;
+        scene._tooltipHitObjs = [];
+        DreamX.BattlerSpriteIcons.Window_BattleStatus_refresh.call(this);
+        if (!(scene instanceof Scene_Battle)) {
+            return;
+        }
+        if (!scene._stateIconWindows) {
+            scene.addBattlerStateWindows();
+        }
+        var stateIconWindows = scene._stateIconWindows;
+        for (var i = 0; i < stateIconWindows.length; i++) {
+            var window = stateIconWindows[i];
+            window.refresh();
+        }
     };
 
-    DreamX.BattlerSpriteIcons.BattleManager_refreshStatus = BattleManager.refreshStatus;
-    BattleManager.refreshStatus = function () {
-        DreamX.BattlerSpriteIcons.BattleManager_refreshStatus.call(this);
-        SceneManager._scene._hudIconWindows = [];
+    Scene_Base.prototype.addTooltipHitObj = function (battler, buffState, isState, window, xOffset, yOffset) {
+        var id = buffState.id ? buffState.id : buffState;
+        var obj = {battler: battler, id: id, state: isState, window: window,
+            xOffset: xOffset, yOffset: yOffset};
+        this._tooltipHitObjs.push(obj);
     };
 
     //==========================================================================
@@ -431,8 +404,9 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
     DreamX.BattlerSpriteIcons.Window_Base_drawStateCounter = Window_Base.prototype.drawStateCounter;
     Window_Base.prototype.drawStateCounter = function (actor, state, wx, wy) {
         var scene = SceneManager._scene;
-        if (!(this instanceof Window_BattleStateIcon)) {
-            scene.addDummyWindow(state, actor, true, this, wx, wy);
+
+        if (DreamX.Param.BSIShowTooltips) {
+            scene.addTooltipHitObj(actor, state, true, this, wx, wy);
         }
         DreamX.BattlerSpriteIcons.Window_Base_drawStateCounter.call(this, actor, state, wx, wy);
     };
@@ -440,143 +414,10 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
     DreamX.BattlerSpriteIcons.Window_Base_drawBuffTurns = Window_Base.prototype.drawBuffTurns;
     Window_Base.prototype.drawBuffTurns = function (actor, paramId, wx, wy) {
         var scene = SceneManager._scene;
-        if (!(this instanceof Window_BattleStateIcon)) {
-            scene.addDummyWindow(paramId, actor, false, this, wx, wy);
+        if (DreamX.Param.BSIShowTooltips) {
+            scene.addTooltipHitObj(actor, paramId, false, this, wx, wy);
         }
         DreamX.BattlerSpriteIcons.Window_Base_drawBuffTurns.call(this, actor, paramId, wx, wy);
-    };
-
-    //==========================================================================
-    // Window_DXHoverable
-    //==========================================================================
-    function Window_BSIHoverable() {
-        this.initialize.apply(this, arguments);
-    }
-
-    Window_BSIHoverable.prototype = Object.create(Window_Selectable.prototype);
-    Window_BSIHoverable.prototype.constructor = Window_BSIHoverable;
-
-    Window_BSIHoverable.prototype.initialize = function () {
-        Window_Selectable.prototype.initialize.call(this, 0, 0, this.windowWidth(), this.windowHeight());
-        this.opacity = 0;
-        this._hitIndex = -1;
-        this._battler = undefined;
-    };
-
-    Window_BSIHoverable.prototype.hitIndex = function () {
-        return this._hitIndex;
-    };
-
-    Window_BSIHoverable.prototype.isDummyWindow = function () {
-        return false;
-    };
-
-    Window_BSIHoverable.prototype.processTouch = function () {
-        var x = this.canvasToLocalX(TouchInput._mouseOverX);
-        // TouchInput.x
-        var y = this.canvasToLocalY(TouchInput._mouseOverY);
-        // TouchInput.y
-        var hitIndex = this.hitTest(x, y);
-
-        if (hitIndex >= 0 && this.isHitIndexValid(hitIndex)) {
-            this._hitIndex = hitIndex;
-        } else {
-            this._hitIndex = -1;
-        }
-    };
-
-
-    Window_BSIHoverable.prototype.itemWidth = function () {
-        return DreamX.Param.BSIIconWidth;
-    };
-
-    Window_BSIHoverable.prototype.itemHeight = function () {
-        return DreamX.Param.BSIIconHeight;
-    };
-
-    Window_BSIHoverable.prototype.maxItems = function () {
-        return 1;
-    };
-
-    Window_BSIHoverable.prototype.battler = function () {
-        return this._battler;
-    };
-
-    //==========================================================================
-    // Window_DXHoverableDummy
-    //==========================================================================
-    function Window_DXHoverableDummy() {
-        this.initialize.apply(this, arguments);
-    }
-
-    Window_DXHoverableDummy.prototype = Object.create(Window_BSIHoverable.prototype);
-    Window_DXHoverableDummy.prototype.constructor = Window_DXHoverableDummy;
-
-
-    Window_DXHoverableDummy.prototype.initialize = function (buffState, battler, isState, bindingWindow, x, y) {
-        Window_BSIHoverable.prototype.initialize.call(this);
-        this._buffState = buffState;
-        this._battler = battler;
-        this._isState = isState;
-        this._xOffset = x;
-        this._yOffset = y;
-        this._bindingWindow = bindingWindow;
-    };
-
-    Window_DXHoverableDummy.prototype.shouldAdd = function (otherWindow, xOffset, yOffset) {
-        return this._bindingWindow !== otherWindow
-                || this._xOffset !== xOffset
-                || this._yOffset !== yOffset;
-    };
-
-    Window_DXHoverableDummy.prototype.isHitIndexValid = function (hitIndex) {
-        return hitIndex === 0;
-    };
-
-    Window_DXHoverableDummy.prototype.updatePosition = function () {
-        this.x = this._xOffset + this._bindingWindow.x;
-        this.y = this._yOffset + this._bindingWindow.y;
-    };
-
-    Window_DXHoverableDummy.prototype.update = function () {
-        Window_BSIHoverable.prototype.update.call(this);
-        this.updatePosition();
-    };
-
-    Window_DXHoverableDummy.prototype.windowHeight = function () {
-        return DreamX.Param.BSIIconHeight + (this.standardPadding() * 2);
-    };
-
-    Window_DXHoverableDummy.prototype.windowWidth = function () {
-        return DreamX.Param.BSIIconWidth + (this.standardPadding() * 2);
-    };
-
-    Window_DXHoverableDummy.prototype.isDummyWindow = function () {
-        return true;
-    };
-
-    Window_DXHoverableDummy.prototype.buffState = function () {
-        //        return {icon: icon, id: paramId, debuff: debuff};
-        var buffState;
-        var buffValue;
-        var icon;
-        var debuff;
-
-        if (this._isState) {
-            buffState = this._buffState.id;
-        } else {
-            buffState = this._buffState;
-            buffValue = this._battler._buffs[this._buffState];
-            icon = this._battler.buffIconIndex(buffValue, buffState);
-            debuff = buffValue < 0;
-        }
-
-        return {icon: icon, id: buffState, debuff: debuff, state: this._isState};
-    };
-
-    Window_DXHoverableDummy.prototype.updateVariables = function (buffState, battler) {
-        this._buffState = buffState;
-        this._battler = battler;
     };
 
     //=============================================================================
@@ -587,29 +428,36 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
         this.initialize.apply(this, arguments);
     }
 
-    Window_BattleStateIcon.prototype = Object.create(Window_BSIHoverable.prototype);
+    Window_BattleStateIcon.prototype = Object.create(Window_Selectable.prototype);
     Window_BattleStateIcon.prototype.constructor = Window_BattleStateIcon;
 
 
     Window_BattleStateIcon.prototype.initialize = function (battler) {
-        Window_BSIHoverable.prototype.initialize.call(this);
+        Window_Selectable.prototype.initialize.call(this, 0, 0, this.windowWidth(), this.windowHeight());
+        this.opacity = 0;
         this._battler = battler;
     };
 
-    Window_BattleStateIcon.prototype.isHitIndexValid = function (hitIndex) {
-        return hitIndex < this.iconsArray().length
+    Window_BattleStateIcon.prototype.itemWidth = function () {
+        return DreamX.Param.BSIIconWidth;
+    };
+
+    Window_BattleStateIcon.prototype.itemHeight = function () {
+        return DreamX.Param.BSIIconHeight;
+    };
+
+    Window_BattleStateIcon.prototype.battler = function () {
+        return this._battler;
     };
 
     Window_BattleStateIcon.prototype.update = function () {
         Window_Selectable.prototype.update.call(this);
-        if (Graphics.frameCount % DreamX.Param.IconWindowRefreshRate !== 0) {
-            return;
-        }
-        this.refresh();
+        this.updateWindowPosition();
     };
 
     Window_BattleStateIcon.prototype.refresh = function () {
         var battler = this._battler;
+        this._isReady = true;
 
         this.contents.clear();
 
@@ -624,7 +472,6 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
             return;
         }
         this.drawAllItems();
-        this.updateWindowPosition();
     };
 
     Window_BattleStateIcon.prototype.updateWindowPosition = function () {
@@ -678,7 +525,7 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
         this.drawState(rect.x, rect.y, index, this.iconsArray(), dataBattler);
     };
 
-    Window_BattleStateIcon.prototype.drawState = function (x, y, index, array, dataBattler) {
+    Window_BattleStateIcon.prototype.drawState = function (x, y, index, array) {
         var stateBuff = array[index];
 
         if (!stateBuff)
@@ -694,7 +541,9 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
                             && this._battler.isActor())
                     || (Yanfly.Param.BSCEnemyTurn
                             && this._battler.isEnemy())) {
-                this.drawStateTurns(this._battler, $dataStates[stateBuff.id], x, y);
+                if ($dataStates[stateBuff.id].autoRemovalTiming > 0) {
+                    this.drawStateTurns(this._battler, $dataStates[stateBuff.id], x, y);
+                }
             }
 
             if ((DreamX.Param.BSIShowActorCounters
@@ -732,78 +581,6 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
 
         return highestCount;
     };
-
-    Window_BattleStateIcon.prototype.turnFontSize = function (stateBuff) {
-        var isState = stateBuff.state ? true : false;
-
-        if (isState) {
-            var dataStateMeta = $dataStates[stateBuff.id].meta;
-            var meta = dataStateMeta.DXBSITurnFontSize;
-            if (meta) {
-                return eval(meta);
-            }
-        }
-        return DreamX.Param.BSIFontSize;
-    };
-
-    Window_BattleStateIcon.prototype.turnXOffset = function (stateBuff, isState) {
-        var isState = stateBuff.state ? true : false;
-
-        if (isState) {
-            var dataStateMeta = $dataStates[stateBuff.id].meta;
-            var meta = dataStateMeta.DXBSITurnBufferX;
-            if (meta) {
-                return eval(meta);
-            }
-        }
-        return DreamX.Param.BSITurnBufferX;
-    };
-
-    Window_BattleStateIcon.prototype.turnYOffset = function (stateBuff, isState) {
-        var isState = stateBuff.state ? true : false;
-
-        if (isState) {
-            var dataStateMeta = $dataStates[stateBuff.id].meta;
-            var meta = dataStateMeta.DXBSITurnBufferY;
-            if (meta) {
-                return eval(meta);
-            }
-        }
-
-        return DreamX.Param.BSITurnBufferY;
-    };
-
-    Window_BattleStateIcon.prototype.turnAlignment = function (stateBuff) {
-        var isState = stateBuff.state ? true : false;
-
-        if (isState) {
-            var dataStateMeta = $dataStates[stateBuff.id].meta;
-            var meta = dataStateMeta.DXBSITurnAlignment;
-            if (meta) {
-                return meta.trim().toLowerCase();
-            }
-        }
-        return DreamX.Param.BSITurnAlign;
-    };
-
-    Window_BattleStateIcon.prototype.turnColor = function (stateBuff) {
-        var isState = stateBuff.state ? true : false;
-
-        if (isState) {
-            var dataStateMeta = $dataStates[stateBuff.id].meta;
-            var meta = dataStateMeta.DXBSITurnColor;
-            if (meta) {
-                return eval(meta);
-            }
-        } else {
-            if (stateBuff.debuff) {
-                return DreamX.Param.BSIDebuffColor;
-            }
-            return DreamX.Param.BSIBuffColor;
-        }
-        return DreamX.Param.BSITurnColor;
-    };
-
     //=============================================================================
     // Window_BattleNormalStateIcon
     //=============================================================================
@@ -870,11 +647,13 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
         this._lineTextHeight = 0;
     };
 
-    Window_StateToolTip.prototype.clear = function () {
+    Window_StateToolTip.prototype.refresh = function (iconX, iconY,
+            buffState, battler) {
         this.contents.clear();
+        this.drawAndMove(iconX, iconY, buffState, battler);
     };
 
-    Window_StateToolTip.prototype.showAndMove = function (iconWindow, index,
+    Window_StateToolTip.prototype.drawAndMove = function (iconX, iconY,
             buffState, battler) {
         var iconWindow = iconWindow;
         var scene = SceneManager._scene;
@@ -885,16 +664,13 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
 
         this.setBuffState(buffState);
         this._battler = battler;
-
-        var rect = iconWindow.itemRect(index);
-
-        var x = iconWindow.x + rect.x + this.standardPadding();
+        var x = iconX + this.standardPadding();
 
         this.drawDescription();
 
         x = (x - this.width / 2) + DreamX.Param.BSIIconWidth / 2;
 
-        var y = iconWindow.y + rect.y;
+        var y = iconY;
         y -= this.height;
 
         this._iconWindow = iconWindow;
@@ -922,16 +698,14 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
 
         this.x = x;
         this.y = y;
-
-        this.show();
     };
 
     Window_StateToolTip.prototype.setBuffState = function (buffState) {
         this._buffState = buffState;
 
         if (buffState.state) {
-            this._isBuff = false;
             this._buffState = $dataStates[buffState.id];
+            this._isBuff = false;
         } else {
             this._isBuff = true;
         }
@@ -974,7 +748,7 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
 
         var turnFontSize = 16;
         var turnHeightSize = turnFontSize + lineHeightAdd;
-        var numTurns = this.turns();
+        var numTurns = Math.ceil(this.turns());
         var turns = "\\fs[" + turnFontSize + "]\\C[6]" + numTurns + " ";
 
         this.drawLine(nameLine, nameHeightSize);
@@ -1024,6 +798,10 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
 
         if (this._isBuff) {
             return battler._buffTurns[buffState.id];
+        }
+
+        if ($dataStates[buffState.id].autoRemovalTiming <= 0) {
+            return "";
         }
 
         var stateTurns = battler._stateTurns[buffState.id];
@@ -1144,7 +922,7 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
 
         for (var i = 0; i < validStates.length; i++) {
             var state = validStates[i];
-            if (!state.meta.DXBSIBadState) {
+            if (!state.meta.DXBSIBadState && state.iconIndex > 0 && state.priority > 0) {
                 normalStates.push(this.DreamX_BSI_StateObject(state));
             }
         }
@@ -1165,7 +943,7 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
         var validDataStates = [];
         for (var i = 0; i < this.states().length; i++) {
             var state = this.states()[i];
-            if (DreamX.BattlerSpriteIcons.isValidState(state)) {
+            if (!state.DXBSIIconRequirement || eval(state.DXBSIIconRequirement)) {
                 validDataStates.push(state);
             }
         }
@@ -1181,41 +959,6 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
         });
 
         return validDataStates;
-    };
-
-    DreamX.BattlerSpriteIcons.isValidState = function (state) {
-        var evalMode = 'none';
-        var notedata = state.note.split(/[\r\n]+/);
-        var jsScript = "";
-
-        if (state.meta.DXBSIHideIcon) {
-            return false;
-        }
-
-        if (state.iconIndex <= 0) {
-            return false;
-        }
-
-        if (state.priority <= 0) {
-            return false;
-        }
-
-        for (var i = 0; i < notedata.length; i++) {
-            var line = notedata[i];
-            if (line.match(/<(?:DXBSI SHOW REQUIREMENT)>/i)) {
-                evalMode = 'requirement';
-            } else if (line.match(/<\/(?:DXBSI SHOW REQUIREMENT)>/i)) {
-                evalMode = 'none';
-            } else if (evalMode === 'requirement') {
-                jsScript = jsScript + line + '\n';
-            }
-        }
-        // if there was no custom requirement, this returns true
-        if (jsScript.length === 0) {
-            return true;
-        }
-
-        return eval(jsScript);
     };
 
 })();
