@@ -1,5 +1,5 @@
 /*:
- * @plugindesc 1.6
+ * @plugindesc 1.6a
  * @author DreamX
  *
  * @param Maximum State/Buffs Per Line
@@ -284,13 +284,14 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
     DreamX.BattlerSpriteIcons.Scene_Base_update = Scene_Base.prototype.update;
     Scene_Base.prototype.update = function () {
         DreamX.BattlerSpriteIcons.Scene_Base_update.call(this);
-
-        if (!this._tooltipHitObjs) {
+        if (!this._tooltipWindow || !this._tooltipHitObjs) {
             return;
         }
+        
         var objs = this._tooltipHitObjs;
-        var touchX = TouchInput._mouseOverX;
-        var touchY = TouchInput._mouseOverY;
+        var touchX = !Imported.TDDP_MouseSystemEx ? TouchInput._mouseOverX : TouchInput._x;
+        var touchY = !Imported.TDDP_MouseSystemEx ? TouchInput._mouseOverY : TouchInput._y;
+        
         var hover = false;
 
         for (var i = 0; i < objs.length; i++) {
@@ -404,7 +405,6 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
     DreamX.BattlerSpriteIcons.Window_Base_drawStateCounter = Window_Base.prototype.drawStateCounter;
     Window_Base.prototype.drawStateCounter = function (actor, state, wx, wy) {
         var scene = SceneManager._scene;
-
         if (DreamX.Param.BSIShowTooltips) {
             scene.addTooltipHitObj(actor, state, true, this, wx, wy);
         }
@@ -542,6 +542,7 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
                     || (Yanfly.Param.BSCEnemyTurn
                             && this._battler.isEnemy())) {
                 if ($dataStates[stateBuff.id].autoRemovalTiming > 0) {
+                    
                     this.drawStateTurns(this._battler, $dataStates[stateBuff.id], x, y);
                 }
             }
