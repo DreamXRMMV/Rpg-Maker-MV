@@ -1,5 +1,5 @@
 /*:
- * @plugindesc 1.6a
+ * @plugindesc 1.6b
  * @author DreamX
  *
  * @param Maximum State/Buffs Per Line
@@ -909,7 +909,7 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
         var validStates = this.DreamX_BSI_AllValidDataStates();
         for (var i = 0; i < validStates.length; i++) {
             var state = validStates[i];
-            if (state.meta.DXBSIBadState) {
+            if (state.meta.DXBSIBadState && !state.meta.DXBSIHideIcon) {
                 badStates.push(this.DreamX_BSI_StateObject(state));
             }
         }
@@ -923,7 +923,8 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
 
         for (var i = 0; i < validStates.length; i++) {
             var state = validStates[i];
-            if (!state.meta.DXBSIBadState && state.iconIndex > 0 && state.priority > 0) {
+            if (!state.meta.DXBSIBadState && state.iconIndex > 0 
+                    && state.priority > 0 && !state.meta.DXBSIHideIcon) {
                 normalStates.push(this.DreamX_BSI_StateObject(state));
             }
         }
