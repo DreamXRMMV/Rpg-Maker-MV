@@ -28,6 +28,16 @@
             "step": "1",
             "min": "10",
             "max": "15"
+        },
+        "10": {
+            "step": "1",
+            "min": "1",
+            "max": "3",
+            "value_text": {
+                "1": "Low",
+                "2": "Normal",
+                "3": "Heavy"
+            }
         }
     },
     "HELP_TEXT": {
@@ -42,6 +52,11 @@
         "switch_1": "If on, does something really neat.",
         "switch_5": "If on, does something incredible.",
         "variable_1": "Great variable",
-        "variable_8": "Variable 8 is my favorite."
+        "variable_8": "Variable 8 is my favorite.",
+        "variable_10": {
+            "1": "Help text for a value of 1",
+            "2": "Help text for a value of 2",
+            "3": "Help text for a value of 3"
+        }
     }
 }
