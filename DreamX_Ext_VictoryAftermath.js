@@ -447,8 +447,13 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
             SceneManager._scene.addChild(SceneManager._scene._messageWindow._helpWindow);
         }
         DreamX.VictoryAftermath.Scene_Battle_updateVictorySteps.call(this);
-        if (Fox.JPLevels && this.isVictoryStep('JPLEVEL'))
-            this.updateVictoryJPLevelUp();
+        try {
+            if (Fox && Fox.JPLevels && this.isVictoryStep('JPLEVEL'))
+                this.updateVictoryJPLevelUp();
+        } catch (e) {
+
+        }
+
     };
 
     DreamX.VictoryAftermath.Scene_Battle_createVictoryDrop = Scene_Battle.prototype.createVictoryDrop;
@@ -932,100 +937,104 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
             return DreamX.VictoryAftermath.BattleManager_updateEvent.call(this);
         };
     }
+    try {
+        if (Fox && Fox.JPLevels) {
+            DreamX.VictoryAftermath.BattleManager_prepareVictoryInfo =
+                    BattleManager.prepareVictoryInfo;
+            BattleManager.prepareVictoryInfo = function () {
+                this.prepareVictoryPreJPLevel();
+                DreamX.VictoryAftermath.BattleManager_prepareVictoryInfo.call(this);
+                this.prepareVictoryPostJPLevel();
+            };
 
-    if (Fox.JPLevels) {
-        DreamX.VictoryAftermath.BattleManager_prepareVictoryInfo =
-                BattleManager.prepareVictoryInfo;
-        BattleManager.prepareVictoryInfo = function () {
-            this.prepareVictoryPreJPLevel();
-            DreamX.VictoryAftermath.BattleManager_prepareVictoryInfo.call(this);
-            this.prepareVictoryPostJPLevel();
-        };
+            BattleManager.prepareVictoryPreJPLevel = function () {
+                var length = $gameParty.allMembers().length;
+                this._JPleveledActors = [];
+                for (var i = 0; i < length; ++i) {
+                    var actor = $gameParty.allMembers()[i];
+                    if (!actor)
+                        continue;
+                    actor._preVictoryJPLv = actor.jpLevel(actor.currentClass().id);
+                }
+            };
 
-        BattleManager.prepareVictoryPreJPLevel = function () {
-            var length = $gameParty.allMembers().length;
-            this._JPleveledActors = [];
-            for (var i = 0; i < length; ++i) {
-                var actor = $gameParty.allMembers()[i];
-                if (!actor)
-                    continue;
-                actor._preVictoryJPLv = actor.jpLevel(actor.currentClass().id);
-            }
-        };
+            BattleManager.prepareVictoryPostJPLevel = function () {
+                var length = $gameParty.allMembers().length;
+                for (var i = 0; i < length; ++i) {
+                    var actor = $gameParty.allMembers()[i];
+                    if (!actor)
+                        continue;
+                    if (actor._preVictoryJPLv === actor.jpLevel(actor.currentClass().id))
+                        continue;
+                    this._JPleveledActors.push(actor);
+                }
+            };
 
-        BattleManager.prepareVictoryPostJPLevel = function () {
-            var length = $gameParty.allMembers().length;
-            for (var i = 0; i < length; ++i) {
-                var actor = $gameParty.allMembers()[i];
-                if (!actor)
-                    continue;
-                if (actor._preVictoryJPLv === actor.jpLevel(actor.currentClass().id))
-                    continue;
-                this._JPleveledActors.push(actor);
-            }
-        };
+            DreamX.VictoryAftermath.Scene_Battle_addCustomVictorySteps =
+                    Scene_Battle.prototype.addCustomVictorySteps;
+            Scene_Battle.prototype.addCustomVictorySteps = function (array) {
+                array = DreamX.VictoryAftermath.Scene_Battle_addCustomVictorySteps.call(this, array);
+                if (!array.contains('JPLEVEL'))
+                    array.push('JPLEVEL');
+                return array;
+            };
 
-        DreamX.VictoryAftermath.Scene_Battle_addCustomVictorySteps =
-                Scene_Battle.prototype.addCustomVictorySteps;
-        Scene_Battle.prototype.addCustomVictorySteps = function (array) {
-            array = DreamX.VictoryAftermath.Scene_Battle_addCustomVictorySteps.call(this, array);
-            if (!array.contains('JPLEVEL'))
-                array.push('JPLEVEL');
-            return array;
-        };
-
-        Scene_Battle.prototype.updateVictoryJPLevelUp = function () {
+            Scene_Battle.prototype.updateVictoryJPLevelUp = function () {
 //            if (!this._victoryJPLevelWindow) {
-            if (!this._victoryJPLevelPhase) {
-                this.createVictoryJPLevelUp();
-            } else if (this.victoryTriggerContinue()) {
-                this.continueVictoryJPLevelUp();
-            }
-        };
+                if (!this._victoryJPLevelPhase) {
+                    this.createVictoryJPLevelUp();
+                } else if (this.victoryTriggerContinue()) {
+                    this.continueVictoryJPLevelUp();
+                }
+            };
 
-        Scene_Battle.prototype.createVictoryJPLevelUp = function () {
-            this._victoryJPLevelPhase = true;
-            if (this.meetVictoryJPLevelUpConditions()) {
-                this.setupNextAftermathJPLevelUpActor();
-            } else {
-                this.processNextVictoryStep();
-            }
-        };
+            Scene_Battle.prototype.createVictoryJPLevelUp = function () {
+                this._victoryJPLevelPhase = true;
+                if (this.meetVictoryJPLevelUpConditions()) {
+                    this.setupNextAftermathJPLevelUpActor();
+                } else {
+                    this.processNextVictoryStep();
+                }
+            };
 
-        Scene_Battle.prototype.continueVictoryJPLevelUp = function () {
+            Scene_Battle.prototype.continueVictoryJPLevelUp = function () {
                 console.log("yo");
-            if (this.meetVictoryJPLevelUpConditions()) {
+                if (this.meetVictoryJPLevelUpConditions()) {
+                    SoundManager.playOk();
+                    this.setupNextAftermathJPLevelUpActor();
+                } else {
+                    this.finishVictoryJPLevelUp();
+                }
+            };
+
+            BattleManager.aftermathJPLeveledActors = function () {
+                return this._JPleveledActors;
+            };
+
+            Scene_Battle.prototype.meetVictoryJPLevelUpConditions = function () {
+                return BattleManager.aftermathJPLeveledActors().length > 0;
+            };
+
+            Scene_Battle.prototype.setupNextAftermathJPLevelUpActor = function () {
+                this._JPlevelUpActor = BattleManager.aftermathJPLeveledActors().shift();
+                var actor = this._JPlevelUpActor;
+                var actorClass = actor.currentClass();
+                var fmt = paramJPLevelTitleText;
+
+                var text = fmt.format(actor.name(), actorClass.name,
+                        actor._preVictoryJPLv, actor.jpLevel(actorClass.id));
+                this._victoryTitleWindow.refresh(text);
+            };
+
+            Scene_Battle.prototype.finishVictoryJPLevelUp = function () {
                 SoundManager.playOk();
-                this.setupNextAftermathJPLevelUpActor();
-            } else {
-                this.finishVictoryJPLevelUp();
-            }
-        };
+                this.processNextVictoryStep();
+            };
+        }
+    } catch (e) {
 
-        BattleManager.aftermathJPLeveledActors = function () {
-            return this._JPleveledActors;
-        };
-
-        Scene_Battle.prototype.meetVictoryJPLevelUpConditions = function () {
-            return BattleManager.aftermathJPLeveledActors().length > 0;
-        };
-
-        Scene_Battle.prototype.setupNextAftermathJPLevelUpActor = function () {
-            this._JPlevelUpActor = BattleManager.aftermathJPLeveledActors().shift();
-            var actor = this._JPlevelUpActor;
-            var actorClass = actor.currentClass();
-            var fmt = paramJPLevelTitleText;
-            
-            var text = fmt.format(actor.name(), actorClass.name, 
-            actor._preVictoryJPLv, actor.jpLevel(actorClass.id));
-            this._victoryTitleWindow.refresh(text);
-        };
-
-        Scene_Battle.prototype.finishVictoryJPLevelUp = function () {
-            SoundManager.playOk();
-            this.processNextVictoryStep();
-        };
     }
+
 
 
 })();
