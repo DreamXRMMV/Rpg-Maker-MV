@@ -476,7 +476,7 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
     };
 
     //==========================================================================
-    // Holy shit
+    // 
     //==========================================================================
     if (Imported.MOG_BattleHud) {
         Battle_Hud.prototype.refresh_states = function () {
