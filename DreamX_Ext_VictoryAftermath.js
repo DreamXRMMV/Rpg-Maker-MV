@@ -998,7 +998,6 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
             };
 
             Scene_Battle.prototype.continueVictoryJPLevelUp = function () {
-                console.log("yo");
                 if (this.meetVictoryJPLevelUpConditions()) {
                     SoundManager.playOk();
                     this.setupNextAftermathJPLevelUpActor();
