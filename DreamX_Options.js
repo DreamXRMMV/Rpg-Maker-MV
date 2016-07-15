@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.4c Options for the option menu
+ * @plugindesc v1.5 Options for the option menu
  * @author DreamX
  * 
  * @param --General Options--
@@ -367,9 +367,26 @@ DreamX.Options = DreamX.Options || {};
             return;
         }
         var helpText = helpTextData[symbol];
-        if (helpText) {
-            helpWindow.setText(helpText);
+        if (!helpText) {
+            return;
         }
+        var variableId = this.getVariableId(symbol);
+        if (helpText === Object(helpText)) {
+            if (variableId !== -1) {
+                var currentValue = $gameVariables.value(variableId);
+                if (helpText[currentValue]) {
+                    helpText = helpText[currentValue];
+                }
+                else {
+                    return;
+                }
+            }
+            else {
+                return;
+            }
+        }
+
+        helpWindow.setText(helpText);
     };
 
     Window_Options.prototype.removeDefaultOptions = function () {
@@ -528,6 +545,7 @@ DreamX.Options = DreamX.Options || {};
         if (lastValue !== value) {
             $gameVariables.setValue(variableId, value);
             this.redrawAndPlayCursor(symbol);
+            this.setHelpText(this.index());
         }
     };
 
@@ -579,6 +597,9 @@ DreamX.Options = DreamX.Options || {};
         var data = DreamX.Options.variables[variableId.toString()];
         if (data.percent && eval(data.percent)) {
             string += '%';
+        }
+        if (data.value_text && data.value_text[string]) {
+            string = data.value_text[string];
         }
         return string;
     };
