@@ -1,5 +1,5 @@
 /*:
- * @plugindesc 1.6b
+ * @plugindesc 1.6d
  * @author DreamX
  *
  * @param Maximum State/Buffs Per Line
@@ -60,6 +60,34 @@
  * @param Show Tooltips
  * @desc default: false
  * @default false
+ * 
+ * @param Default State/Buff Name Color
+ * @desc Color for state/buff name in default tooltip. Default: 6
+ * @default 6
+ * 
+ * @param Default State/Buff Name Font Size
+ * @desc Font size for state/buff name in default tooltip. Default: 20
+ * @default 20
+ * 
+ * @param Default State/Buff Desc Color
+ * @desc Color for state/buff description in default tooltip. Default: 0
+ * @default 0
+ * 
+ * @param Default State/Buff Name Desc Font Size
+ * @desc Font size for state/buff description in default tooltip. Default: 16
+ * @default 16
+ * 
+ * @param Default State/Buff Turn Color
+ * @desc Color for state/buff turns in default tooltip. Default: 6
+ * @default 6
+ * 
+ * @param Default State/Buff Name Turn Font Size
+ * @desc Font size for state/buff turns in default tooltip. Default: 16
+ * @default 16
+ * 
+ * @param Tooltip Frame Opacity
+ * @desc default: 255
+ * @default 255
  *
  * @param Max Y Value (Battle)
  * @desc The maximum y value for the tooltip window in battle. Default: scene._statusWindow.y - this.height
@@ -94,11 +122,17 @@
  * @default true
  * @help
  * Requires Yanfly Battle Engine Core.
- *
+ * 
+ * ===========================================================================
+ * Important
+ * ===========================================================================
  * Showing turns, counters and buff rates requires YEP Buff States Core. How
- * they are displayed depends on the parameters you choose for that plugin.
- *
- * ---
+ * they are displayed depends on the parameters you choose for that plugin. 
+ * Make sure you check those parameters!
+ * 
+ * ===========================================================================
+ * Notetags
+ * ===========================================================================
  * State Notetags:
  *      <DXBSI_Description: x>
  *      Replace x with the description of the state. This will appear in the
@@ -152,8 +186,7 @@
  *      <DXBSI SHOW REQUIREMENT>
  *      $gameSwitches.value(1)
  *      </DXBSI SHOW REQUIREMENT>
- *      This will require that the switch 1 is on.
- * --
+ *      This will require that the switch 1 is on. 
  * ===========================================================================
  * Terms Of Use
  * ===========================================================================
@@ -197,6 +230,15 @@ DreamX.Param.BSIDefaultBuffDesc = Number(DreamX.Parameters['Default Buff Descrip
 
 DreamX.Param.BSITooltipMaxYBattle = String(DreamX.Parameters['Max Y Value (Battle)']);
 DreamX.Param.BSIShowTooltips = eval(String(DreamX.Parameters['Show Tooltips']));
+DreamX.Param.BSITooltipFrameOpacity = parseInt(String(DreamX.Parameters['Tooltip Frame Opacity']));
+
+DreamX.Param.BSITooltipNameColor = parseInt(String(DreamX.Parameters['Default State/Buff Name Color']));
+DreamX.Param.BSITooltipDescColor = parseInt(String(DreamX.Parameters['Default State/Buff Desc Color']));
+DreamX.Param.BSITooltipTurnColor = parseInt(String(DreamX.Parameters['Default State/Buff Turn Color']));
+
+DreamX.Param.BSITooltipNameFS = parseInt(String(DreamX.Parameters['Default State/Buff Name Font Size']));
+DreamX.Param.BSITooltipDescFS = parseInt(String(DreamX.Parameters['Default State/Buff Name Desc Font Size']));
+DreamX.Param.BSITooltipTurnFS = parseInt(String(DreamX.Parameters['Default State/Buff Name Turn Font Size']));
 
 DreamX.Param.BSIShowActorTurns = eval(String(DreamX.Parameters['Show Actor State Turns']));
 DreamX.Param.BSIShowActorCounters = eval(String(DreamX.Parameters['Show Actor Counters']));
@@ -287,11 +329,11 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
         if (!this._tooltipWindow || !this._tooltipHitObjs) {
             return;
         }
-        
+
         var objs = this._tooltipHitObjs;
         var touchX = !Imported.TDDP_MouseSystemEx ? TouchInput._mouseOverX : TouchInput._x;
         var touchY = !Imported.TDDP_MouseSystemEx ? TouchInput._mouseOverY : TouchInput._y;
-        
+
         var hover = false;
 
         for (var i = 0; i < objs.length; i++) {
@@ -302,6 +344,7 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
                     && touchY >= iconY
                     && touchY <= iconY + DreamX.Param.BSIIconHeight) {
                 if (this._lastTooltipObjHoveredOver !== obj) {
+
                     this._tooltipWindow.refresh(iconX, iconY, obj, obj.battler);
                 }
                 this._tooltipWindow.show();
@@ -392,10 +435,21 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
         }
     };
 
-    Scene_Base.prototype.addTooltipHitObj = function (battler, buffState, isState, window, xOffset, yOffset) {
+    Scene_Base.prototype.addTooltipHitObj = function (battler, buffState,
+            isState, window, xOffset, yOffset, replace) {
         var id = buffState.id ? buffState.id : buffState;
         var obj = {battler: battler, id: id, state: isState, window: window,
             xOffset: xOffset, yOffset: yOffset};
+        if (replace) {
+            var tObjs = this._tooltipHitObjs;
+            tObjs.forEach(function (tObj) {
+                if (tObj.battler === battler, tObj.xOffset === xOffset
+                        && tObj.yOffset === yOffset) {
+                    var index = tObjs.indexOf(tObj);
+                    tObjs.splice(index, 1);
+                }
+            });
+        }
         this._tooltipHitObjs.push(obj);
     };
 
@@ -405,7 +459,8 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
     DreamX.BattlerSpriteIcons.Window_Base_drawStateCounter = Window_Base.prototype.drawStateCounter;
     Window_Base.prototype.drawStateCounter = function (actor, state, wx, wy) {
         var scene = SceneManager._scene;
-        if (DreamX.Param.BSIShowTooltips) {
+
+        if (DreamX.Param.BSIShowTooltips && this.visible) {
             scene.addTooltipHitObj(actor, state, true, this, wx, wy);
         }
         DreamX.BattlerSpriteIcons.Window_Base_drawStateCounter.call(this, actor, state, wx, wy);
@@ -414,11 +469,66 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
     DreamX.BattlerSpriteIcons.Window_Base_drawBuffTurns = Window_Base.prototype.drawBuffTurns;
     Window_Base.prototype.drawBuffTurns = function (actor, paramId, wx, wy) {
         var scene = SceneManager._scene;
-        if (DreamX.Param.BSIShowTooltips) {
+        if (DreamX.Param.BSIShowTooltips && this.visible) {
             scene.addTooltipHitObj(actor, paramId, false, this, wx, wy);
         }
         DreamX.BattlerSpriteIcons.Window_Base_drawBuffTurns.call(this, actor, paramId, wx, wy);
     };
+
+    //==========================================================================
+    // Holy shit
+    //==========================================================================
+    if (Imported.MOG_BattleHud) {
+        Battle_Hud.prototype.refresh_states = function () {
+            this._states_data[0] = 0;
+            this._states_data[2] = 0;
+            this._state_icon.visible = false;
+            if (this._battler.states().length == 0) {
+                this._states_data[1] = 0;
+                return
+            }
+            ;
+            if (this._battler.states()[this._states_data[1]]) {
+                var state_id = this._battler.states()[this._states_data[1]].id;
+                if ($dataStates[state_id].iconIndex == 0) {
+                    for (var i = 0; i < this._battler.states().length; i++) {
+                        this._states_data[1] += 1;
+                        if (this._states_data[1] >= this._battler.states().length) {
+                            this._states_data[1] = 0
+                        }
+                        ;
+                        var state_id = this._battler.states()[this._states_data[1]].id;
+                        if ($dataStates[state_id].iconIndex > 0) {
+                            break
+                        }
+                        ;
+                    }
+                    ;
+                }
+                ;
+                this._states_data[0] = $dataStates[state_id].iconIndex;
+
+                var tX = this._pos_x + Moghunter.bhud_states_pos_x - Math.floor(DreamX.Param.BSIIconWidth / 2);
+                var ty = this._pos_y + Moghunter.bhud_states_pos_y - Math.floor(DreamX.Param.BSIIconHeight / 2);
+                SceneManager._scene.addTooltipHitObj(this._battler, state_id, true,
+                        this, tX,
+                        ty, true);
+
+                this._state_icon.visible = true;
+                var sx = this._states_data[0] % 16 * 32;
+                var sy = Math.floor(this._states_data[0] / 16) * 32;
+                this._state_icon.setFrame(sx, sy, 32, 32);
+                this._battler.need_refresh_bhud_states = false;
+            }
+            ;
+            this._states_old = this._battler.states();
+            this._states_data[1] += 1;
+            if (this._states_data[1] >= this._battler.states().length) {
+                this._states_data[1] = 0
+            }
+            ;
+        };
+    }
 
     //=============================================================================
     // Window_BattleStateIcon
@@ -542,7 +652,7 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
                     || (Yanfly.Param.BSCEnemyTurn
                             && this._battler.isEnemy())) {
                 if ($dataStates[stateBuff.id].autoRemovalTiming > 0) {
-                    
+
                     this.drawStateTurns(this._battler, $dataStates[stateBuff.id], x, y);
                 }
             }
@@ -646,6 +756,7 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
         this.hide();
         this._lineTextWidth = 0;
         this._lineTextHeight = 0;
+        this._windowFrameSprite.alpha = DreamX.Param.BSITooltipFrameOpacity;
     };
 
     Window_StateToolTip.prototype.refresh = function (iconX, iconY,
@@ -716,10 +827,11 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
         var buffState = this._buffState;
         var lineHeightAdd = 8;
 
-        var nameFontSize = 20;
+        var nameFontSize = DreamX.Param.BSITooltipNameFS;
         var nameHeightSize = nameFontSize + lineHeightAdd;
         var name = "";
-        var nameLine = "\\fs[" + nameFontSize + "]\\C[6]";
+        var nameColor = DreamX.Param.BSITooltipNameColor;
+        var nameLine = "\\fs[" + nameFontSize + "]\\C[" + nameColor + "]";
         var buffValue = "";
         var symbol = "";
 
@@ -735,7 +847,8 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
 
         var description = "";
         var descriptionLine = "";
-        var descriptionFontSize = 16;
+        var descriptionFontSize = DreamX.Param.BSITooltipDescFS;
+        var descriptionFontColor = DreamX.Param.BSITooltipDescColor;
         var descriptionHeightSize = descriptionFontSize + lineHeightAdd;
 
         if (!this._isBuff && buffState.meta.DXBSI_Description) {
@@ -745,16 +858,17 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
                     + TextManager.param(buffState.id);
         }
 
-        descriptionLine = "\\fs[" + descriptionFontSize + "]" + description;
+        descriptionLine = "\\fs[" + descriptionFontSize + "]\\C[" + descriptionFontColor + "]" + description;
 
-        var turnFontSize = 16;
+        var turnFontSize = DreamX.Param.BSITooltipTurnFS;
+        var turnFontColor = DreamX.Param.BSITooltipTurnColor;
         var turnHeightSize = turnFontSize + lineHeightAdd;
         var numTurns = Math.ceil(this.turns());
-        var turns = "\\fs[" + turnFontSize + "]\\C[6]" + numTurns + " ";
+        var turns = "\\fs[" + turnFontSize + "]\\C[" + turnFontColor + "]" + numTurns + " ";
 
-        this.drawLine(nameLine, nameHeightSize);
+        this.drawLine(nameLine, nameHeightSize, nameFontSize, nameColor);
         if (description) {
-            this.drawLine(descriptionLine, descriptionHeightSize);
+            this.drawLine(descriptionLine, descriptionHeightSize, descriptionFontSize, descriptionFontColor);
         }
         if (numTurns) {
             if (numTurns === 1) {
@@ -762,15 +876,32 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
             } else {
                 turns += DreamX.Param.BSITurnsRemainingTextPlural;
             }
-            this.drawLine(turns, turnHeightSize);
+            this.drawLine(turns, turnHeightSize, turnFontSize, turnFontColor);
         }
     };
 
-    Window_StateToolTip.prototype.drawLine = function (text, height) {
+    Window_StateToolTip.prototype.drawLine = function (text, height,
+            forcedTextSize, forcedTextColor) {
         if (!text) {
             return;
         }
 
+        var lines = text.split(/[\r\n]+/);
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i];
+            if (forcedTextSize) {
+                line = "\\fs[" + forcedTextSize + "]" + line;
+            }
+            if (forcedTextColor) {
+                line = "\\C[" + forcedTextColor + "]" + line;
+            }
+
+            this.drawLine2(line, height);
+        }
+    };
+
+
+    Window_StateToolTip.prototype.drawLine2 = function (text, height) {
         var width = this.drawTextEx(text, 0, this._lineTextHeight);
 
         if (width > this._lineTextWidth) {
