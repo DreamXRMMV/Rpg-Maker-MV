@@ -1,5 +1,5 @@
 /*:
- * @plugindesc 1.6e
+ * @plugindesc 1.6f
  * @author DreamX
  *
  * @param Maximum State/Buffs Per Line
@@ -323,6 +323,38 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
         this.addToolTipWindow();
     };
 
+    Scene_Base.prototype.checkWindowVisibility = function (touchX, touchY, window) {
+        var windowIndex = window.parent.children.indexOf(window);
+        var valid = true;
+
+        for (var j = windowIndex + 1; j < window.parent.children.length; j++) {
+            var nextWindow = window.parent.children[j];
+            if (!nextWindow.visible || nextWindow.opacity < 255
+                    || nextWindow._openness <= 0) {
+                continue;
+            }
+            if (touchX >= nextWindow.x && touchX <= (nextWindow.x + nextWindow.width)
+                    && touchY >= nextWindow.y
+                    && touchY <= nextWindow.y + nextWindow.height) {
+                valid = false;
+                break;
+            }
+        }
+        return valid;
+    };
+
+    Scene_Base.prototype.checkIconTouch = function (touchX, touchY, iconX, iconY) {
+        var valid = false;
+
+        if (touchX >= iconX && touchX <= iconX + DreamX.Param.BSIIconWidth
+                && touchY >= iconY
+                && touchY <= iconY + DreamX.Param.BSIIconHeight) {
+            valid = true;
+        }
+        return valid;
+    };
+
+
     DreamX.BattlerSpriteIcons.Scene_Base_update = Scene_Base.prototype.update;
     Scene_Base.prototype.update = function () {
         DreamX.BattlerSpriteIcons.Scene_Base_update.call(this);
@@ -335,46 +367,33 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
         var touchY = !Imported.TDDP_MouseSystemEx ? TouchInput._mouseOverY : TouchInput._y;
 
         var hover = false;
-        var covered = false;
 
         for (var i = 0; i < objs.length; i++) {
             var obj = objs[i];
-            if (!obj.window.visible) {
-                continue;
-            }
-            var windowIndex = obj.window.parent.children.indexOf(obj.window);
-            for (var j = windowIndex + 1; j < obj.window.parent.children.length; j++) {
-                var nextWindow = obj.window.parent.children[j];
-                if (!nextWindow.visible || nextWindow.opacity < 255 
-                        || nextWindow._openness <= 0) {
-                    continue;
-                }
-                if (touchX >= nextWindow.x && touchX <= (nextWindow.x + nextWindow.width)
-                        && touchY >= nextWindow.y
-                        && touchY <= nextWindow.y + nextWindow.height) {
-                    covered = true;
-                    break;
-                }
-            }
-
-            if (covered) {
+            var objWindow = obj.window;
+            if (!objWindow.visible) {
                 continue;
             }
 
-            var iconX = obj.window.x + obj.xOffset + Math.floor(DreamX.Param.BSIIconWidth / 2) + 2;
-            var iconY = obj.window.y + obj.yOffset + 4 + Math.floor(DreamX.Param.BSIIconHeight / 2);
-            if (touchX >= iconX && touchX <= iconX + DreamX.Param.BSIIconWidth
-                    && touchY >= iconY
-                    && touchY <= iconY + DreamX.Param.BSIIconHeight) {
-                if (this._lastTooltipObjHoveredOver !== obj) {
+            var iconX = objWindow.x + obj.xOffset
+                    + Math.floor(DreamX.Param.BSIIconWidth / 2) + 2;
+            var iconY = objWindow.y + obj.yOffset
+                    + 4 + Math.floor(DreamX.Param.BSIIconHeight / 2);
 
-                    this._tooltipWindow.refresh(iconX, iconY, obj, obj.battler);
-                }
-                this._tooltipWindow.show();
-                this._lastTooltipObjHoveredOver = obj;
-                hover = true;
-                break;
+            if (!this.checkIconTouch(touchX, touchY, iconX, iconY)) {
+                continue;
             }
+
+            if (!this.checkWindowVisibility(touchX, touchY, objWindow)) {
+                continue;
+            }
+
+            if (this._lastTooltipObjHoveredOver !== obj) {
+                this._tooltipWindow.refresh(iconX, iconY, obj, obj.battler);
+            }
+            this._tooltipWindow.show();
+            this._lastTooltipObjHoveredOver = obj;
+            hover = true;
         }
 
         if (!hover) {
