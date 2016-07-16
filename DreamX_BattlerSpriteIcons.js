@@ -1,5 +1,5 @@
 /*:
- * @plugindesc 1.6f
+ * @plugindesc 1.6g
  * @author DreamX
  *
  * @param Maximum State/Buffs Per Line
@@ -60,6 +60,18 @@
  * @param Show Tooltips
  * @desc default: false
  * @default false
+ * 
+ * @param Tooltip Red Tone
+ * @desc Red tone for tooltip window default: 0
+ * @default 0
+ * 
+ * @param Tooltip Green Tone
+ * @desc Green tone for tooltip window default: 0
+ * @default 0
+ * 
+ * @param Tooltip Blue Tone
+ * @desc Blue tone for tooltip window default: 0
+ * @default 0
  * 
  * @param Default State/Buff Name Color
  * @desc Color for state/buff name in default tooltip. Default: 6
@@ -247,6 +259,9 @@ DreamX.Param.BSIShowActorBuffTurns = eval(String(DreamX.Parameters['Show Actor B
 DreamX.Param.BSITurnsRemainingTextSingular = String(DreamX.Parameters['Default Turns Remaining Text (Singular)']);
 DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Turns Remaining Text (Plural)']);
 
+DreamX.Param.BSITooltipGreen = parseInt(String(DreamX.Parameters['Tooltip Green Tone']));
+DreamX.Param.BSITooltipRed = parseInt(String(DreamX.Parameters['Tooltip Red Tone']));
+DreamX.Param.BSITooltipBlue = parseInt(String(DreamX.Parameters['Tooltip Blue Tone']));
 
 (function () {
     //==========================================================================
@@ -798,6 +813,12 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
         this._lineTextWidth = 0;
         this._lineTextHeight = 0;
         this._windowFrameSprite.alpha = DreamX.Param.BSITooltipFrameOpacity;
+    };
+
+    Window_StateToolTip.prototype.updateTone = function () {
+        this.setTone(DreamX.Param.BSITooltipRed,
+                DreamX.Param.BSITooltipGreen,
+                DreamX.Param.BSITooltipBlue);
     };
 
     Window_StateToolTip.prototype.refresh = function (iconX, iconY,
