@@ -1,5 +1,5 @@
 /*:
- * @plugindesc 1.6d
+ * @plugindesc 1.6e
  * @author DreamX
  *
  * @param Maximum State/Buffs Per Line
@@ -335,9 +335,32 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
         var touchY = !Imported.TDDP_MouseSystemEx ? TouchInput._mouseOverY : TouchInput._y;
 
         var hover = false;
+        var covered = false;
 
         for (var i = 0; i < objs.length; i++) {
             var obj = objs[i];
+            if (!obj.window.visible) {
+                continue;
+            }
+            var windowIndex = obj.window.parent.children.indexOf(obj.window);
+            for (var j = windowIndex + 1; j < obj.window.parent.children.length; j++) {
+                var nextWindow = obj.window.parent.children[j];
+                if (!nextWindow.visible || nextWindow.opacity < 255 
+                        || nextWindow._openness <= 0) {
+                    continue;
+                }
+                if (touchX >= nextWindow.x && touchX <= (nextWindow.x + nextWindow.width)
+                        && touchY >= nextWindow.y
+                        && touchY <= nextWindow.y + nextWindow.height) {
+                    covered = true;
+                    break;
+                }
+            }
+
+            if (covered) {
+                continue;
+            }
+
             var iconX = obj.window.x + obj.xOffset + Math.floor(DreamX.Param.BSIIconWidth / 2) + 2;
             var iconY = obj.window.y + obj.yOffset + 4 + Math.floor(DreamX.Param.BSIIconHeight / 2);
             if (touchX >= iconX && touchX <= iconX + DreamX.Param.BSIIconWidth
@@ -459,8 +482,7 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
     DreamX.BattlerSpriteIcons.Window_Base_drawStateCounter = Window_Base.prototype.drawStateCounter;
     Window_Base.prototype.drawStateCounter = function (actor, state, wx, wy) {
         var scene = SceneManager._scene;
-
-        if (DreamX.Param.BSIShowTooltips && this.visible) {
+        if (DreamX.Param.BSIShowTooltips) {
             scene.addTooltipHitObj(actor, state, true, this, wx, wy);
         }
         DreamX.BattlerSpriteIcons.Window_Base_drawStateCounter.call(this, actor, state, wx, wy);
@@ -469,7 +491,7 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
     DreamX.BattlerSpriteIcons.Window_Base_drawBuffTurns = Window_Base.prototype.drawBuffTurns;
     Window_Base.prototype.drawBuffTurns = function (actor, paramId, wx, wy) {
         var scene = SceneManager._scene;
-        if (DreamX.Param.BSIShowTooltips && this.visible) {
+        if (DreamX.Param.BSIShowTooltips) {
             scene.addTooltipHitObj(actor, paramId, false, this, wx, wy);
         }
         DreamX.BattlerSpriteIcons.Window_Base_drawBuffTurns.call(this, actor, paramId, wx, wy);
