@@ -113,6 +113,7 @@
  * Credits
  * ============================================================================
  * DreamX
+ * Thank you to Yanfly for reference/code from their plugins.
  */
 
 var Imported = Imported || {};
