@@ -61,6 +61,10 @@
  * @desc default: false
  * @default false
  * 
+ * @param Y Addition
+ * @desc The y value added to the tooltip window Default: 0
+ * @default 0
+ * 
  * @param Tooltip Red Tone
  * @desc Red tone for tooltip window default: 0
  * @default 0
@@ -262,6 +266,8 @@ DreamX.Param.BSITurnsRemainingTextPlural = String(DreamX.Parameters['Default Tur
 DreamX.Param.BSITooltipGreen = parseInt(String(DreamX.Parameters['Tooltip Green Tone']));
 DreamX.Param.BSITooltipRed = parseInt(String(DreamX.Parameters['Tooltip Red Tone']));
 DreamX.Param.BSITooltipBlue = parseInt(String(DreamX.Parameters['Tooltip Blue Tone']));
+
+DreamX.Param.BSITooltipYAddition = String(DreamX.Parameters['Y Addition']) || 0;
 
 (function () {
     //==========================================================================
@@ -855,7 +861,10 @@ DreamX.Param.BSITooltipBlue = parseInt(String(DreamX.Parameters['Tooltip Blue To
         if (x + this.width >= Graphics.boxWidth) {
             x = Graphics.boxWidth - this.width;
         }
-
+        
+        
+        y += parseInt(eval(DreamX.Param.BSITooltipYAddition));
+        
         if (y < 0) {
             y = 0;
         }
