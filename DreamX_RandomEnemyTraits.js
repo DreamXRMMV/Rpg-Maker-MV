@@ -368,6 +368,7 @@ DreamX.RandomEnemyTraits = DreamX.RandomEnemyTraits || {};
         DreamX.RandomEnemyTraits.Sprite_Enemy_updateBitmap.call(this);
         var dataEnemy = this._enemy.enemy();
         if (dataEnemy.changedTones && !this._changedTone) {
+            //
             var r = dataEnemy.tones.red || 0;
             var g = dataEnemy.tones.green || 0;
             var b = dataEnemy.tones.blue || 0;
@@ -397,7 +398,6 @@ DreamX.RandomEnemyTraits = DreamX.RandomEnemyTraits || {};
     DreamX.RandomEnemyTraits.Sprite_Enemy_loadBitmap = Sprite_Enemy.prototype.loadBitmap;
     Sprite_Enemy.prototype.loadBitmap = function (name, hue) {
         DreamX.RandomEnemyTraits.Sprite_Enemy_loadBitmap.call(this, name, hue);
-        this.bitmap.adjustTone(255, 255, 255);
         var overlayImages = this._enemy.enemy().overlayImages;
         if (!overlayImages || !overlayImages[1]) {
             return;
