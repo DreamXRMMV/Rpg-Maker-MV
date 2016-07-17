@@ -1,5 +1,5 @@
 /*:
- * @plugindesc 1.6g
+ * @plugindesc 1.6h
  * @author DreamX
  *
  * @param Maximum State/Buffs Per Line
@@ -116,6 +116,10 @@
  * @param Default Turns Remaining Text (Plural)
  * @desc Text to display for default turns remaining text in tooltip. For multiple turns only.
  * @default turns remaining.
+ * 
+ * @param Show Buff Rate
+ * @desc Show Buff Rate In Tooltip Default: true
+ * @default true
  *
  * @param ---Turns---
  * @default
@@ -268,6 +272,8 @@ DreamX.Param.BSITooltipRed = parseInt(String(DreamX.Parameters['Tooltip Red Tone
 DreamX.Param.BSITooltipBlue = parseInt(String(DreamX.Parameters['Tooltip Blue Tone']));
 
 DreamX.Param.BSITooltipYAddition = String(DreamX.Parameters['Y Addition']) || 0;
+
+DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']));
 
 (function () {
     //==========================================================================
@@ -924,7 +930,7 @@ DreamX.Param.BSITooltipYAddition = String(DreamX.Parameters['Y Addition']) || 0;
 
         if (!this._isBuff && buffState.meta.DXBSI_Description) {
             description = buffState.meta.DXBSI_Description.trim();
-        } else if (this._isBuff && Yanfly.Param.BSCShowBuffRate) {
+        } else if (this._isBuff && DreamX.Param.BSIShowBuffRate) {
             description = this._battler.paramBuffRate(buffState.id) * 100 + "% "
                     + TextManager.param(buffState.id);
         }
