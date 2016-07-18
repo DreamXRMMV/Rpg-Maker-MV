@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.23c Random prefixes/suffixes
+ * @plugindesc v1.23d Random prefixes/suffixes
  * @author DreamX
  *
  * @param Default Chance
@@ -1149,6 +1149,8 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
             $gameSystem.overlayIcons.push(newItem.overlayIcons);
             newItem.iconIndex = newCombIconId;
         }
+        
+        newItem.nonIndependent = false;
 
         return newItem;
     };
