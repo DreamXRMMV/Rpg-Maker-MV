@@ -1,5 +1,5 @@
 /*:
- * @plugindesc
+ * @plugindesc v1.0
  * @author DreamX
  * 
  * @param --Battle Status Window--
