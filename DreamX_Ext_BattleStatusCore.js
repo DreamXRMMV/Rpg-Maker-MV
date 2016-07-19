@@ -178,6 +178,7 @@
  * Credits
  * ============================================================================
  * DreamX
+ * Yanfly for YEP Battle Status Window
  */
 
 var Imported = Imported || {};
