@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.24 Random prefixes/suffixes
+ * @plugindesc v1.24a Random prefixes/suffixes
  * @author DreamX
  *
  * @param Bonus Parameter Text
@@ -37,6 +37,10 @@
  * Core parameters. By default weapons and armors are independent, but regular
  * items are not. You'll need to change the parameters from the default for
  * regular items).
+ * 
+ * Do not use prefix/suffix notetags with starting items. If you want an actor 
+ * to start with an randomized item, add the item to the party and then equip 
+ * them with it.
  * 
  * ============================================================================
  * How Items Are Combined
@@ -1524,7 +1528,7 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
             var augmentType = obj.augmentType;
             //var dataType = obj.dataType;
             var dataType = $dataItems;
-            
+
             var id = obj.id;
 
             ItemManager.checkAugmentSlots(newItem);
@@ -1541,7 +1545,7 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
 //            ItemManager.applyAugmentEffects(newItem, dataType[id],
 //                    slotIndex, 1);
         }
-        
+
         delete newItem.DXRPSChosenAugments;
         delete newItem.DXRPSChosenAugments;
     };
@@ -1562,7 +1566,7 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
             var dataType = $dataItems;
 
             var id = DreamX.RandomPrefixSuffix.choose(line, dataType);
-            
+
             dataType = 'item';
 
             if (!id) {
@@ -1747,6 +1751,16 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
 
             $gameParty.loseGold(number * this.buyingPrice());
             $gameParty.gainItem(actualItem, number);
+        };
+    }
+
+    if (Imported.YEP_X_ItemDurability) {
+        DreamX.RandomPrefixSuffix.ItemManager_makeDurability = ItemManager.makeDurability;
+        ItemManager.makeDurability = function (item, variance) {
+            if (!item || (item.DXRPSItem && item.id === item.baseItemId)) {
+                return;
+            }
+            DreamX.RandomPrefixSuffix.ItemManager_makeDurability.call(this, item, variance);
         };
     }
 
