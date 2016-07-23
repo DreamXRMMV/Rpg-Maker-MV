@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.08
+ * @plugindesc v1.08a
  * @author DreamX
  * 
  * @param Battle Members Only
@@ -307,5 +307,16 @@ DreamX.FollowerOptions = DreamX.FollowerOptions || {};
         }
         DreamX.FollowerOptions.Window_Command_addCommand.call(this, name, symbol, enabled, ext);
     };
+
+    if (Imported.YEP_X_ActorPartySwitch) {
+        DreamX.FollowerOptions.Window_ActorPartySwitch_makeCommandList = Window_ActorPartySwitch.prototype.makeCommandList;
+        Window_ActorPartySwitch.prototype.makeCommandList = function () {
+            DreamX.FollowerOptions.Window_ActorPartySwitch_makeCommandList.call(this);
+            this._list = this._list.filter(function(cmd) {
+               var id = cmd.ext;
+               return $gameParty.isBattleMemberEnabled($gameActors.actor(id));
+            });
+        };
+    }
 
 })();
