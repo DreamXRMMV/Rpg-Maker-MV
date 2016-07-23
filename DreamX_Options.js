@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.5 Options for the option menu
+ * @plugindesc v1.6 Options for the option menu
  * @author DreamX
  * 
  * @param --General Options--
@@ -129,7 +129,7 @@
  * 
  * @help
  * ============================================================================
- * Json Help
+ * Json Help - General
  * ============================================================================
  * The json file is used to customize extra things for this plugin. 
  * You can take a look at the sample provided by me to find out how to 
@@ -138,12 +138,41 @@
  * placed improperly. A comma needs to placed for every entry in a list 
  * aside from the last one. The last one must not have a comma.
  * 
+ * ============================================================================
+ * Json Help - Variables
+ * ============================================================================
  * A "step" for the variable is the interval that is increased or decreased 
  * when changing the value.
  * 
  * If a variable option's value is less than the mininimum, greater than the 
  * maximum or not a multiple of the step value, then it will get reinitialized 
  * to the minimum.
+ * ============================================================================
+ * Json Help - Locks
+ * ============================================================================
+ * You can use the json file to lock options. See the example json file.
+ * 
+ * You will use the symbol (for example, "commandRemember") in the example 
+ * json file. User-defined switches and variables use the same symbol style as 
+ * in the HELP_TEXT section of the example json file.
+ * 
+ * The "condition" attribute decides whether to lock the option or not. 
+ * You will enter javascript there. If you need to use more than one line, 
+ * I suggest putting a function call in there.
+ * 
+ * "reset" decides whether to change the value of the option after resetting. 
+ * You will enter javascript there. A simple true or false will probably 
+ * suffice.
+ * 
+ * "resetValue" only applies if the option is set to reset upon locking, so 
+ * don't worry about this if you're not resetting the value. This attribute 
+ * is what the value of the option is changed to upon resetting. In most cases,
+ * a number, true, or false will suffice.
+ * 
+ * If you need to use quotes, make sure to escape them. For example, if you 
+ * want to reset the resolution to 816 x 624, you would use 
+ * "\"816 624\""
+ * as the reset value.
  * ============================================================================
  * Switches Parameter Help
  * ============================================================================
@@ -273,6 +302,7 @@ DreamX.Options = DreamX.Options || {};
         DreamX.Options.loaded = true;
         DreamX.Options.helpText = data.HELP_TEXT;
         DreamX.Options.variables = data.VARIABLES;
+        DreamX.Options.locks = data.LOCKS;
 
         DreamX.Options.videoSettingsSizes = [];
         DreamX.Options.videoSettingNames = [];
@@ -376,12 +406,10 @@ DreamX.Options = DreamX.Options || {};
                 var currentValue = $gameVariables.value(variableId);
                 if (helpText[currentValue]) {
                     helpText = helpText[currentValue];
-                }
-                else {
+                } else {
                     return;
                 }
-            }
-            else {
+            } else {
                 return;
             }
         }
@@ -432,6 +460,58 @@ DreamX.Options = DreamX.Options || {};
 
         this.addSwitchOptions();
         this.addVariableOptions();
+        this.updateLocks();
+    };
+
+    Window_Options.prototype.updateLocks = function () {
+        this._lockedSymbols = [];
+
+        var locks = DreamX.Options.locks;
+        if (!locks) {
+            return;
+        }
+
+        var list = this._list;
+
+        if (list.length <= 0) {
+            return;
+        }
+        for (var key in locks) {
+            var cmd = list.filter(function (listCmd) {
+                return listCmd.symbol === key;
+            })[0];
+
+            if (!cmd) {
+                continue;
+            }
+
+            var symbol = cmd.symbol;
+
+            var lock = locks[key];
+
+            var disabled = eval(lock.condition);
+
+            if (disabled) {
+                cmd.enabled = false;
+
+                if (eval(lock.reset)) {
+                    //currentValue
+                    var newValue = eval(lock.resetValue);
+
+                    if (newValue !== this.currentValue(symbol)) {
+                        this.changeValue(symbol, newValue);
+                    }
+                }
+
+                this._lockedSymbols.push(symbol);
+            } else {
+                cmd.enabled = true;
+            }
+
+            if (this.visible) {
+                this.redrawItem(this.findSymbol(symbol));
+            }
+        }
     };
 
     Window_Options.prototype.addSwitchOptions = function () {
@@ -446,6 +526,24 @@ DreamX.Options = DreamX.Options || {};
 
             this.addCommand(name, symbol);
         }
+    };
+
+    Window_Options.prototype.currentValue = function (symbol) {
+        if (symbol === 'resolution') {
+            return this.currentResString();
+        }
+
+        var switchId = this.getSwitchId(symbol);
+        if (switchId !== -1) {
+            return $gameSwitches.value(switchId);
+        }
+
+        var variableId = this.getVariableId(symbol);
+        if (variableId !== -1) {
+            return $gameVariables.value(variableId);
+        }
+
+        return this.getConfigValue(symbol);
     };
 
     Window_Options.prototype.addVariableOptions = function () {
@@ -516,20 +614,28 @@ DreamX.Options = DreamX.Options || {};
 
     DreamX.Options.Window_Options_changeValue = Window_Options.prototype.changeValue;
     Window_Options.prototype.changeValue = function (symbol, value) {
+        // cant change value of locked cmds
+        if (this._lockedSymbols.indexOf(symbol) !== -1) {
+            return;
+        }
+
         if (symbol === 'resolution') {
             this.changeResolutionValue(symbol, value);
+            this.updateLocks();
             return;
         }
 
         var switchId = this.getSwitchId(symbol);
         if (switchId !== -1) {
             this.changeSwitchValue(symbol, value, switchId);
+            this.updateLocks();
             return;
         }
 
         var variableId = this.getVariableId(symbol);
         if (variableId !== -1) {
             this.changeVariableValue(symbol, value, variableId);
+            this.updateLocks();
             return;
         }
 
@@ -537,6 +643,7 @@ DreamX.Options = DreamX.Options || {};
             Graphics._switchFullScreen();
         }
         DreamX.Options.Window_Options_changeValue.call(this, symbol, value);
+        this.updateLocks();
     };
 
     Window_Options.prototype.changeVariableValue = function (symbol,

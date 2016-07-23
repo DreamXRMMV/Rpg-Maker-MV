@@ -58,5 +58,12 @@
             "2": "Help text for a value of 2",
             "3": "Help text for a value of 3"
         }
+    },
+    "LOCKS": {
+        "commandRemember": {
+            "condition": "$gameSwitches.value(1)",
+            "reset": "true",
+            "resetValue": "false"
+        }   
     }
 }
