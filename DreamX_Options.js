@@ -158,7 +158,8 @@
  * 
  * The "condition" attribute decides whether to lock the option or not. 
  * You will enter javascript there. If you need to use more than one line, 
- * I suggest putting a function call in there.
+ * I suggest putting a function call in there. 
+ * If the condition evaluates as true, the option will be locked.
  * 
  * "reset" decides whether to change the value of the option after resetting. 
  * You will enter javascript there. A simple true or false will probably 
