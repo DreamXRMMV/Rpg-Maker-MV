@@ -152,8 +152,8 @@
  * ============================================================================
  * You can use the json file to lock options. See the example json file.
  * 
- * You will use the symbol (for example, "commandRemember") in the example 
- * json file. User-defined switches and variables use the same symbol style as 
+ * You will use the symbol (for example, "commandRemember" in the example 
+ * json file). User-defined switches and variables use the same symbol style as 
  * in the HELP_TEXT section of the example json file.
  * 
  * The "condition" attribute decides whether to lock the option or not. 
