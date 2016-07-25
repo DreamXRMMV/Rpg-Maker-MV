@@ -46,6 +46,12 @@ DreamX.RandomizeCharacter = DreamX.RandomizeCharacter || {};
 
         var races = paramRaces;
         var race = races[Math.floor(Math.random() * races.length)];
+
+        var presetRace = this.event().meta.RCRace;
+        if (presetRace) {
+            race = presetRace.trim();
+        }
+
         var number = Math.floor(Math.random() * paramMax) + 1;
         var index = Math.floor(Math.random() * 8);
         this.setImage(race + number, index);
