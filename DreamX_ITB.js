@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.15e Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
+ * @plugindesc v1.16 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
  *
  * <DreamX ITB>
  * @author DreamX
@@ -221,6 +221,7 @@
  Use <free_itb_action> as a skill/item notetag to prevent
  it from consuming an action for the battler - they will be able to act
  again after it is used.
+ Do NOT use YEP Instant Cast to do this - it won't work.
  
  Make sure to set the parameters to your liking.
  Put the <noExtraElemenWeaknessAction> notetag on a state to disallow opponents
@@ -250,10 +251,10 @@
  the index.
  
  Example:
- <ITBSheet: TurnIcons 10 10>
+ <ITBSheet: TurnIcons 9 10>
  <ITBSheetIndex: 1>
  
- This will use the sheet "TurnIcons 10 10.png" with 10 rows and 10 columns.
+ This will use the sheet "TurnIcons 10 10.png" with 9 rows and 10 columns.
  The index will be 1. Indices start at 0.
  If you do not specify the rows and columns in the filename, the default 
  parameters will be used instead.
@@ -265,10 +266,10 @@
  notetag/parameter so do not use leading and trailing spaces in your filename.
  
  For example, use (without quotes)
- "turnIcons.png"
+ "turnIcons 9 10.png"
  
  instead of
- "     turnIcons     .png"
+ "     turnIcons 9 10   .png"
  * ============================================================================
  * Patch Notes/Known Issues/Future Updates
  * ============================================================================
@@ -695,33 +696,7 @@ DreamX.ITB = DreamX.ITB || {};
         }
     };
 
-    // window position
-    DreamX.ITB.Scene_Battle_updateWindowPositions
-            = Scene_Battle.prototype.updateWindowPositions;
-    Scene_Battle.prototype.updateWindowPositions = function () {
-        if (BattleManager.isITB()) {
-            var statusX = 0;
-            if (BattleManager.normalWindowPosition()) {
-                statusX = this._partyCommandWindow.width;
-            } else {
-                statusX = this._partyCommandWindow.width / 2;
-            }
-            if (this._statusWindow.x < statusX) {
-                this._statusWindow.x += 16;
-                if (this._statusWindow.x > statusX) {
-                    this._statusWindow.x = statusX;
-                }
-            }
-            if (this._statusWindow.x > statusX) {
-                this._statusWindow.x -= 16;
-                if (this._statusWindow.x < statusX) {
-                    this._statusWindow.x = statusX;
-                }
-            }
-        } else {
-            DreamX.ITB.Scene_Battle_updateWindowPositions.call(this);
-        }
-    };
+
 
     // if itb the battle system is turn based
     DreamX.ITB.BattleManager_isTurnBased = BattleManager.isTurnBased;
@@ -873,8 +848,37 @@ DreamX.ITB = DreamX.ITB || {};
         this.setITBPhase();
     };
 
+    // window position
+    DreamX.ITB.Scene_Battle_updateWindowPositions
+            = Scene_Battle.prototype.updateWindowPositions;
+    Scene_Battle.prototype.updateWindowPositions = function () {
+        if (BattleManager.isITB()) {
+            var statusX = 0;
+            if (BattleManager.normalWindowPosition()) {
+                statusX = this._partyCommandWindow.width;
+            } else {
+                statusX = this._partyCommandWindow.width / 2;
+            }
+            
+            if (this._statusWindow.x < statusX) {
+                this._statusWindow.x += 16;
+                if (this._statusWindow.x > statusX) {
+                    this._statusWindow.x = statusX;
+                }
+            }
+            if (this._statusWindow.x > statusX) {
+                this._statusWindow.x -= 16;
+                if (this._statusWindow.x < statusX) {
+                    this._statusWindow.x = statusX;
+                }
+            }
+        } else {
+            DreamX.ITB.Scene_Battle_updateWindowPositions.call(this);
+        }
+    };
+
     BattleManager.normalWindowPosition = function () {
-        return this._phase === 'input' || (this._phase === 'itb' && this._actorIndex === -1);
+        return this._phase === 'input';
     };
 
     BattleManager.addBattler = function (battler) {
