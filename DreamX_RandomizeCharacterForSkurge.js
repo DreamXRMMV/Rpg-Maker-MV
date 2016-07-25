@@ -51,24 +51,27 @@ DreamX.RandomizeCharacter = DreamX.RandomizeCharacter || {};
         this.setImage(race + number, index);
     };
 
-    alias_DataManager_onLoad = DataManager.onLoad;
-    DataManager.onLoad = function (object) {
-        alias_DataManager_onLoad.call(this, object);
-        var array;
-        if (object === $dataSpawnMap) {
-            this.extractMetadata(object);
-            array = object.events;
-        } else {
-            array = object;
-        }
-        if (Array.isArray(array)) {
-            for (var i = 0; i < array.length; i++) {
-                var data = array[i];
-                if (data && data.note !== undefined) {
-                    this.extractMetadata(data);
+    if (Imported.Galv_EventSpawner) {
+        alias_DataManager_onLoad = DataManager.onLoad;
+        DataManager.onLoad = function (object) {
+            alias_DataManager_onLoad.call(this, object);
+            var array;
+            if (object === $dataSpawnMap) {
+                this.extractMetadata(object);
+                array = object.events;
+            } else {
+                array = object;
+            }
+            if (Array.isArray(array)) {
+                for (var i = 0; i < array.length; i++) {
+                    var data = array[i];
+                    if (data && data.note !== undefined) {
+                        this.extractMetadata(data);
+                    }
                 }
             }
-        }
-    };
+        };
+    }
+
 
 })();
