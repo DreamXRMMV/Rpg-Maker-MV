@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.08a
+ * @plugindesc v1.09
  * @author DreamX
  * 
  * @param Battle Members Only
@@ -279,6 +279,31 @@ DreamX.FollowerOptions = DreamX.FollowerOptions || {};
         return members;
     };
 
+    Game_Party.prototype.sortBattleMembers = function () {
+        var regularMembers = this._battleMembers.filter(function (member) {
+            return member !== 0;
+        });
+
+        var nullMembers = this._battleMembers.filter(function (member) {
+            return member === 0;
+        });
+
+        this._battleMembers = regularMembers.concat(nullMembers);
+    };
+
+    DreamX.FollowerOptions.Game_Party_addActor = Game_Party.prototype.addActor;
+    Game_Party.prototype.addActor = function (actorId) {
+        if (!this.isBattleMemberEnabled($gameActors.actor(actorId))) {
+            Yanfly.Party.Game_Party_addActor.call(this, actorId);
+            this.sortBattleMembers();
+            return;
+        }
+        DreamX.FollowerOptions.Game_Party_addActor.call(this, actorId);
+        this.sortBattleMembers();
+    };
+
+
+
     //==========================================================================
     // Window_PartyList
     //==========================================================================
@@ -312,9 +337,9 @@ DreamX.FollowerOptions = DreamX.FollowerOptions || {};
         DreamX.FollowerOptions.Window_ActorPartySwitch_makeCommandList = Window_ActorPartySwitch.prototype.makeCommandList;
         Window_ActorPartySwitch.prototype.makeCommandList = function () {
             DreamX.FollowerOptions.Window_ActorPartySwitch_makeCommandList.call(this);
-            this._list = this._list.filter(function(cmd) {
-               var id = cmd.ext;
-               return $gameParty.isBattleMemberEnabled($gameActors.actor(id));
+            this._list = this._list.filter(function (cmd) {
+                var id = cmd.ext;
+                return $gameParty.isBattleMemberEnabled($gameActors.actor(id));
             });
         };
     }
