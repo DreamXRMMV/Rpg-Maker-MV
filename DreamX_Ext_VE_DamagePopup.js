@@ -11,7 +11,8 @@
  * How To Use
  * ============================================================================
  * This is an extension for Victor Sant's Damage Popup plugin. It requires it 
- * and should be placed below it.
+ * and should be placed below it. It should also be placed under Yanfly's 
+ * Battle Engine Core.
  * 
  * Do not change the filename for this plugin. It must be 
  * DreamX_Ext_VE_DamagePopup.js
