@@ -1,6 +1,11 @@
 /*:
  * @plugindesc v1.0
  * @author DreamX
+ * 
+ * @param Popups Above Windows
+ * @desc Whether to show popups above windows. Default: true
+ * @default true
+ * 
  * @help
  * ============================================================================
  * How To Use
@@ -38,7 +43,7 @@ var DreamX = DreamX || {};
 DreamX.Ext_VE_DamagePopup = DreamX.Ext_VE_DamagePopup || {};
 
 var parameters = PluginManager.parameters('DreamX_Ext_VE_DamagePopup');
-var paramAboveWindows = true;
+var paramAboveWindows = String(parameters['Popups Above Windows']);
 
 Game_Battler.prototype.isDamagePopupRequested = function () {
     if (!this._damagePopup)
@@ -57,7 +62,7 @@ Sprite_Battler.prototype.damagePopupSprite = function (type, value) {
     DreamX.Ext_VE_DamagePopup.Sprite_Battler_damagePopupSprite.call(this, type,
             value);
 
-    if (paramAboveWindows) {
+    if (eval(paramAboveWindows)) {
         var thisSprite = this;
         this._damages.forEach(function (sprite) {
             thisSprite.parent.removeChild(sprite);
