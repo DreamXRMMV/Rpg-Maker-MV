@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.1
+ * @plugindesc v1.2
  * @author DreamX
  * 
  * @param --Battle Status Window--
@@ -11,6 +11,56 @@
  * @param Battle Status Window Opacity
  * @desc Includes frame. Default: 255
  * @default 255
+ * 
+ * @param Battle Status Width
+ * @desc Eval. Default: Graphics.boxWidth - 192
+ * @default Graphics.boxWidth - 192
+ * 
+ * @param Battle Status Height
+ * @desc Eval. Default: this.fittingHeight(this.numVisibleRows())
+ * @default this.fittingHeight(this.numVisibleRows())
+ *
+ * @param Battle Status Input X
+ * @desc Eval. Default: this._partyCommandWindow.width
+ * @default this._partyCommandWindow.width
+ * 
+ * @param Battle Status Action X
+ * @desc Eval. Default: this._partyCommandWindow.width / 2
+ * @default this._partyCommandWindow.width / 2
+ * 
+ * @param Battle Status Y
+ * @desc Eval. Default: Graphics.boxHeight - this.windowHeight()
+ * @default Graphics.boxHeight - this.windowHeight()
+ * 
+ * @param Battle Status Rows
+ * @desc Eval. Default: 1
+ * @default 1
+ * 
+ * @param Battle Status Item Width
+ * @desc Eval. Default: this.contents.width / this.maxCols()
+ * @default this.contents.width / this.maxCols()
+ * 
+ * @param Battle Status Item Height
+ * @desc Eval. Default: this.lineHeight() * this.numVisibleRows()
+ * @default this.lineHeight() * this.numVisibleRows()
+ * 
+ * @param Battle Status Columns
+ * @desc Eval. Default: $gameParty.maxBattleMembers()
+ * @default $gameParty.maxBattleMembers()
+ * 
+ * @param Battle Status Max Visible Rows
+ * @desc Eval. Default: Yanfly.Param.BECCommandRows || 4
+ * @default Yanfly.Param.BECCommandRows || 4
+ * 
+ * @param --Actor Command Window--
+ * 
+ * @param Actor Command X
+ * @desc Eval. Default: 0
+ * @default 0
+ * 
+ * @param Actor Command Y
+ * @desc Eval. Default: Graphics.boxHeight - this.windowHeight()
+ * @default Graphics.boxHeight - this.windowHeight()
  * 
  * @param --Faces--
  *  
@@ -156,6 +206,12 @@
  * @desc Eval. Animations on actors in frontview appear above battle hud instead of below. Default: false
  * @default false
  * 
+ * @param Center Animations and Popups On Face
+ * @desc Eval. Whether to center animations and popups on face when using frontview. Default: false
+ * @default false
+ * 
+ * @param --Quick Settings--
+ * 
  * @param DreamX Setup Suggestion
  * @desc Overrides several parameters Default: false
  * @default false
@@ -219,13 +275,9 @@
  * Yanfly for YEP Battle Status Window
  */
 
-// * @param Battle Status Width
-// * @desc Eval. Default: Graphics.boxWidth - 192
-// * @default Graphics.boxWidth - 192
+
 // * 
-// * @param Battle Status Height
-// * @desc Eval. Default: this.fittingHeight(this.numVisibleRows())
-// * @default this.fittingHeight(this.numVisibleRows())
+
 
 // * @param --Actor Picture--
 // *  
@@ -303,13 +355,25 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     var paramActorPictureX = String(parameters['Actor Picture X']);
     var paramActorPictureY = String(parameters['Actor Picture Y']);
 
-    var paramStatusWidth = String(parameters['Battle Status Width']);
-    var paramStatusHeight = String(parameters['Battle Status Width']);
-    
-    var paramTopAnimations = String(parameters['Frontview Animations On Top']);
-    
+    var paramActorCommandX = String(parameters['Actor Command X']);
+    var paramActorCommandY = String(parameters['Actor Command Y']);
 
-    //
+    var paramStatusWidth = String(parameters['Battle Status Width']);
+    var paramStatusHeight = String(parameters['Battle Status Height']);
+    var paramStatusInputX = String(parameters['Battle Status Input X']);
+    var paramStatusActionX = String(parameters['Battle Status Action X']);
+    var paramStatusY = String(parameters['Battle Status Y']);
+    var paramStatusRows = String(parameters['Battle Status Rows']);
+    var paramStatusCols = String(parameters['Battle Status Columns']);
+    var paramStatusVisRows = String(parameters['Battle Status Max Visible Rows']);
+    var paramStatusItemWidth = String(parameters['Battle Status Item Width']);
+    var paramStatusItemHeight = String(parameters['Battle Status Item Height']);
+
+
+    //Battle Status Item Width
+
+    var paramTopAnimations = String(parameters['Frontview Animations On Top']);
+    var paramCenterFrontViewSprites = String(parameters['Center Animations and Popups On Face']);
 
     if (paramDXStyle) {
         paramDrawFaceX = "rect.x";
@@ -338,21 +402,92 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         paramNameAlign = "center";
     }
 
+    DreamX.Ext_BattleStatusCore.DataManager_loadDatabase = DataManager.loadDatabase;
+    DataManager.loadDatabase = function () {
+        DreamX.Ext_BattleStatusCore.DataManager_loadDatabase.call(this);
+        if (!Imported.YEP_BattleEngineCore) {
+            throw new Error('DreamX_Ext_BattleStatusCore requires YEP_BattleEngineCore');
+        }
+        if (!Imported.YEP_BattleStatusWindow) {
+            throw new Error('DreamX_Ext_BattleStatusCore requires YEP_BattleStatusWindow');
+        }
+    };
+
+    DreamX.Ext_BattleStatusCore.Window_ActorCommand_initialize = Window_ActorCommand.prototype.initialize;
+    Window_ActorCommand.prototype.initialize = function () {
+        DreamX.Ext_BattleStatusCore.Window_ActorCommand_initialize.call(this);
+        this.x = eval(paramActorCommandX);
+        this.y = eval(paramActorCommandY);
+    };
+
+    Window_BattleStatus.prototype.itemWidth = function () {
+        return eval(paramStatusItemWidth);
+    };
+
+    Window_BattleStatus.prototype.itemHeight = function () {
+        return eval(paramStatusItemHeight);
+    };
+
     DreamX.Ext_BattleStatusCore.Window_BattleStatus_initialize = Window_BattleStatus.prototype.initialize;
     Window_BattleStatus.prototype.initialize = function () {
         DreamX.Ext_BattleStatusCore.Window_BattleStatus_initialize.call(this);
         this._windowFrameSprite.alpha = paramFrameOpacity;
         this.opacity = paramWindowOpacity;
+        this.y = eval(paramStatusY);
     };
 
-//    Window_BattleStatus.prototype.windowWidth = function () {
-//        return eval(paramStatusWidth);
-//    };
-//    
-//    Window_BattleStatus.prototype.windowHeight = function () {
-//        return eval(paramStatusHeight);
-//    };
+    Window_BattleStatus.prototype.windowWidth = function () {
+        return eval(paramStatusWidth);
+    };
 
+    Window_BattleStatus.prototype.windowHeight = function () {
+        return eval(paramStatusHeight);
+    };
+
+    Window_BattleStatus.prototype.maxRows = function () {
+        return eval(paramStatusRows);
+    };
+
+    Window_BattleStatus.prototype.maxCols = function () {
+        return eval(paramStatusCols);
+    };
+
+    Window_BattleStatus.prototype.numVisibleRows = function () {
+        return eval(paramStatusVisRows);
+    };
+
+    DreamX.Ext_BattleStatusCore.Spriteset_Battle_updateActors = Spriteset_Battle.prototype.updateActors;
+    Spriteset_Battle.prototype.updateActors = function () {
+        DreamX.Ext_BattleStatusCore.Spriteset_Battle_updateActors.call(this);
+        if ($gameSystem.isSideView() || !eval(paramCenterFrontViewSprites)) {
+            return;
+        }
+        for (var i = 0; i < this._actorSprites.length; i++) {
+            this._actorSprites[i].setActorHomeFrontViewCenter();
+        }
+    };
+
+    Sprite_Actor.prototype.setActorHomeFrontViewCenter = function () {
+
+        var obj = this._faceActorPositionObj;
+        if (obj) {
+            var window = SceneManager._scene._statusWindow;
+
+            var x = (window.x + window.standardPadding() + obj.xOffset)
+                    - this._offsetX;
+            var y = (window.y + window.height) - (window.standardPadding() 
+                    + obj.yOffset);
+
+            if (!Imported['VE - Damge Popup']) {
+                x -= this.damageOffsetX();
+                y -= this.damageOffsetY();
+                y += 32;
+            }
+
+            this.setHome(x, y);
+            this.moveToStartPosition();
+        }
+    };
     Window_BattleStatus.prototype.drawStatusFace = function (index) {
         var actor = $gameParty.battleMembers()[index];
         var rect = this.itemRect(index);
@@ -364,8 +499,15 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         if (!eval(paramDrawFace)) {
             return;
         }
-
         this.drawActorFace(actor, wx, wy, ww, wh);
+
+        if ($gameSystem.isSideView() || !eval(paramCenterFrontViewSprites) || !actor) {
+            return;
+        }
+
+        var battler = actor.battler();
+        battler._faceActorPositionObj = {xOffset: wx + Math.floor(ww / 2),
+            yOffset: wy + Math.floor(wh / 2)};
     };
 
     Window_BattleStatus.prototype.drawItem = function (index) {
@@ -429,8 +571,6 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         this.drawText(actor.name(), x, y, width, alignment);
     };
 
-
-
     Window_BattleStatus.prototype.drawBasicArea = function (basicAreaRect, actor, index) {
         var rect = this.itemRect(index);
 
@@ -470,9 +610,34 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         }
     };
 
-    //=============================================================================
+
+    //==========================================================================
+    // Scene_Battle
+    //==========================================================================
+    Scene_Battle.prototype.updateWindowPositions = function () {
+        var statusX = 0;
+        if (BattleManager.isInputting()) {
+            statusX = eval(paramStatusInputX);
+        } else {
+            statusX = eval(paramStatusActionX);
+        }
+        if (this._statusWindow.x < statusX) {
+            this._statusWindow.x += 16;
+            if (this._statusWindow.x > statusX) {
+                this._statusWindow.x = statusX;
+            }
+        }
+        if (this._statusWindow.x > statusX) {
+            this._statusWindow.x -= 16;
+            if (this._statusWindow.x < statusX) {
+                this._statusWindow.x = statusX;
+            }
+        }
+    };
+
+    //==========================================================================
     // DreamX Setup
-    //=============================================================================
+    //==========================================================================
     Window_BattleStatus.prototype.DXIconX = function (actor, rect) {
         var availableSpace = this.DXRectFreeSpace(rect);
 
@@ -526,18 +691,116 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         return rect.width - Window_Base._faceWidth;
     };
 
+    //==========================================================================
+    // Game_System
+    //==========================================================================
+    Game_System.prototype.DXIsAboveBattleStatus = function () {
+        if ($gameSystem.isSideView() || !eval(paramTopAnimations)) {
+            return false;
+        }
+        return true;
+    };
+
+    //==========================================================================
+    // Spriteset_Battle
+    //==========================================================================
     DreamX.Ext_BattleStatusCore.Spriteset_Battle_createActors = Spriteset_Battle.prototype.createActors;
     Spriteset_Battle.prototype.createActors = function () {
-        if ($gameSystem.isSideView() || !eval(paramTopAnimations)) {
-            DreamX.Ext_BattleStatusCore.Spriteset_Battle_createActors.call(this);
+        DreamX.Ext_BattleStatusCore.Spriteset_Battle_createActors.call(this);
+        if (!$gameSystem.DXIsAboveBattleStatus()) {
             return;
         }
-        var scene = SceneManager._scene;
-        this._actorSprites = [];
-        for (var i = 0; i < $gameParty.maxBattleMembers(); i++) {
-            this._actorSprites[i] = new Sprite_Actor();
-            scene.addChild(this._actorSprites[i]);
+
+        var sprites = this._actorSprites;
+
+        if (!sprites) {
+            return;
         }
+
+        var scene = SceneManager._scene;
+        var spriteset = this;
+        sprites.forEach(function (sprite) {
+            spriteset._battleField.removeChild(sprite);
+            scene.addChild(sprite);
+        });
     };
+
+    //==========================================================================
+    // Sprite_Battler
+    //==========================================================================
+    if (!Imported['VE - Damge Popup']) {
+        DreamX.Ext_BattleStatusCore.Sprite_Battler_setupDamagePopup = Sprite_Battler.prototype.setupDamagePopup;
+        Sprite_Battler.prototype.setupDamagePopup = function () {
+            DreamX.Ext_BattleStatusCore.Sprite_Battler_setupDamagePopup.call(this);
+
+            if (!$gameSystem.DXIsAboveBattleStatus()) {
+                return;
+            }
+
+            var parent = this.parent;
+            var scene = SceneManager._scene;
+            this._damages.forEach(function (sprite) {
+                parent.removeChild(sprite);
+                scene.addChild(sprite);
+            });
+        };
+    }
+
+
+    Sprite_Battler.prototype.createVisualHpGaugeWindow = function () {
+        var scene = SceneManager._scene;
+        var spriteset = scene._spriteset;
+        if (!spriteset) {
+            return;
+        }
+
+        var baseSprite = spriteset._baseSprite;
+        var newParent = baseSprite;
+        if (!$gameSystem.DXIsAboveBattleStatus()) {
+            newParent = scene;
+        }
+
+        if (this._createdVisualHpGaugeWindow)
+            return;
+        if (!this._battler)
+            return;
+        if (this.checkVisualATBGauge()) {
+            if (!this._visualATBWindow)
+                return;
+            if (!baseSprite.children.contains(this._visualATBWindow))
+                return;
+        }
+        this._createdVisualHpGaugeWindow = true;
+        this._visualHpGauge = new Window_VisualHPGauge();
+        this._visualHpGauge.setBattler(this._battler);
+        newParent.addChild(this._visualHpGauge);
+    };
+
+//    Sprite_Animation.prototype.updateCellSprite = function (sprite, cell) {
+//        var pattern = cell[0];
+//        if (pattern >= 0) {
+//            var sx = pattern % 5 * 192;
+//            var sy = Math.floor(pattern % 100 / 5) * 192;
+//            var mirror = this._mirror;
+//            sprite.bitmap = pattern < 100 ? this._bitmap1 : this._bitmap2;
+//            sprite.setFrame(sx, sy, 192, 192);
+//            sprite.x = cell[1];
+//            sprite.y = cell[2];
+//            if (this._mirror) {
+//                sprite.x *= -1;
+//            }
+//            sprite.rotation = cell[4] * Math.PI / 180;
+//            sprite.scale.x = cell[3] / 100;
+//            if ((cell[5] && !mirror) || (!cell[5] && mirror)) {
+//                sprite.scale.x *= -1;
+//            }
+//            sprite.scale.y = cell[3] / 100;
+//            sprite.opacity = cell[6];
+//            sprite.blendMode = cell[7];
+//            sprite.visible = true;
+//        } else {
+//            sprite.visible = false;
+//        }
+//    };
 
 })();
