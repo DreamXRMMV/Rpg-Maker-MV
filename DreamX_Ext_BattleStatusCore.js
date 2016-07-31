@@ -820,8 +820,6 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         var currentY = y + 2;
         var currentWidth = 0;
 
-        console.log(icons.length);
-
         for (var i = 0; i < icons.length; i++) {
             this.drawIcon(icons[i], currentX, currentY);
             currentX += Window_Base._iconWidth;
