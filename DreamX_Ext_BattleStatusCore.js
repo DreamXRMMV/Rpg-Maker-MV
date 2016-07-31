@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.3
+ * @plugindesc v1.3a
  * @author DreamX
  * 
  * @param --Battle Status Window--
@@ -351,7 +351,7 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     var paramIconsY = String(parameters['Icons Y']);
     var paramIconsWidth = String(parameters['Icons Width']);
     var paramIconsHeight = String(parameters['Icons Height']);
-    
+
 
     var paramFrameOpacity = parseInt(String(parameters['Battle Status Frame Opacity']));
     var paramWindowOpacity = parseInt(String(parameters['Battle Status Window Opacity']));
@@ -818,15 +818,19 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
                 * Math.floor(height / Window_Base._iconHeight));
         var currentX = x;
         var currentY = y + 2;
-        
+        var currentWidth = 0;
+
         console.log(icons.length);
 
         for (var i = 0; i < icons.length; i++) {
             this.drawIcon(icons[i], currentX, currentY);
             currentX += Window_Base._iconWidth;
-            if (currentX >= width) {
+            currentWidth += Window_Base._iconWidth;
+            var nextWidth = currentWidth + Window_Base._iconWidth;
+            if (currentWidth >= width || nextWidth >= width) {
                 currentX = x;
                 currentY += Window_Base._iconHeight;
+                currentWidth = 0;
             }
         }
 
@@ -841,11 +845,12 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
             var iw = Window_Base._iconWidth;
             var ih = Window_Base._iconHeight;
             var wh = wh || ih;
-            
+
             var shownMax = Math.floor(ww / iw) * Math.floor(wh / ih);
 
             var currentX = wx;
             var currentY = wy;
+            var currentWidth = 0;
 
             for (var i = 0; i < actor.states().length; ++i) {
                 if (shownMax <= 0)
@@ -859,9 +864,12 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
                 this.drawStateCounter(actor, state, currentX, currentY);
 
                 currentX += iw;
-                if (currentX >= ww) {
+                currentWidth += Window_Base._iconWidth;
+                var nextWidth = currentWidth + Window_Base._iconWidth;
+                if (currentWidth >= ww || nextWidth >= ww) {
                     currentX = wx;
-                    currentY += ih;
+                    currentY += Window_Base._iconHeight;
+                    currentWidth = 0;
                 }
                 --shownMax;
             }
@@ -877,9 +885,12 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
                 }
 
                 currentX += iw;
-                if (currentX >= ww) {
+                currentWidth += Window_Base._iconWidth;
+                var nextWidth = currentWidth + Window_Base._iconWidth;
+                if (currentWidth >= ww || nextWidth >= ww) {
                     currentX = wx;
-                    currentY += ih;
+                    currentY += Window_Base._iconHeight;
+                    currentWidth = 0;
                 }
                 --shownMax;
             }
