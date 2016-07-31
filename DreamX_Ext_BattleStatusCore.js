@@ -810,6 +810,7 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
 //    };
 
     Window_Base.prototype.drawActorIcons = function (actor, x, y, width, height) {
+        width = width || 144;
         height = height || Window_Base._iconHeight;
 
         var icons = actor.allIcons().slice(0,
@@ -817,6 +818,8 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
                 * Math.floor(height / Window_Base._iconHeight));
         var currentX = x;
         var currentY = y + 2;
+        
+        console.log(icons.length);
 
         for (var i = 0; i < icons.length; i++) {
             this.drawIcon(icons[i], currentX, currentY);
