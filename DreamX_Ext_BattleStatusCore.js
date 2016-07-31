@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.2
+ * @plugindesc v1.3
  * @author DreamX
  * 
  * @param --Battle Status Window--
@@ -199,6 +199,10 @@
  * @param Icons Width
  * @desc Eval. Default: basicAreaRect.width
  * @default basicAreaRect.width
+ * 
+ * @param Icons Height
+ * @desc Eval. Default: Window_Base._iconHeight
+ * @default Window_Base._iconHeight
  *  
  * @param --Misc--
  * 
@@ -346,6 +350,8 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     var paramIconsX = String(parameters['Icons X']);
     var paramIconsY = String(parameters['Icons Y']);
     var paramIconsWidth = String(parameters['Icons Width']);
+    var paramIconsHeight = String(parameters['Icons Height']);
+    
 
     var paramFrameOpacity = parseInt(String(parameters['Battle Status Frame Opacity']));
     var paramWindowOpacity = parseInt(String(parameters['Battle Status Window Opacity']));
@@ -475,7 +481,7 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
 
             var x = (window.x + window.standardPadding() + obj.xOffset)
                     - this._offsetX;
-            var y = (window.y + window.height) - (window.standardPadding() 
+            var y = (window.y + window.height) - (window.standardPadding()
                     + obj.yOffset);
 
             if (!Imported['VE - Damge Popup']) {
@@ -598,7 +604,7 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         }
 
         if (eval(paramDrawIcons)) {
-            this.drawActorIcons(actor, iconsX, iconsY, iconsWidth);
+            this.drawActorIcons(actor, iconsX, iconsY, iconsWidth, eval(paramIconsHeight));
         }
 
         if (Imported.YEP_X_BattleSysATB && Yanfly.Param.ATBGaugeStyle
@@ -802,5 +808,81 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
 //            sprite.visible = false;
 //        }
 //    };
+
+    Window_Base.prototype.drawActorIcons = function (actor, x, y, width, height) {
+        height = height || Window_Base._iconHeight;
+
+        var icons = actor.allIcons().slice(0,
+                Math.floor(width / Window_Base._iconWidth)
+                * Math.floor(height / Window_Base._iconHeight));
+        var currentX = x;
+        var currentY = y + 2;
+
+        for (var i = 0; i < icons.length; i++) {
+            this.drawIcon(icons[i], currentX, currentY);
+            currentX += Window_Base._iconWidth;
+            if (currentX >= width) {
+                currentX = x;
+                currentY += Window_Base._iconHeight;
+            }
+        }
+
+        if (Imported.YEP_BuffsStatesCore) {
+            this.drawActorIconsTurns(actor, x, y, width, height);
+        }
+    };
+
+    if (Imported.YEP_BuffsStatesCore) {
+        Window_Base.prototype.drawActorIconsTurns = function (actor, wx, wy, ww, wh) {
+
+            var iw = Window_Base._iconWidth;
+            var ih = Window_Base._iconHeight;
+            var wh = wh || ih;
+            
+            var shownMax = Math.floor(ww / iw) * Math.floor(wh / ih);
+
+            var currentX = wx;
+            var currentY = wy;
+
+            for (var i = 0; i < actor.states().length; ++i) {
+                if (shownMax <= 0)
+                    break;
+                var state = actor.states()[i];
+                if (state.iconIndex <= 0)
+                    continue;
+                if (state.autoRemovalTiming > 0) {
+                    this.drawStateTurns(actor, state, currentX, currentY);
+                }
+                this.drawStateCounter(actor, state, currentX, currentY);
+
+                currentX += iw;
+                if (currentX >= ww) {
+                    currentX = wx;
+                    currentY += ih;
+                }
+                --shownMax;
+            }
+
+            for (var i = 0; i < 8; ++i) {
+                if (shownMax <= 0)
+                    break;
+                if (actor._buffs[i] === 0)
+                    continue;
+                this.drawBuffTurns(actor, i, currentX, currentY);
+                if (Yanfly.Param.BSCShowBuffRate) {
+                    this.drawBuffRate(actor, i, currentX, currentY);
+                }
+
+                currentX += iw;
+                if (currentX >= ww) {
+                    currentX = wx;
+                    currentY += ih;
+                }
+                --shownMax;
+            }
+            this.resetFontSettings();
+            this.resetTextColor();
+        };
+    }
 
 })();
