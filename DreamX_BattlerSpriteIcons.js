@@ -1,5 +1,5 @@
 /*:
- * @plugindesc 1.6h
+ * @plugindesc 1.7
  * @author DreamX
  *
  * @param Maximum State/Buffs Per Line
@@ -50,15 +50,15 @@
  * @desc The y coordinate for the transparent window carrying the bad state/buff icons. Default: this._battler.spritePosY() - this._battler.spriteHeight() - this.standardPadding() - (DreamX.Param.BSIIconHeight) - (this.standardPadding() / 2)
  * @default this._battler.spritePosY() - this._battler.spriteHeight() - this.standardPadding() - (DreamX.Param.BSIIconHeight) - (this.standardPadding() / 2)
  *
- * @param Icon Window Refresh Rate
- * @desc The number of frames to wait for before refreshing the icon window. Default: 1
- * @default 1
- *
  * @param ---Tooltips---
  * @default
  *
- * @param Show Tooltips
- * @desc default: false
+ * @param Show State/Buff Tooltips
+ * @desc Show tooltips for states and buffs default: false
+ * @default false
+ * 
+ * @param Show Gauge Tooltips
+ * @desc Show tooltips for gauges default: false
  * @default false
  * 
  * @param Y Addition
@@ -241,17 +241,20 @@ DreamX.Param.BSIIconHeight = eval(String(DreamX.Parameters['Icon Height']) || Wi
 DreamX.Param.BSIShowStates = eval(String(DreamX.Parameters['Show States']) || true);
 DreamX.Param.BSIShowBuffsDebuffs = eval(String(DreamX.Parameters['Show Buffs/Debuffs']) || true);
 DreamX.Param.BSIDebuffsBad = eval(String(DreamX.Parameters['Debuffs Considered Bad']) || true);
-DreamX.Param.IconWindowRefreshRate = eval(String(DreamX.Parameters['Icon Window Refresh Rate']) || 60);
 DreamX.Param.BSIShowActorIcons = eval(String(DreamX.Parameters['Show Icons For Actor']) || true);
 DreamX.Param.BSIShowEnemyIcons = eval(String(DreamX.Parameters['Show Icons For Enemy']) || true);
 DreamX.Param.BSIShowIconsOnDeath = eval(String(DreamX.Parameters['Show Icons On Death']) || true);
 DreamX.Param.BSIShowDefaultBuffDesc = eval(String(DreamX.Parameters['Buff Description']) || true);
 DreamX.Param.BSIDefaultBuffDesc = Number(DreamX.Parameters['Default Buff Description State']);
 
-DreamX.Param.BSITooltipMaxYBattle = String(DreamX.Parameters['Max Y Value (Battle)']);
-DreamX.Param.BSIShowTooltips = eval(String(DreamX.Parameters['Show Tooltips']));
-DreamX.Param.BSITooltipFrameOpacity = parseInt(String(DreamX.Parameters['Tooltip Frame Opacity']));
 
+DreamX.Param.BSIShowBuffStateTooltips = eval(String(DreamX.Parameters['Show State/Buff Tooltips']));
+DreamX.Param.BSIShowGaugeTooltips = eval(String(DreamX.Parameters['Show Gauge Tooltips']));
+DreamX.Param.BSIShowToolTips = DreamX.Param.BSIShowBuffStateTooltips
+        || DreamX.Param.BSIShowGaugeTooltips;
+
+DreamX.Param.BSITooltipMaxYBattle = String(DreamX.Parameters['Max Y Value (Battle)']);
+DreamX.Param.BSITooltipFrameOpacity = parseInt(String(DreamX.Parameters['Tooltip Frame Opacity']));
 DreamX.Param.BSITooltipNameColor = parseInt(String(DreamX.Parameters['Default State/Buff Name Color']));
 DreamX.Param.BSITooltipDescColor = parseInt(String(DreamX.Parameters['Default State/Buff Desc Color']));
 DreamX.Param.BSITooltipTurnColor = parseInt(String(DreamX.Parameters['Default State/Buff Turn Color']));
@@ -282,6 +285,9 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
     DreamX.BattlerSpriteIcons.DataManager_loadDatabase = DataManager.loadDatabase;
     DataManager.loadDatabase = function () {
         DreamX.BattlerSpriteIcons.DataManager_loadDatabase.call(this);
+        if (!Imported.YEP_CoreEngine) {
+            throw new Error('DreamX_BattlerSpriteIcons requires YEP_CoreEngine');
+        }
         if (!Imported.YEP_BattleEngineCore) {
             throw new Error('DreamX_BattlerSpriteIcons requires YEP_BattleEngineCore');
         }
@@ -370,17 +376,28 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
         return valid;
     };
 
-    Scene_Base.prototype.checkIconTouch = function (touchX, touchY, iconX, iconY) {
+    Scene_Base.prototype.checkTooltipTouch = function (touchX, touchY, sourceX, sourceY, obj) {
         var valid = false;
+        var xAdd = obj.width;
+        var yAdd = obj.height;
 
-        if (touchX >= iconX && touchX <= iconX + DreamX.Param.BSIIconWidth
-                && touchY >= iconY
-                && touchY <= iconY + DreamX.Param.BSIIconHeight) {
+        if (touchX >= sourceX && touchX <= sourceX + xAdd
+                && touchY >= sourceY
+                && touchY <= sourceY + yAdd) {
             valid = true;
         }
         return valid;
     };
 
+    Scene_Base.prototype.gaugeHitYAdd = function () {
+        var add;
+        if (Imported.YEP_CoreEngine) {
+            add = Window_Base.prototype.lineHeight() - 2;
+        } else {
+            add = Window_Base.prototype.lineHeight() - 8;
+        }
+        return add;
+    };
 
     DreamX.BattlerSpriteIcons.Scene_Base_update = Scene_Base.prototype.update;
     Scene_Base.prototype.update = function () {
@@ -402,12 +419,20 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
                 continue;
             }
 
-            var iconX = objWindow.x + obj.xOffset
-                    + Math.floor(DreamX.Param.BSIIconWidth / 2) + 2;
-            var iconY = objWindow.y + obj.yOffset
-                    + 4 + Math.floor(DreamX.Param.BSIIconHeight / 2);
+            var sourceX = objWindow.x + obj.xOffset;
+            var sourceY = objWindow.y + obj.yOffset;
 
-            if (!this.checkIconTouch(touchX, touchY, iconX, iconY)) {
+            switch (obj.type) {
+                case "buffState":
+                    sourceX += Math.floor(obj.width / 2) + 2;
+                    sourceY += 4 + Math.floor(obj.height / 2);
+                    break;
+                default:
+                    sourceY += this.gaugeHitYAdd();
+                    break;
+            }
+
+            if (!this.checkTooltipTouch(touchX, touchY, sourceX, sourceY, obj)) {
                 continue;
             }
 
@@ -416,7 +441,7 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
             }
 
             if (this._lastTooltipObjHoveredOver !== obj) {
-                this._tooltipWindow.refresh(iconX, iconY, obj, obj.battler);
+                this._tooltipWindow.refresh(obj, sourceX, sourceY);
             }
             this._tooltipWindow.show();
             this._lastTooltipObjHoveredOver = obj;
@@ -470,10 +495,10 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
     };
 
     Scene_Base.prototype.addToolTipWindow = function () {
-        if (DreamX.Param.BSIShowTooltips) {
+        if (DreamX.Param.BSIShowToolTips) {
             this._tooltipHitObjs = [];
             this._lastTooltipObjHoveredOver = undefined;
-            this._tooltipWindow = new Window_StateToolTip();
+            this._tooltipWindow = new Window_DXToolTip();
 
             this._stateToolTipLayer = new Sprite();
             this.addChild(this._stateToolTipLayer);
@@ -504,21 +529,32 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
         }
     };
 
-    Scene_Base.prototype.addTooltipHitObj = function (battler, buffState,
-            isState, window, xOffset, yOffset, replace) {
+    Scene_Base.prototype.addStateTooltipHitObj = function (battler, buffState,
+            isState, window, xOffset, yOffset, width, height, replace) {
         var id = buffState.id ? buffState.id : buffState;
         var obj = {battler: battler, id: id, state: isState, window: window,
-            xOffset: xOffset, yOffset: yOffset};
+            xOffset: xOffset, yOffset: yOffset, width: width, height: height,
+            type: "buffState"};
+
         if (replace) {
             var tObjs = this._tooltipHitObjs;
             tObjs.forEach(function (tObj) {
-                if (tObj.battler === battler, tObj.xOffset === xOffset
+                if (tObj.battler === battler && tObj.xOffset === xOffset
                         && tObj.yOffset === yOffset) {
                     var index = tObjs.indexOf(tObj);
                     tObjs.splice(index, 1);
                 }
             });
         }
+
+        this._tooltipHitObjs.push(obj);
+    };
+
+    Scene_Base.prototype.addGaugeTooltipHitObj = function (window, xOffset,
+            yOffset, width, height, battler, type) {
+        var obj = {window: window, xOffset: xOffset, yOffset: yOffset,
+            width: width, height: height, battler: battler, type: type};
+
         this._tooltipHitObjs.push(obj);
     };
 
@@ -528,8 +564,9 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
     DreamX.BattlerSpriteIcons.Window_Base_drawStateCounter = Window_Base.prototype.drawStateCounter;
     Window_Base.prototype.drawStateCounter = function (actor, state, wx, wy) {
         var scene = SceneManager._scene;
-        if (DreamX.Param.BSIShowTooltips) {
-            scene.addTooltipHitObj(actor, state, true, this, wx, wy);
+        if (DreamX.Param.BSIShowBuffStateTooltips) {
+            scene.addStateTooltipHitObj(actor, state, true, this, wx, wy,
+                    DreamX.Param.BSIIconWidth, DreamX.Param.BSIIconHeight);
         }
         DreamX.BattlerSpriteIcons.Window_Base_drawStateCounter.call(this, actor, state, wx, wy);
     };
@@ -537,10 +574,47 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
     DreamX.BattlerSpriteIcons.Window_Base_drawBuffTurns = Window_Base.prototype.drawBuffTurns;
     Window_Base.prototype.drawBuffTurns = function (actor, paramId, wx, wy) {
         var scene = SceneManager._scene;
-        if (DreamX.Param.BSIShowTooltips) {
-            scene.addTooltipHitObj(actor, paramId, false, this, wx, wy);
+        if (DreamX.Param.BSIShowBuffStateTooltips) {
+            scene.addStateTooltipHitObj(actor, paramId, false, this, wx, wy,
+                    DreamX.Param.BSIIconWidth, DreamX.Param.BSIIconHeight);
         }
         DreamX.BattlerSpriteIcons.Window_Base_drawBuffTurns.call(this, actor, paramId, wx, wy);
+    };
+
+    //==========================================================================
+    // Window_Base
+    //==========================================================================
+    DreamX.BattlerSpriteIcons.Window_Base_drawActorHp = Window_Base.prototype.drawActorHp;
+    Window_Base.prototype.drawActorHp = function (actor, x, y, width) {
+        DreamX.BattlerSpriteIcons.Window_Base_drawActorHp.call(this, actor, x, y, width);
+        if (!DreamX.Param.BSIShowGaugeTooltips) {
+            return;
+        }
+        var scene = SceneManager._scene;
+        var height = Imported.YEP_CoreEngine ? this.gaugeHeight() : 6;
+        scene.addGaugeTooltipHitObj(this, x + this.standardPadding(), y, width, height, actor, 'hp');
+    };
+
+    DreamX.BattlerSpriteIcons.Window_Base_drawActorMp = Window_Base.prototype.drawActorMp;
+    Window_Base.prototype.drawActorMp = function (actor, x, y, width) {
+        DreamX.BattlerSpriteIcons.Window_Base_drawActorMp.call(this, actor, x, y, width);
+        if (!DreamX.Param.BSIShowGaugeTooltips) {
+            return;
+        }
+        var scene = SceneManager._scene;
+        var height = Imported.YEP_CoreEngine ? this.gaugeHeight() : 6;
+        scene.addGaugeTooltipHitObj(this, x + this.standardPadding(), y, width, height, actor, 'mp');
+    };
+
+    DreamX.BattlerSpriteIcons.Window_Base_drawActorTp = Window_Base.prototype.drawActorTp;
+    Window_Base.prototype.drawActorTp = function (actor, x, y, width) {
+        DreamX.BattlerSpriteIcons.Window_Base_drawActorTp.call(this, actor, x, y, width);
+        if (!DreamX.Param.BSIShowGaugeTooltips) {
+            return;
+        }
+        var scene = SceneManager._scene;
+        var height = Imported.YEP_CoreEngine ? this.gaugeHeight() : 6;
+        scene.addGaugeTooltipHitObj(this, x + this.standardPadding(), y, width, height, actor, 'tp');
     };
 
     //==========================================================================
@@ -553,7 +627,7 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
             this._state_icon.visible = false;
             if (this._battler.states().length == 0) {
                 this._states_data[1] = 0;
-                return
+                return;
             }
             ;
             if (this._battler.states()[this._states_data[1]]) {
@@ -578,9 +652,9 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
 
                 var tX = this._pos_x + Moghunter.bhud_states_pos_x - Math.floor(DreamX.Param.BSIIconWidth / 2);
                 var ty = this._pos_y + Moghunter.bhud_states_pos_y - Math.floor(DreamX.Param.BSIIconHeight / 2);
-                SceneManager._scene.addTooltipHitObj(this._battler, state_id, true,
-                        this, tX,
-                        ty, true);
+                SceneManager._scene.addStateTooltipHitObj(this._battler, state_id,
+                        true, this, tX, ty, DreamX.Param.BSIIconWidth,
+                        DreamX.Param.BSIIconHeight, true);
 
                 this._state_icon.visible = true;
                 var sx = this._states_data[0] % 16 * 32;
@@ -810,16 +884,16 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
     };
 
 //=============================================================================
-// Window_StateToolTip
+// Window_DXToolTip
 //=============================================================================
-    function Window_StateToolTip() {
+    function Window_DXToolTip() {
         this.initialize.apply(this, arguments);
     }
 
-    Window_StateToolTip.prototype = Object.create(Window_Base.prototype);
-    Window_StateToolTip.prototype.constructor = Window_StateToolTip;
+    Window_DXToolTip.prototype = Object.create(Window_Base.prototype);
+    Window_DXToolTip.prototype.constructor = Window_DXToolTip;
 
-    Window_StateToolTip.prototype.initialize = function () {
+    Window_DXToolTip.prototype.initialize = function () {
         Window_Base.prototype.initialize.call(this, 0, 0, Graphics.boxWidth, Graphics.boxHeight);
         this.hide();
         this._lineTextWidth = 0;
@@ -827,39 +901,71 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
         this._windowFrameSprite.alpha = DreamX.Param.BSITooltipFrameOpacity;
     };
 
-    Window_StateToolTip.prototype.updateTone = function () {
+    Window_DXToolTip.prototype.updateTone = function () {
         this.setTone(DreamX.Param.BSITooltipRed,
                 DreamX.Param.BSITooltipGreen,
                 DreamX.Param.BSITooltipBlue);
     };
 
-    Window_StateToolTip.prototype.refresh = function (iconX, iconY,
-            buffState, battler) {
-        this.contents.clear();
-        this.drawAndMove(iconX, iconY, buffState, battler);
+    Window_DXToolTip.prototype.updateSize = function () {
+        this.width = this._lineTextWidth + this.standardPadding() * 2;
+        this.height = this._lineTextHeight + this.standardPadding() * 2 + 4;
     };
 
-    Window_StateToolTip.prototype.drawAndMove = function (iconX, iconY,
-            buffState, battler) {
-        var iconWindow = iconWindow;
-        var scene = SceneManager._scene;
-        var userMaxY;
+    Window_DXToolTip.prototype.drawLine = function (text, height,
+            forcedTextSize, forcedTextColor) {
+        if (!text) {
+            return;
+        }
 
+        height = height || 36;
+
+        var lines = text.split(/[\r\n]+/);
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i];
+            if (forcedTextSize) {
+                line = "\\fs[" + forcedTextSize + "]" + line;
+            }
+            if (forcedTextColor) {
+                line = "\\C[" + forcedTextColor + "]" + line;
+            }
+
+            this.drawLine2(line, height);
+        }
+    };
+
+
+    Window_DXToolTip.prototype.drawLine2 = function (text, height) {
+        var width = this.drawTextEx(text, 0, this._lineTextHeight);
+
+        if (width > this._lineTextWidth) {
+            this._lineTextWidth = width;
+        }
+
+        this._lineTextHeight += height;
+    };
+
+    Window_DXToolTip.prototype.drawAndMove = function (sourceX, sourceY) {
         this._lineTextWidth = 0;
         this._lineTextHeight = 0;
 
-        this.setBuffState(buffState);
-        this._battler = battler;
-        var x = iconX + this.standardPadding();
-
         this.drawDescription();
+        this.updateSize();
 
-        x = (x - this.width / 2) + DreamX.Param.BSIIconWidth / 2;
+        this.updatePosition(sourceX, sourceY);
+    };
 
-        var y = iconY;
+    Window_DXToolTip.prototype.updatePosition = function (sourceX,
+            sourceY) {
+        var scene = SceneManager._scene;
+        var userMaxY;
+
+        var x = sourceX + this.standardPadding();
+        x = (x - Math.floor(this.width / 2))
+                + Math.floor(this._toolTipObject.width / 2);
+
+        var y = sourceY;
         y -= this.height;
-
-        this._iconWindow = iconWindow;
 
         if (x < 0) {
             x = 0;
@@ -867,10 +973,9 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
         if (x + this.width >= Graphics.boxWidth) {
             x = Graphics.boxWidth - this.width;
         }
-        
-        
+
         y += parseInt(eval(DreamX.Param.BSITooltipYAddition));
-        
+
         if (y < 0) {
             y = 0;
         }
@@ -889,18 +994,13 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
         this.y = y;
     };
 
-    Window_StateToolTip.prototype.setBuffState = function (buffState) {
-        this._buffState = buffState;
-
-        if (buffState.state) {
-            this._buffState = $dataStates[buffState.id];
-            this._isBuff = false;
-        } else {
-            this._isBuff = true;
-        }
+    Window_DXToolTip.prototype.refresh = function (object, sourceX, sourceY) {
+        this.contents.clear();
+        this._toolTipObject = object;
+        this.drawAndMove(sourceX, sourceY);
     };
 
-    Window_StateToolTip.prototype.drawDefaultDescription = function () {
+    Window_DXToolTip.prototype.drawDefaultStateDescription = function () {
         var buffState = this._buffState;
         var lineHeightAdd = 8;
 
@@ -957,47 +1057,7 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
         }
     };
 
-    Window_StateToolTip.prototype.drawLine = function (text, height,
-            forcedTextSize, forcedTextColor) {
-        if (!text) {
-            return;
-        }
-
-        var lines = text.split(/[\r\n]+/);
-        for (var i = 0; i < lines.length; i++) {
-            var line = lines[i];
-            if (forcedTextSize) {
-                line = "\\fs[" + forcedTextSize + "]" + line;
-            }
-            if (forcedTextColor) {
-                line = "\\C[" + forcedTextColor + "]" + line;
-            }
-
-            this.drawLine2(line, height);
-        }
-    };
-
-
-    Window_StateToolTip.prototype.drawLine2 = function (text, height) {
-        var width = this.drawTextEx(text, 0, this._lineTextHeight);
-
-        if (width > this._lineTextWidth) {
-            this._lineTextWidth = width;
-        }
-
-        this._lineTextHeight += height;
-    };
-
-    Window_StateToolTip.prototype.hasTextIcon = function (text) {
-        return new RegExp("\\\\I").test(text);
-    };
-
-    Window_StateToolTip.prototype.updateSize = function () {
-        this.width = this._lineTextWidth + this.standardPadding() * 2;
-        this.height = this._lineTextHeight + this.standardPadding() * 2 + 4;
-    };
-
-    Window_StateToolTip.prototype.turns = function () {
+    Window_DXToolTip.prototype.turns = function () {
         var buffState = this._buffState;
         var battler = this._battler;
 
@@ -1021,7 +1081,7 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
         return "";
     };
 
-    Window_StateToolTip.prototype.buffDescriptionCode = function () {
+    Window_DXToolTip.prototype.buffDescriptionCode = function () {
         if (DreamX.Param.BSIDefaultBuffDesc) {
             return $dataStates[DreamX.Param.BSIDefaultBuffDesc].DXBSITooltipCode;
         }
@@ -1029,7 +1089,7 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
         return false;
     };
 
-    Window_StateToolTip.prototype.stateDescriptionCode = function () {
+    Window_DXToolTip.prototype.stateDescriptionCode = function () {
         var buffState = this._buffState;
         if (buffState.DXBSITooltipCode) {
             return buffState.DXBSITooltipCode;
@@ -1037,19 +1097,44 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
         return false;
     };
 
-    Window_StateToolTip.prototype.drawDescription = function () {
-        var descriptionCode = this.descriptionCode();
+    Window_DXToolTip.prototype.drawDescription = function () {
+        switch (this._toolTipObject.type) {
+            case "buffState":
+                this.drawBuffStateDescription();
+                break;
+            default:
+                this.drawGaugeInfo(this._toolTipObject);
+                break;
+        }
+    };
+
+    Window_DXToolTip.prototype.drawGaugeInfo = function (obj) {
+        var min = obj.battler[obj.type];
+        var max = obj.type === 'tp' ? 100 : obj.battler["m" + obj.type];
+        var name = TextManager[obj.type + "A"];
+        var text = name + ": " + min + "/" + max;
+
+        this.drawLine(text);
+    };
+
+    Window_DXToolTip.prototype.drawBuffStateDescription = function () {
+        if (this._toolTipObject.state) {
+            this._buffState = $dataStates[this._toolTipObject.id];
+            this._isBuff = false;
+        } else {
+            this._isBuff = true;
+        }
+
+        var descriptionCode = this.buffStatedescriptionCode();
 
         if (descriptionCode) {
             eval(descriptionCode);
         } else {
-            this.drawDefaultDescription();
+            this.drawDefaultStateDescription();
         }
-
-        this.updateSize();
     };
 
-    Window_StateToolTip.prototype.descriptionCode = function () {
+    Window_DXToolTip.prototype.buffStatedescriptionCode = function () {
         var description = this._isBuff ? this.buffDescriptionCode()
                 : this.stateDescriptionCode();
         return description;
