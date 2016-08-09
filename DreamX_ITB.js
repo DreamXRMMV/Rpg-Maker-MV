@@ -26,11 +26,11 @@
  * @param ---VE Damage Popups---
  * 
  * @param Show Extra Action Popup
- * @desc Show popup when battler gets extra action from weakness. Default: false
+ * @desc Show popup when battler gets extra action from special actions. Requires VE Damage Popups Default: false
  * @default false
  * 
  * @param Extra Action Popup Text
- * @desc Popup text to display when battler gets extra action from weakness.
+ * @desc Popup text to display when battler gets extra action from special actions.
  * @default 1 More!
  * 
  * @param Extra Action Popup Motion
