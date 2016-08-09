@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.6 Options for the option menu
+ * @plugindesc v1.7 Options for the option menu
  * @author DreamX
  * 
  * @param --General Options--
@@ -15,6 +15,10 @@
  * @param Persistent Variables
  * @desc Ids of variables that are persistent. Keep blank for none.
  * @default 
+ * 
+ * @param Common Event
+ * @desc Common event to run after options menu is exited and player returns to map. 0 for none. Default: 0
+ * @default 0
  * 
  * @param ON Text
  * @desc Test to display for options that are set to ON. Default: ON
@@ -287,6 +291,8 @@ DreamX.Options = DreamX.Options || {};
     var paramShowMeVolume = eval(parameters['Show ME Volume']);
     var paramShowSeVolume = eval(parameters['Show SE Volume']);
 
+    var paramCommonEvent = String(parameters['Common Event']);
+
     DreamX.Options.Scene_Boot_isReady = Scene_Boot.prototype.isReady;
     Scene_Boot.prototype.isReady = function () {
         if (!DreamX.Options.loaded) {
@@ -373,6 +379,14 @@ DreamX.Options = DreamX.Options || {};
             this._optionsWindow.setHelpText(0);
         }
 
+    };
+
+    DreamX.Options.Scene_Options_terminate = Scene_Options.prototype.terminate;
+    Scene_Options.prototype.terminate = function () {
+        DreamX.Options.Scene_Options_terminate.call(this);
+        if (paramCommonEvent) {
+            $gameTemp.reserveCommonEvent(paramCommonEvent);
+        }
     };
 
     DreamX.Options.Window_Options_select = Window_Options.prototype.select;
