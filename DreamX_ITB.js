@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.16 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
+ * @plugindesc v1.17 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
  *
  * <DreamX ITB>
  * @author DreamX
@@ -22,7 +22,41 @@
  * @param Elemental Weakness Animation
  * @desc Animation ID to play on battler when they get an extra action from hitting enemy in weakness. 0: disable. Default: 0
  * @default 0
+ * 
+ * @param ---VE Damage Popups---
+ * 
+ * @param Show Elemental Extra Action Popup
+ * @desc Show popup when battler gets extra action from weakness. Default: false
+ * @default false
+ * 
+ * @param Elemental Extra Action Popup Text
+ * @desc Popup text to display when battler gets extra action from weakness.
+ * @default 1 More!
+ * 
+ * @param Elemental Extra Action Popup Motion
+ * @desc Motion for extra action popup. Default: Pop High, Fall High, Pop Low, Fall Low, Wait, Wait
+ * @default Pop High, Fall High, Pop Low, Fall Low, Wait, Wait
+ * 
+ * @param Elemental Extra Action Popup Font
+ * @desc Eval. Font for extra action popup. Default: Window_Base.prototype.standardFontFace()
+ * @default Window_Base.prototype.standardFontFace()
+ * 
+ * @param Elemental Extra Action Popup Size
+ * @desc Eval. Font size for extra action popup. Default: Window_Base.prototype.standardFontSize()
+ * @default Window_Base.prototype.standardFontSize()
+ * 
+ * @param Elemental Extra Action Popup Color
+ * @desc Font color for extra action popup. Default: #FFFFFF
+ * @default #FFFFFF
+ * 
+ * @param Elemental Extra Action Popup X
+ * @desc X for extra action popup. Default: 0
+ * @default 0
  *
+ * @param Elemental Extra Action Popup Y
+ * @desc Y for extra action popup. Default: 0
+ * @default 0
+ * 
  * @param ---Turn Order Window---
  * @default
  *
@@ -427,6 +461,15 @@ DreamX.ITB = DreamX.ITB || {};
             parseFloat(parameters['Ready Overlay Anchor X'] || 0.5);
     var parameterReadyAnchorY =
             parseFloat(parameters['Ready Overlay Anchor Y'] || 1);
+
+    var paramShowElemActionPopup = eval(parameters['Show Elemental Extra Action Popup'] || false);
+    var paramShowElemActionPopupText = String(parameters['Elemental Extra Action Popup Text']);
+    var paramShowElemActionPopupMotion = String(parameters['Elemental Extra Action Popup Motion']);
+    var paramShowElemActionPopupFont = String(parameters['Elemental Extra Action Popup Font']);
+    var paramShowElemActionPopupSize = String(parameters['Elemental Extra Action Popup Size']);
+    var paramShowElemActionPopupColor = String(parameters['Elemental Extra Action Popup Color']);
+    var paramShowElemActionPopupX = parseInt(parameters['Elemental Extra Action Popup X']);
+    var paramShowElemActionPopupY = parseInt(parameters['Elemental Extra Action Popup Y']);
 //    var parameterTurnSound =
 //            String(parameters['Turn Sound'] || '-1');
 
@@ -527,6 +570,14 @@ DreamX.ITB = DreamX.ITB || {};
     Game_Battler.prototype.numITBActions = function () {
         return this._ITBActions;
     };
+
+//    DreamX.ITB.Game_Battler_numActions = Game_Battler.prototype.numActions;
+//    Game_Battler.prototype.numActions = function () {
+//        if (BattleManager.isITB()) {
+//            return this.numITBActions();
+//        }
+//        return DreamX.ITB.Game_Battler_numActions.call(this);
+//    };
 
     // Returns the current number of ITB actions left for the battler.
     // Plus one if inputting.
@@ -688,15 +739,11 @@ DreamX.ITB = DreamX.ITB || {};
     BattleManager.startInput = function () {
         if (this.isITB()) {
             this._phase = 'input';
-            $gameParty.makeActions();
-            $gameTroop.makeActions();
             this.clearActor();
         } else {
             DreamX.ITB.BattleManager_startInput.call(this);
         }
     };
-
-
 
     // if itb the battle system is turn based
     DreamX.ITB.BattleManager_isTurnBased = BattleManager.isTurnBased;
@@ -706,18 +753,6 @@ DreamX.ITB = DreamX.ITB || {};
         return DreamX.ITB.BattleManager_isTurnBased.call(this);
     };
 
-//    DreamX.ITB.BattleManager.processVictory = BattleManager.processVictory;
-//    BattleManager.processVictory = function () {
-//        $gameParty.removeBattleStates();
-//        $gameParty.performVictory();
-//        this.playVictoryMe();
-//        this.replayBgmAndBgs();
-//        this.makeRewards();
-//        this.displayVictoryMessage();
-//        this.displayRewards();
-//        this.gainRewards();
-//        this.endBattle(0);
-//    };
     //==========================================================================
     // Original Functions
     //==========================================================================
@@ -846,39 +881,6 @@ DreamX.ITB = DreamX.ITB || {};
         if (this.loadPreForceActionSettings())
             return;
         this.setITBPhase();
-    };
-
-    // window position
-    DreamX.ITB.Scene_Battle_updateWindowPositions
-            = Scene_Battle.prototype.updateWindowPositions;
-    Scene_Battle.prototype.updateWindowPositions = function () {
-        if (BattleManager.isITB()) {
-            var statusX = 0;
-            if (BattleManager.normalWindowPosition()) {
-                statusX = this._partyCommandWindow.width;
-            } else {
-                statusX = this._partyCommandWindow.width / 2;
-            }
-            
-            if (this._statusWindow.x < statusX) {
-                this._statusWindow.x += 16;
-                if (this._statusWindow.x > statusX) {
-                    this._statusWindow.x = statusX;
-                }
-            }
-            if (this._statusWindow.x > statusX) {
-                this._statusWindow.x -= 16;
-                if (this._statusWindow.x < statusX) {
-                    this._statusWindow.x = statusX;
-                }
-            }
-        } else {
-            DreamX.ITB.Scene_Battle_updateWindowPositions.call(this);
-        }
-    };
-
-    BattleManager.normalWindowPosition = function () {
-        return this._phase === 'input';
     };
 
     BattleManager.addBattler = function (battler) {
@@ -1289,6 +1291,17 @@ DreamX.ITB = DreamX.ITB || {};
                             ? target._weaknessHitMap.get(user) : 0;
                     target._weaknessHitMap.set(user, timesWeaknessHit + 1);
                     user.extraElementalWeaknessAction();
+
+                    if (Imported['VE - Damge Popup'] && paramShowElemActionPopup) {
+                        user.callCustomPopup(paramShowElemActionPopupText,
+                                paramShowElemActionPopupMotion,
+                                paramShowElemActionPopupFont,
+                                paramShowElemActionPopupSize,
+                                paramShowElemActionPopupColor,
+                                paramShowElemActionPopupX,
+                                paramShowElemActionPopupY);
+                    }
+
                 }
 
                 // apply state to target here
@@ -1404,13 +1417,12 @@ DreamX.ITB = DreamX.ITB || {};
 // Compatibility
 //=============================================================================
     if (Imported.YEP_BattleAICore) {
-        DreamX.ITB.Game_Battler_setAIPattern = Game_Battler.prototype.setAIPattern;
-        Game_Battler.prototype.setAIPattern = function () {
+        DreamX.ITB.BattleManager_updateAIPatterns = BattleManager.updateAIPatterns;
+        BattleManager.updateAIPatterns = function () {
             if (BattleManager.isITB()) {
-                if (this.numITBActions() <= 0)
-                    return;
+                return;
             }
-            DreamX.ITB.Game_Battler_setAIPattern.call(this);
+            DreamX.ITB.BattleManager_updateAIPatterns.call(this);
         };
     }
 
