@@ -25,35 +25,35 @@
  * 
  * @param ---VE Damage Popups---
  * 
- * @param Show Elemental Extra Action Popup
+ * @param Show Extra Action Popup
  * @desc Show popup when battler gets extra action from weakness. Default: false
  * @default false
  * 
- * @param Elemental Extra Action Popup Text
+ * @param Extra Action Popup Text
  * @desc Popup text to display when battler gets extra action from weakness.
  * @default 1 More!
  * 
- * @param Elemental Extra Action Popup Motion
+ * @param Extra Action Popup Motion
  * @desc Motion for extra action popup. Default: Pop High, Fall High, Pop Low, Fall Low, Wait, Wait
  * @default Pop High, Fall High, Pop Low, Fall Low, Wait, Wait
  * 
- * @param Elemental Extra Action Popup Font
+ * @param Extra Action Popup Font
  * @desc Eval. Font for extra action popup. Default: Window_Base.prototype.standardFontFace()
  * @default Window_Base.prototype.standardFontFace()
  * 
- * @param Elemental Extra Action Popup Size
+ * @param Extra Action Popup Size
  * @desc Eval. Font size for extra action popup. Default: Window_Base.prototype.standardFontSize()
  * @default Window_Base.prototype.standardFontSize()
  * 
- * @param Elemental Extra Action Popup Color
+ * @param Extra Action Popup Color
  * @desc Font color for extra action popup. Default: #FFFFFF
  * @default #FFFFFF
  * 
- * @param Elemental Extra Action Popup X
+ * @param Extra Action Popup X
  * @desc X for extra action popup. Default: 0
  * @default 0
  *
- * @param Elemental Extra Action Popup Y
+ * @param Extra Action Popup Y
  * @desc Y for extra action popup. Default: 0
  * @default 0
  * 
@@ -462,14 +462,14 @@ DreamX.ITB = DreamX.ITB || {};
     var parameterReadyAnchorY =
             parseFloat(parameters['Ready Overlay Anchor Y'] || 1);
 
-    var paramShowElemActionPopup = eval(parameters['Show Elemental Extra Action Popup'] || false);
-    var paramShowElemActionPopupText = String(parameters['Elemental Extra Action Popup Text']);
-    var paramShowElemActionPopupMotion = String(parameters['Elemental Extra Action Popup Motion']);
-    var paramShowElemActionPopupFont = String(parameters['Elemental Extra Action Popup Font']);
-    var paramShowElemActionPopupSize = String(parameters['Elemental Extra Action Popup Size']);
-    var paramShowElemActionPopupColor = String(parameters['Elemental Extra Action Popup Color']);
-    var paramShowElemActionPopupX = parseInt(parameters['Elemental Extra Action Popup X']);
-    var paramShowElemActionPopupY = parseInt(parameters['Elemental Extra Action Popup Y']);
+    var paramShowExtraActionPopup = eval(parameters['Show Extra Action Popup'] || false);
+    var paramShowExtraActionPopupText = String(parameters['Extra Action Popup Text']);
+    var paramShowExtraActionPopupMotion = String(parameters['Extra Action Popup Motion']);
+    var paramShowExtraActionPopupFont = String(parameters['Extra Action Popup Font']);
+    var paramShowExtraActionPopupSize = String(parameters['Extra Action Popup Size']);
+    var paramShowExtraActionPopupColor = String(parameters['Extra Action Popup Color']);
+    var paramShowExtraActionPopupX = parseInt(parameters['Extra Action Popup X']);
+    var paramShowExtraActionPopupY = parseInt(parameters['Extra Action Popup Y']);
 //    var parameterTurnSound =
 //            String(parameters['Turn Sound'] || '-1');
 
@@ -1292,14 +1292,14 @@ DreamX.ITB = DreamX.ITB || {};
                     target._weaknessHitMap.set(user, timesWeaknessHit + 1);
                     user.extraElementalWeaknessAction();
 
-                    if (Imported['VE - Damge Popup'] && paramShowElemActionPopup) {
-                        user.callCustomPopup(paramShowElemActionPopupText,
-                                paramShowElemActionPopupMotion,
-                                paramShowElemActionPopupFont,
-                                paramShowElemActionPopupSize,
-                                paramShowElemActionPopupColor,
-                                paramShowElemActionPopupX,
-                                paramShowElemActionPopupY);
+                    if (Imported['VE - Damge Popup'] && paramShowExtraActionPopup) {
+                        user.callCustomPopup(paramShowExtraActionPopupText,
+                                paramShowExtraActionPopupMotion,
+                                paramShowExtraActionPopupFont,
+                                paramShowExtraActionPopupSize,
+                                paramShowExtraActionPopupColor,
+                                paramShowExtraActionPopupX,
+                                paramShowExtraActionPopupY);
                     }
 
                 }
