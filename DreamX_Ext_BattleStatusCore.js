@@ -1,8 +1,8 @@
 /*:
- * @plugindesc v1.3a
+ * @plugindesc v1.4
  * @author DreamX
  * 
- * @param --Battle Status Window--
+ * @param --General Status--
  *  
  * @param Battle Status Frame Opacity
  * @desc From 0 to 1 Default: 1
@@ -45,24 +45,14 @@
  * @default this.lineHeight() * this.numVisibleRows()
  * 
  * @param Battle Status Columns
- * @desc Eval. Default: $gameParty.maxBattleMembers()
- * @default $gameParty.maxBattleMembers()
+ * @desc Eval. Default: Yanfly.Param.BSWAdjustCol ? this.maxItems() : $gameParty.maxBattleMembers()
+ * @default Yanfly.Param.BSWAdjustCol ? this.maxItems() : $gameParty.maxBattleMembers()
  * 
  * @param Battle Status Max Visible Rows
  * @desc Eval. Default: Yanfly.Param.BECCommandRows || 4
  * @default Yanfly.Param.BECCommandRows || 4
  * 
- * @param --Actor Command Window--
- * 
- * @param Actor Command X
- * @desc Eval. Default: 0
- * @default 0
- * 
- * @param Actor Command Y
- * @desc Eval. Default: Graphics.boxHeight - this.windowHeight()
- * @default Graphics.boxHeight - this.windowHeight()
- * 
- * @param --Faces--
+ * @param --Status Faces--
  *  
  * @param Draw Face
  * @desc Eval. Default: true
@@ -84,7 +74,7 @@
  * @desc Eval. rect.y + 4
  * @default rect.y + 4
  * 
- * @param --Gauges--
+ * @param --Status Gauges--
  * 
  * @param Draw HP Gauge
  * @desc Eval. Default: true
@@ -135,18 +125,18 @@
  * @default gaugeRect.width / 2
  * 
  * @param ATB Gauge X
- * @desc Eval. Default: gaugeRect.x - 2
- * @default gaugeRect.x - 2
+ * @desc Eval. Default: basicAreaRect.x
+ * @default basicAreaRect.x
  * 
  * @param ATB Gauge Y
- * @desc Eval. Default: gaugeRect.y
- * @default gaugeRect.y
+ * @desc Eval. Default: basicAreaRect.y
+ * @default basicAreaRect.y
  * 
  * @param ATB Gauge Width
- * @desc Eval. Default: gaugeRect.width + 2
- * @default gaugeRect.width + 2
+ * @desc Eval. Default: basicAreaRect.width
+ * @default basicAreaRect.width
  * 
- * @param --Action Icons--
+ * @param --Status Action Icons--
  * 
  * @param Draw Action Icon
  * @desc Eval. Default: true
@@ -160,7 +150,7 @@
  * @desc Eval. Default: basicAreaRect.y
  * @default basicAreaRect.y
  * 
- * @param --Names--
+ * @param --Status Names--
  * 
  * @param Draw Name
  * @desc Eval. Default: true
@@ -182,7 +172,7 @@
  * @desc Eval. Default: left
  * @default left
  * 
- * @param --Icons--
+ * @param -- Status Icons--
  * 
  * @param Draw Icons
  * @desc Eval. Default: true
@@ -203,7 +193,169 @@
  * @param Icons Height
  * @desc Eval. Default: Window_Base._iconHeight
  * @default Window_Base._iconHeight
+ * 
+ * @param --Party Command Window--
+ * 
+ * @param Party Command X
+ * @desc Eval. Default: 0
+ * @default 0
+ * 
+ * @param Party Command Y
+ * @desc Eval. Default: Graphics.boxHeight - this.windowHeight()
+ * @default Graphics.boxHeight - this.windowHeight()
+ * 
+ * @param Party Command Width
+ * @desc Eval. Default: 192
+ * @default 192
+ * 
+ * @param Party Command Height
+ * @desc Eval. Default: this.fittingHeight(this.numVisibleRows())
+ * @default this.fittingHeight(this.numVisibleRows())
+ * 
+ * @param Party Command Rows
+ * @desc Eval. Default: Math.max(Math.ceil(this.maxItems() / this.maxCols()), 1)
+ * @default Math.max(Math.ceil(this.maxItems() / this.maxCols()), 1)
+ * 
+ * @param Party Command Columns
+ * @desc Eval. Default: 1
+ * @default 1
+ * 
+ * @param Party Command Visible Rows
+ * @desc Eval. Default: 4
+ * @default 4
+ * 
+ * @param Party Command Item Width
+ * @desc Eval. Default: Math.floor((this.width - this.padding * 2 + this.spacing()) / this.maxCols() - this.spacing())
+ * @default Math.floor((this.width - this.padding * 2 + this.spacing()) / this.maxCols() - this.spacing())
+ * 
+ * @param Party Command Item Height
+ * @desc Eval. Default: this.lineHeight()
+ * @default this.lineHeight()
+ * 
+ * @param --Actor Command Window--
+ * 
+ * @param Actor Command X
+ * @desc Eval. Default: 0
+ * @default 0
+ * 
+ * @param Actor Command Y
+ * @desc Eval. Default: Graphics.boxHeight - this.windowHeight()
+ * @default Graphics.boxHeight - this.windowHeight()
+ * 
+ * @param Actor Command Width
+ * @desc Eval. Default: 192
+ * @default 192
+ * 
+ * @param Actor Command Height
+ * @desc Eval. Default: this.fittingHeight(this.numVisibleRows())
+ * @default this.fittingHeight(this.numVisibleRows())
+ * 
+ * @param Actor Command Rows
+ * @desc Eval. Default: Math.max(Math.ceil(this.maxItems() / this.maxCols()), 1)
+ * @default Math.max(Math.ceil(this.maxItems() / this.maxCols()), 1)
+ * 
+ * @param Actor Command Columns
+ * @desc Eval. Default: 1
+ * @default 1
+ * 
+ * @param Actor Command Visible Rows
+ * @desc Eval. Default: 4
+ * @default 4
+ * 
+ * @param Actor Command Item Width
+ * @desc Eval. Default: Math.floor((this.width - this.padding * 2 + this.spacing()) / this.maxCols() - this.spacing())
+ * @default Math.floor((this.width - this.padding * 2 + this.spacing()) / this.maxCols() - this.spacing())
+ * 
+ * @param Actor Command Item Height
+ * @desc Eval. Default: this.lineHeight()
+ * @default this.lineHeight()
+ * 
+ * @param --Battle Skill Window--
+ * 
+ * @param Battle Skill X
+ * @desc Eval. Default: 0
+ * @default 0
+ * 
+ * @param Battle Skill Y
+ * @desc Eval. Default: eval(Yanfly.Param.BECLowerWindows) ? Graphics.boxHeight - this._skillWindow.height : this._helpWindow.y + this._helpWindow.height
+ * @default eval(Yanfly.Param.BECLowerWindows) ? Graphics.boxHeight - this._skillWindow.height : this._helpWindow.y + this._helpWindow.height
+ * 
+ * @param Battle Skill Width
+ * @desc Eval. Default: Graphics.boxWidth
+ * @default Graphics.boxWidth
+ * 
+ * @param Battle Skill Height
+ * @desc Eval. Default: eval(Yanfly.Param.BECLowerWindows) ? this._skillWindow.fittingHeight(eval(Yanfly.Param.BECWindowRows)) : this._statusWindow.y - (this._helpWindow.y + this._helpWindow.height)
+ * @default eval(Yanfly.Param.BECLowerWindows) ? this._skillWindow.fittingHeight(eval(Yanfly.Param.BECWindowRows)) : this._statusWindow.y - (this._helpWindow.y + this._helpWindow.height)
+ * 
+ * @param Battle Skill Rows
+ * @desc Eval. Default: Math.max(Math.ceil(this.maxItems() / this.maxCols()), 1)
+ * @default Math.max(Math.ceil(this.maxItems() / this.maxCols()), 1)
+ * 
+ * @param Battle Skill Columns
+ * @desc Eval. Default: 2
+ * @default 2
+ * 
+ * @param Battle Skill Item Width
+ * @desc Eval. Default: Math.floor((this.width - this.padding * 2 + this.spacing()) / this.maxCols() - this.spacing())
+ * @default Math.floor((this.width - this.padding * 2 + this.spacing()) / this.maxCols() - this.spacing())
+ * 
+ * @param Battle Skill Item Height
+ * @desc Eval. Default: this.lineHeight()
+ * @default this.lineHeight()
+ * 
+ * @param --Battle Item Window--
  *  
+ * @param Battle Item X
+ * @desc Eval. Default: 0
+ * @default 0
+ * 
+ * @param Battle Item Y
+ * @desc Eval. Default: eval(Yanfly.Param.BECLowerWindows) ? Graphics.boxHeight - this._itemWindow.height : this._helpWindow.y + this._helpWindow.height
+ * @default eval(Yanfly.Param.BECLowerWindows) ? Graphics.boxHeight - this._itemWindow.height : this._helpWindow.y + this._helpWindow.height
+ * 
+ * @param Battle Item Width
+ * @desc Eval. Default: Graphics.boxWidth
+ * @default Graphics.boxWidth
+ * 
+ * @param Battle Item Height
+ * @desc Eval. Default: eval(Yanfly.Param.BECLowerWindows) ? this._itemWindow.fittingHeight(eval(Yanfly.Param.BECWindowRows)) : this._statusWindow.y - (this._helpWindow.y + this._helpWindow.height)
+ * @default eval(Yanfly.Param.BECLowerWindows) ? this._itemWindow.fittingHeight(eval(Yanfly.Param.BECWindowRows)) : this._statusWindow.y - (this._helpWindow.y + this._helpWindow.height)
+ * 
+ * @param Battle Item Rows
+ * @desc Eval. Default: Math.max(Math.ceil(this.maxItems() / this.maxCols()), 1)
+ * @default Math.max(Math.ceil(this.maxItems() / this.maxCols()), 1)
+ * 
+ * @param Battle Item Columns
+ * @desc Eval. Default: 2
+ * @default 2
+ * 
+ * @param Battle Item Item Width
+ * @desc Eval. Default: Math.floor((this.width - this.padding * 2 + this.spacing()) / this.maxCols() - this.spacing())
+ * @default Math.floor((this.width - this.padding * 2 + this.spacing()) / this.maxCols() - this.spacing())
+ * 
+ * @param Battle Item Item Height
+ * @desc Eval. Default: this.lineHeight()
+ * @default this.lineHeight()
+ * 
+ * @param --Help Window--
+ * 
+ * @param Help Window X
+ * @desc Eval. Default: 0
+ * @default 0
+ * 
+ * @param Help Window Y
+ * @desc Eval. Default: 0
+ * @default 0
+ * 
+ * @param Help Window Width
+ * @desc Eval. Default: Graphics.boxWidth
+ * @default Graphics.boxWidth
+ * 
+ * @param Help Window Height
+ * @desc Eval. Default: this._helpWindow.fittingHeight(2)
+ * @default this._helpWindow.fittingHeight(2)
+ * 
  * @param --Misc--
  * 
  * @param Frontview Animations On Top
@@ -363,6 +515,46 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
 
     var paramActorCommandX = String(parameters['Actor Command X']);
     var paramActorCommandY = String(parameters['Actor Command Y']);
+    var paramActorCommandW = String(parameters['Actor Command Width']);
+    var paramActorCommandH = String(parameters['Actor Command Height']);
+    var paramActorCommandRows = String(parameters['Actor Command Rows']);
+    var paramActorCommandCols = String(parameters['Actor Command Columns']);
+    var paramActorCommandVisRows = String(parameters['Actor Command Visible Rows']);
+    var paramActorCommandItemWidth = String(parameters['Actor Command Item Width']);
+    var paramActorCommandItemHeight = String(parameters['Actor Command Item Height']);
+
+    var paramPartyCommandX = String(parameters['Party Command X']);
+    var paramPartyCommandY = String(parameters['Party Command Y']);
+    var paramPartyCommandW = String(parameters['Party Command Width']);
+    var paramPartyCommandH = String(parameters['Party Command Height']);
+    var paramPartyCommandRows = String(parameters['Party Command Rows']);
+    var paramPartyCommandCols = String(parameters['Party Command Columns']);
+    var paramPartyCommandVisRows = String(parameters['Party Command Visible Rows']);
+    var paramPartyCommandItemWidth = String(parameters['Party Command Item Width']);
+    var paramPartyCommandItemHeight = String(parameters['Party Command Item Height']);
+
+    var paramBattleSkillX = String(parameters['Battle Skill X']);
+    var paramBattleSkillY = String(parameters['Battle Skill Y']);
+    var paramBattleSkillW = String(parameters['Battle Skill Width']);
+    var paramBattleSkillH = String(parameters['Battle Skill Height']);
+    var paramBattleSkillRows = String(parameters['Battle Skill Rows']);
+    var paramBattleSkillCols = String(parameters['Battle Skill Columns']);
+    var paramBattleSkillItemWidth = String(parameters['Battle Skill Item Width']);
+    var paramBattleSkillItemHeight = String(parameters['Battle Skill Item Height']);
+
+    var paramBattleItemX = String(parameters['Battle Item X']);
+    var paramBattleItemY = String(parameters['Battle Item Y']);
+    var paramBattleItemW = String(parameters['Battle Item Width']);
+    var paramBattleItemH = String(parameters['Battle Item Height']);
+    var paramBattleItemRows = String(parameters['Battle Item Rows']);
+    var paramBattleItemCols = String(parameters['Battle Item Columns']);
+    var paramBattleItemItemWidth = String(parameters['Battle Item Item Width']);
+    var paramBattleItemItemHeight = String(parameters['Battle Item Item Height']);
+
+    var paramHelpX = String(parameters['Help Window X']);
+    var paramHelpY = String(parameters['Help Window Y']);
+    var paramHelpW = String(parameters['Help Window Width']);
+    var paramHelpH = String(parameters['Help Window Height']);
 
     var paramStatusWidth = String(parameters['Battle Status Width']);
     var paramStatusHeight = String(parameters['Battle Status Height']);
@@ -403,7 +595,7 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         paramNameY = "rect.y";
         paramIconsX = "this.DXIconX(actor, rect)";
         paramIconsY = "rect.y + rect.height - Window_Base._iconHeight - this.textPadding()";
-        Yanfly.Param.BSWAdjustCol = "true";
+        Yanfly.Param.BSWAdjustCol = true;
 
         paramNameAlign = "center";
     }
@@ -417,13 +609,6 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         if (!Imported.YEP_BattleStatusWindow) {
             throw new Error('DreamX_Ext_BattleStatusCore requires YEP_BattleStatusWindow');
         }
-    };
-
-    DreamX.Ext_BattleStatusCore.Window_ActorCommand_initialize = Window_ActorCommand.prototype.initialize;
-    Window_ActorCommand.prototype.initialize = function () {
-        DreamX.Ext_BattleStatusCore.Window_ActorCommand_initialize.call(this);
-        this.x = eval(paramActorCommandX);
-        this.y = eval(paramActorCommandY);
     };
 
     Window_BattleStatus.prototype.itemWidth = function () {
@@ -579,7 +764,7 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
 
     Window_BattleStatus.prototype.drawBasicArea = function (basicAreaRect, actor, index) {
         var rect = this.itemRect(index);
-
+        var gaugeRect = this.gaugeAreaRect(index);
         var actionIconX = eval(paramActionIconX);
         var actionIconY = eval(paramActionIconY);
 
@@ -639,6 +824,150 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
                 this._statusWindow.x = statusX;
             }
         }
+    };
+
+    DreamX.Ext_BattleStatusCore.Scene_Battle_createSkillWindow = Scene_Battle.prototype.createSkillWindow;
+    Scene_Battle.prototype.createSkillWindow = function () {
+        DreamX.Ext_BattleStatusCore.Scene_Battle_createSkillWindow.call(this);
+        this._skillWindow.x = eval(paramBattleSkillX);
+        this._skillWindow.y = eval(paramBattleSkillY);
+        this._skillWindow.width = eval(paramBattleSkillW);
+        this._skillWindow.height = eval(paramBattleSkillH);
+        this._skillWindow.createContents();
+    };
+
+    DreamX.Ext_BattleStatusCore.Scene_Battle_createItemWindow = Scene_Battle.prototype.createItemWindow;
+    Scene_Battle.prototype.createItemWindow = function () {
+        DreamX.Ext_BattleStatusCore.Scene_Battle_createItemWindow.call(this);
+        this._itemWindow.x = eval(paramBattleItemX);
+        this._itemWindow.y = eval(paramBattleItemY);
+        this._itemWindow.width = eval(paramBattleItemW);
+        this._itemWindow.height = eval(paramBattleItemH);
+        this._itemWindow.createContents();
+    };
+
+    DreamX.Ext_BattleStatusCore.Scene_Battle_createHelpWindow = Scene_Battle.prototype.createHelpWindow;
+    Scene_Battle.prototype.createHelpWindow = function () {
+        DreamX.Ext_BattleStatusCore.Scene_Battle_createHelpWindow.call(this);
+        this._helpWindow.x = eval(paramHelpX);
+        this._helpWindow.y = eval(paramHelpY);
+        this._helpWindow.width = eval(paramHelpW);
+        this._helpWindow.height = eval(paramHelpH);
+        this._helpWindow.createContents();
+    };
+
+    //==========================================================================
+    // Window_BattleSkill
+    //==========================================================================
+    Window_BattleSkill.prototype.maxRows = function () {
+        return eval(paramBattleSkillRows);
+    };
+
+    Window_BattleSkill.prototype.maxCols = function () {
+        return eval(paramBattleSkillCols);
+    };
+
+    Window_BattleSkill.prototype.itemWidth = function () {
+        return eval(paramBattleSkillItemWidth);
+    };
+
+    Window_BattleSkill.prototype.itemHeight = function () {
+        return eval(paramBattleSkillItemHeight);
+    };
+
+    //==========================================================================
+    // Window_BattleItem
+    //==========================================================================
+    Window_BattleItem.prototype.maxRows = function () {
+        return eval(paramBattleItemRows);
+    };
+
+    Window_BattleItem.prototype.maxCols = function () {
+        return eval(paramBattleItemCols);
+    };
+
+    Window_BattleItem.prototype.itemWidth = function () {
+        return eval(paramBattleItemItemWidth);
+    };
+
+    Window_BattleItem.prototype.itemHeight = function () {
+        return eval(paramBattleItemItemHeight);
+    };
+
+    //==========================================================================
+    // Window_ActorCommand
+    //==========================================================================
+    DreamX.Ext_BattleStatusCore.Window_ActorCommand_initialize = Window_ActorCommand.prototype.initialize;
+    Window_ActorCommand.prototype.initialize = function () {
+        DreamX.Ext_BattleStatusCore.Window_ActorCommand_initialize.call(this);
+        this.x = eval(paramActorCommandX);
+        this.y = eval(paramActorCommandY);
+    };
+
+    Window_ActorCommand.prototype.windowWidth = function () {
+        return eval(paramActorCommandW);
+    };
+
+    Window_ActorCommand.prototype.windowHeight = function () {
+        return eval(paramActorCommandH);
+    };
+
+    Window_ActorCommand.prototype.maxRows = function () {
+        return eval(paramActorCommandRows);
+    };
+
+    Window_ActorCommand.prototype.maxCols = function () {
+        return eval(paramActorCommandCols);
+    };
+
+    Window_ActorCommand.prototype.itemWidth = function () {
+        return eval(paramActorCommandItemWidth);
+    };
+
+    Window_ActorCommand.prototype.itemHeight = function () {
+        return eval(paramActorCommandItemHeight);
+    };
+
+    Window_ActorCommand.prototype.numVisibleRows = function () {
+        return eval(paramActorCommandVisRows);
+    };
+
+    //==========================================================================
+    // Window_PartyCommand
+    //==========================================================================
+    DreamX.Ext_BattleStatusCore.Window_PartyCommand_initialize = Window_PartyCommand.prototype.initialize;
+    Window_PartyCommand.prototype.initialize = function () {
+        DreamX.Ext_BattleStatusCore.Window_PartyCommand_initialize.call(this);
+        this.x = eval(paramPartyCommandX);
+        this.y = eval(paramPartyCommandY);
+    };
+
+    Window_PartyCommand.prototype.windowWidth = function () {
+        return eval(paramPartyCommandW);
+    };
+
+    Window_PartyCommand.prototype.windowHeight = function () {
+        return eval(paramPartyCommandH);
+    };
+
+    Window_PartyCommand.prototype.maxRows = function () {
+        return eval(paramPartyCommandRows);
+    };
+
+    Window_PartyCommand.prototype.maxCols = function () {
+        return eval(paramPartyCommandCols);
+    };
+
+    Window_PartyCommand.prototype.itemWidth = function () {
+        return eval(paramPartyCommandItemWidth);
+    };
+
+    Window_PartyCommand.prototype.itemHeight = function () {
+        return eval(paramPartyCommandItemHeight);
+    };
+
+    Window_PartyCommand.prototype.numVisibleRows = function () {
+        return eval(paramPartyCommandVisRows);
     };
 
     //==========================================================================
