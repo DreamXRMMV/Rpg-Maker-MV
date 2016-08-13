@@ -29,19 +29,19 @@ Window_Base.prototype.drawActorClass = function (actor, x, y, width) {
     width = width || 168;
     this.resetTextColor();
 
-    var text = actor.currentClass().name;
-
-    this.drawText(text, x, y, width);
-
+    var className = actor.currentClass().name;
+    this.drawText(actor.currentClass().name, x, y, width);
     this.changeTextColor(this.systemColor());
-
-    text = text.replace(/./gi, " ");
-    text += " Lv ";
-
-    this.drawText(text, x, y, width);
+    
+    var textWidth = this.textWidth(className);
+    var levelText = " Lv ";
+    
+    // change x addition
+    this.drawText(levelText, x + textWidth + this.textPadding(), y, width);
+    
+    textWidth += this.textWidth(levelText);
+    
+    // change x addition
     this.resetTextColor();
-
-    text = text.replace(/./gi, " ");
-    text += actor.jpLevel(actor.currentClass().id);
-    this.drawText(text, x, y, width);
+    this.drawText(actor.jpLevel(actor.currentClass().id), x + textWidth + this.textPadding(), y, width);
 };
