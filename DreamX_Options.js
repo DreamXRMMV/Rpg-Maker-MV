@@ -179,6 +179,33 @@
  * "\"816 624\""
  * as the reset value.
  * ============================================================================
+ * Json Help - Help Text
+ * ============================================================================
+ * Use the symbol for the option in the help text section, to set help text.
+ * Switches will be switch_x with x as the id, variables will be variable_x 
+ * with x as the id.
+ * You can do this with options from other plugins, too.
+ * 
+ * For other plugins that add options, you should first ask the plugin author 
+ * what the symbols for the options are. If this is convenient for you, you can 
+ * search for "this.addCommand" (without quotes) In the plugin file. The one(s) 
+ * you are looking for will probably be within the Window_Options class. 
+ * 
+ * For example, if I do that in Yanfly's Keyboard Config file, I'll find this 
+ * in a function in the Window_Options class: 
+ * 
+ * this.addCommand(Yanfly.Param.KeyConfigName, 'keyConfig', true);
+ * 
+ * So, the symbol is 'keyConfig'
+ * I will add an entry under HELP_TEXT in the json file using this symbol.
+ * For example, I would add this: 
+ *  
+ * "keyConfig": "This will allow you to configure the keys",
+ *  
+ * You're going to do it the same way as the other help text examples, so make 
+ * sure that if its the last entry, it does NOT have a comma at the end, 
+ * otherwise it should. 
+ * ============================================================================
  * Switches Parameter Help
  * ============================================================================
  * Enter switch ids for the parameter Switches. You can include ranges.
