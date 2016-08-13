@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.7 Options for the option menu
+ * @plugindesc v1.7a Options for the option menu
  * @author DreamX
  * 
  * @param --General Options--
@@ -608,16 +608,18 @@ DreamX.Options = DreamX.Options || {};
         return eval(paramStatusWidth);
     };
 
-
-
-//    DreamX.Options.Graphics_switchFullScreen = Graphics._switchFullScreen;
-//    Graphics._switchFullScreen = function () {
-//        DreamX.Options.Graphics_switchFullScreen.call(this);
-//        if (this._isFullScreen()) {
-//            this._requestFullScreen();
-//        } else {
-//            this._cancelFullScreen();
-//        }
+//    DreamX.Options.Graphics_requestFullScreen = Graphics._requestFullScreen;
+//    Graphics._requestFullScreen = function () {
+//        DreamX.Options.Graphics_requestFullScreen.call(this);
+//        ConfigManager.fullscreen = true;
+//        ConfigManager.save();
+//    };
+//
+//    DreamX.Options.Graphics_cancelFullScreen = Graphics._cancelFullScreen;
+//    Graphics._cancelFullScreen = function () {
+//        DreamX.Options.Graphics_cancelFullScreen.call(this);
+//        ConfigManager.fullscreen = false;
+//        ConfigManager.save();
 //    };
 
     Window_Options.prototype.getVariableId = function (symbol) {
@@ -655,7 +657,9 @@ DreamX.Options = DreamX.Options || {};
         }
 
         if (symbol === 'fullscreen') {
-            Graphics._switchFullScreen();
+            if (this.getConfigValue(symbol) !== value) {
+                Graphics._switchFullScreen();
+            }
         }
         DreamX.Options.Window_Options_changeValue.call(this, symbol, value);
         this.updateLocks();
