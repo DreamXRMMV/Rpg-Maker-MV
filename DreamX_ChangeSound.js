@@ -9,7 +9,7 @@
  * SetSE type name volume pitch pan
  * This will change the sound used. 
  * For type, see the type section below.
- * For name, choose of the name of the sound file you want to use.
+ * For name, choose the name of the sound file you want to use.
  * For volume, enter a number from 0 to 100.
  * For pitch, enter a number from 50 and 150. Use 100 for normal pitch.
  * For pan, enter a number from -100 to 100. Use 0 for normal pan.
