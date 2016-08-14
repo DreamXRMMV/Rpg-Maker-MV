@@ -17,13 +17,13 @@ Imported.DreamX_BetterMoveAwayFromPlayer = true;
 var DreamX = DreamX || {};
 DreamX.BetterMoveAwayFromPlayer = DreamX.BetterMoveAwayFromPlayer || {};
 
-(function() {
+(function () {
 
     Game_Character.prototype.moveAwayFromCharacter = function (character) {
         var greatestDistance = 0;
         var greatestDistanceDirection;
         var distance = 0;
-		var currentDistance = Math.abs(this.x - character.x) + Math.abs(character.y - this.y);
+        var currentDistance = Math.abs(this.x - character.x) + Math.abs(character.y - this.y);
 
         // test character going up
         if (this.y - 1 >= 0 && $gameMap.isPassable(this.x, this.y - 1, 2)) {
@@ -60,9 +60,9 @@ DreamX.BetterMoveAwayFromPlayer = DreamX.BetterMoveAwayFromPlayer || {};
                 greatestDistanceDirection = 6;
             }
         }
-		if (currentDistance < greatestDistance) {
-		    this.moveStraight(greatestDistanceDirection);
-		}
+        if (currentDistance < greatestDistance) {
+            this.moveStraight(greatestDistanceDirection);
+        }
     };
 
 })();
