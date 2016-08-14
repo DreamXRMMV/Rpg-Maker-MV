@@ -1,20 +1,20 @@
 /*:
- * @plugindesc v0.2
+ * @plugindesc v0.3
  *
  * @param --Status Menu Core--
  *
  * @param General Parameters
  * @desc Parameters in General section Default: lvl lo 0 lo 1 lo 2 sh 3 sh 4 sh 5 sh 6 sh 7 sh
  * @default lvl lo 0 lo 1 lo 2 sh 3 sh 4 sh 5 sh 6 sh 7 sh
- * 
+ *
  * @param Show General Parameters
  * @desc Whether to show General parameters Default: true
  * @default true
- * 
+ *
  * @param Show General EXP
  * @desc Whether to show EXP. Default: true
  * @default true
- * 
+ *
  * @param Parameter Graph Parameters
  * @desc Parameters to show when equipping in this order. Default: 2 3 4 5 6 7
  * @default 2 3 4 5 6 7
@@ -28,21 +28,31 @@
  * @param SParams & XParams as %
  * @desc Show sparams and xparams as percentages. Default: true
  * @default true
- * 
+ *
  * @param --Item Core--
  *
  * @param Equip Parameters (Item Core)
  * @desc Parameters to show when equipping in this order. Default: 0 1 2 3 4 5 6 7
  * @default 0 1 2 3 4 5 6 7
+ *
+ * @param --Shop Menu Core--
+ *
+ * @param Shop Info Parameters
+ * @desc Parameters to show in this order. Default: 0 1 2 3 4 5 6 7
+ * @default 0 1 2 3 4 5 6 7
  * 
+ * @param Shop Status Parameters
+ * @desc Parameters to show in this order. Default: 0 1 2 3 4 5 6 7
+ * @default 0 1 2 3 4 5 6 7
+ *
  * @param --Victory Aftermath--
- * 
+ *
  * @param Level Up Parameters (Victory Aftermath)
  * @desc Parameters to show when equipping in this order. Default: lvl 0 1 2 3 4 5 6 7
  * @default lvl 0 1 2 3 4 5 6 7
- * 
+ *
  * @param --Text Manager--
- * 
+ *
  * @param hit Name
  * @desc The text name used for this attribute.
  * @default Hit Rate
@@ -129,9 +139,9 @@
  * How To Use
  * ============================================================================
  * When defining parameters, you can either use the parameter number or
- * parameter abbreviation. If you are using Quasi Params Plus, you can use the
- * abbreviations from that plugin as well.
- * 
+ * parameter abbreviation. Use lowercase. If you are using Quasi Params Plus, 
+ * you can use the abbreviations from that plugin as well. 
+ *
  * 0 - mhp
  * 1 - mmp
  * 2 - atk
@@ -140,8 +150,8 @@
  * 5 - mdf
  * 6 - agi
  * 7 - luk
- * 
- * For Parameter "General Parameters", use lo or hi after each parameter to 
+ *
+ * For Parameter "General Parameters", use lo or hi after each parameter to
  * designate whether is displayed with a long box or a short one.
  * ============================================================================
  * Terms Of Use
@@ -174,6 +184,9 @@ DreamX.ShowParam = DreamX.ShowParam || {};
     var paramShowXSParamsPercent = eval(String(parameters['SParams & XParams as %']));
     var paramShowGenParam = eval(String(parameters['Show General Parameters']));
     var paramShowStatusExp = eval(String(parameters['Show General EXP']));
+
+    var paramShopInfoParams = String(parameters['Shop Info Parameters']).split(" ");
+    var paramShopStatusParams = String(parameters['Shop Status Parameters']).split(" ");
 
     var paramHitName = String(parameters['hit Name']);
     var paramEvaName = String(parameters['eva Name']);
@@ -292,26 +305,9 @@ DreamX.ShowParam = DreamX.ShowParam || {};
         return DreamX.ShowParam.TextManager_param.call(this, paramId);
     };
 
-    DreamX.ShowParam.paramMultiplyFunction = function () {
-        var funcs = [];
-        funcs.push(Window_StatCompare.prototype.drawCurrentParam);
-        funcs.push(Window_StatCompare.prototype.drawNewParam);
-        return funcs;
-    };
-
     DreamX.ShowParam.Game_BattlerBase_param = Game_BattlerBase.prototype.param;
     Game_BattlerBase.prototype.param = function (paramId) {
         if (this[paramId] !== undefined) {
-            if (paramShowXSParamsPercent === true) {
-                var funcIndex = DreamX.ShowParam.paramMultiplyFunction().indexOf(arguments.callee.caller);
-                if (funcIndex !== -1) {
-                    var xParamIndex = DreamX.ShowParam.defXParamStr().indexOf(paramId);
-                    var sParamIndex = DreamX.ShowParam.defSParamStr().indexOf(paramId);
-                    if (xParamIndex !== -1 || sParamIndex !== -1) {
-                        return this[paramId] * 100 + "%";
-                    }
-                }
-            }
             return this[paramId];
         }
         return DreamX.ShowParam.Game_BattlerBase_param.call(this, paramId);
@@ -348,6 +344,9 @@ DreamX.ShowParam = DreamX.ShowParam || {};
                 this.changeTextColor(this.systemColor());
                 this.drawText(TextManager.param(param), dx + 4, dy, dw - 4);
                 text = Yanfly.Util.toGroup(this._actor.param(param));
+
+
+
                 this.changeTextColor(this.normalColor());
                 dw2 = dw * rate;
                 this.drawText(text, dx, dy, dw2 - 4, 'right');
@@ -516,25 +515,12 @@ DreamX.ShowParam = DreamX.ShowParam || {};
                     paramValueText = Yanfly.Util.toGroup(this._actor.level);
                 }
 
+                paramValueText = DreamX.ShowParam.percentParamText(param, paramValueText);
+
                 this.changeTextColor(this.systemColor());
                 this.drawText(paramNameText, dx, rect.y, dw, 'left');
                 this.changeTextColor(this.normalColor());
                 this.drawText(paramValueText, dx, rect.y, dw, 'right');
-            }
-        };
-    }
-
-    if (Imported.YEP_EquipCore) {
-        Window_StatCompare.prototype.DXParams = function () {
-            return DreamX.ShowParam.DXParams(paramEquipParams);
-        };
-
-        Window_StatCompare.prototype.refresh = function () {
-            this.contents.clear();
-            if (!this._actor)
-                return;
-            for (var i = 0; i < this.DXParams().length; ++i) {
-                this.drawItem(0, this.lineHeight() * i, this.DXParams()[i]);
             }
         };
     }
@@ -553,6 +539,244 @@ DreamX.ShowParam = DreamX.ShowParam || {};
 
         return params;
     };
+
+    DreamX.ShowParam.processEquipXSParam = function (param, item) {
+        var index = DreamX.ShowParam.defXParamStr().indexOf(param);
+        var code = 22;
+
+        if (index === -1) {
+            index = DreamX.ShowParam.defSParamStr().indexOf(param);
+            code = 23;
+        }
+
+        if (index === -1) {
+            return false;
+        }
+
+        var value = 0;
+        for (var i = 0; i < item.traits.length; i++) {
+            var trait = item.traits[i];
+            if (trait.code !== code) {
+                continue;
+            }
+            if (trait.dataId !== index) {
+                continue;
+            }
+            value += trait.value;
+        }
+
+        return value;
+    };
+
+    DreamX.ShowParam.processEquipParam = function (param, item) {
+        var paramValue;
+
+        if (new RegExp("^[0-9]+$").test(param)) {
+            return item.params[param];
+        }
+        var index = DreamX.ShowParam.defParamStr().indexOf(param);
+
+        if (index !== -1) {
+            return item.params[index];
+        }
+
+        paramValue = DreamX.ShowParam.processEquipXSParam(param, item);
+
+        if (paramValue !== false) {
+            return paramValue;
+        }
+
+        if (Imported.Quasi_ParamsPlus) {
+            var qParamIndex = 0;
+            QuasiParams._custom.forEach(function (qParam) {
+                if (qParam.abr === param) {
+                    return;
+                }
+                qParamIndex++;
+            });
+            paramValue = parseInt(QuasiParams.equipParamsPlus(item)[qParamIndex + 17]);
+        }
+
+        if (paramValue) {
+            return paramValue;
+        }
+        return 0;
+    };
+
+    if (Imported.YEP_ShopMenuCore) {
+        Window_ShopInfo.prototype.DXParams = function () {
+            return DreamX.ShowParam.DXParams(paramShopInfoParams);
+        };
+
+        Window_ShopInfo.prototype.drawEquipInfo = function (item) {
+            var rect = new Rectangle();
+            if (eval(Yanfly.Param.ItemShowIcon)) {
+                rect.width = (this.contents.width - Window_Base._faceWidth) / 2;
+            } else {
+                rect.width = this.contents.width / 2;
+            }
+            var params = this.DXParams();
+
+            for (var i = 0; i < params.length; ++i) {
+                var param = params[i];
+                rect = this.getRectPosition(rect, i);
+                var dx = rect.x + this.textPadding();
+                var dw = rect.width - this.textPadding() * 2;
+                this.changeTextColor(this.systemColor());
+                this.drawText(TextManager.param(param), dx, rect.y, dw);
+
+                var paramValue = DreamX.ShowParam.processEquipParam(param, item);
+
+                this.changeTextColor(this.paramchangeTextColor(paramValue));
+                var text = Yanfly.Util.toGroup(paramValue);
+
+                text = DreamX.ShowParam.percentParamText(param, text);
+
+                if (paramValue >= 0)
+                    text = '+' + text;
+                if (text === '+0')
+                    this.changePaintOpacity(false);
+                this.drawText(text, dx, rect.y, dw, 'right');
+                this.changePaintOpacity(true);
+            }
+        };
+
+        Window_ShopStatus.prototype.DXParams = function () {
+            return DreamX.ShowParam.DXParams(paramShopStatusParams);
+        };
+
+        Window_ShopStatus.prototype.drawActorStatInfo = function (actor) {
+            this.contents.fontSize = Yanfly.Param.ShopStatFontSize;
+            var item1 = this.currentEquippedItem(actor, this._item.etypeId);
+            var canEquip = actor.canEquip(this._item);
+            var params = this.DXParams();
+
+            for (var i = 0; i < params.length; ++i) {
+                var param = params[i];
+                this.changePaintOpacity(true);
+                var rect = this.getRectPosition(i);
+                rect.x += this.textPadding();
+                rect.width -= this.textPadding() * 2;
+                this.changeTextColor(this.systemColor());
+
+                var text = TextManager.param(param);
+
+                this.drawText(text, rect.x, rect.y, rect.width);
+                if (!canEquip)
+                    this.drawActorCantEquip(actor, rect);
+                if (canEquip)
+                    this.drawActorChange(actor, rect, item1, param);
+            }
+            this.changePaintOpacity(true);
+        };
+
+        Window_ShopStatus.prototype.drawActorChange = function (actor, rect, item1, param) {
+            var change = DreamX.ShowParam.processEquipParam(param, this._item);
+            change -= (item1 ? DreamX.ShowParam.processEquipParam(param, item1) : 0);
+
+            this.changePaintOpacity(change !== 0);
+            this.changeTextColor(this.paramchangeTextColor(change));
+
+            var text = (change > 0 ? '+' : '') + Yanfly.Util.toGroup(change);
+
+            text = DreamX.ShowParam.percentParamText(param, change);
+
+            this.drawText(text, rect.x, rect.y, rect.width, 'right');
+        };
+    }
+
+    DreamX.ShowParam.percentParamText = function (paramId, text) {
+
+        var xParamIndex = DreamX.ShowParam.defXParamStr().indexOf(paramId);
+        var sParamIndex = DreamX.ShowParam.defSParamStr().indexOf(paramId);
+
+        if ((xParamIndex !== -1 || sParamIndex !== -1) && paramShowXSParamsPercent) {
+            text = (text * 100) + "%";
+        }
+
+        return text;
+    };
+
+    if (Imported.YEP_EquipCore) {
+        Window_StatCompare.prototype.DXParams = function () {
+            return DreamX.ShowParam.DXParams(paramEquipParams);
+        };
+
+        Window_StatCompare.prototype.refresh = function () {
+            this.contents.clear();
+            if (!this._actor)
+                return;
+            for (var i = 0; i < this.DXParams().length; ++i) {
+                this.drawItem(0, this.lineHeight() * i, this.DXParams()[i]);
+            }
+        };
+
+        Window_StatCompare.prototype.drawCurrentParam = function (y, paramId) {
+            var x = this.contents.width - this.textPadding();
+            x -= this._paramValueWidth * 2 + this._arrowWidth + this._bonusValueWidth;
+            this.resetTextColor();
+            var actorparam = this._actor.param(paramId);
+
+            actorparam = DreamX.ShowParam.percentParamText(paramId, actorparam);
+
+            this.drawText(actorparam, x, y, this._paramValueWidth, 'right');
+        };
+
+
+
+        Window_StatCompare.prototype.drawNewParam = function (y, paramId) {
+            var x = this.contents.width - this.textPadding();
+            x -= this._paramValueWidth + this._bonusValueWidth;
+            var newValue = this._tempActor.param(paramId);
+            var diffvalue = newValue - this._actor.param(paramId);
+            var actorparam = Yanfly.Util.toGroup(newValue);
+
+            actorparam = DreamX.ShowParam.percentParamText(paramId, actorparam);
+
+            this.changeTextColor(this.paramchangeTextColor(diffvalue));
+            this.drawText(actorparam, x, y, this._paramValueWidth, 'right');
+        };
+    }
+
+    if (Imported.YEP_ItemCore) {
+        Window_ItemStatus.prototype.DXParamsEquip = function () {
+            return DreamX.ShowParam.DXParams(paramEquipParamsItemCore);
+        };
+
+        Window_ItemStatus.prototype.drawEquipInfo = function (item) {
+            var rect = new Rectangle();
+            if (eval(Yanfly.Param.ItemShowIcon)) {
+                rect.width = (this.contents.width - Window_Base._faceWidth) / 2;
+            } else {
+                rect.width = this.contents.width / 2;
+            }
+            var params = this.DXParamsEquip();
+
+            for (var i = 0; i < params.length; ++i) {
+                var param = params[i];
+                var paramValue = DreamX.ShowParam.processEquipParam(param, item);
+
+                rect = this.getRectPosition(rect, i);
+                var dx = rect.x + this.textPadding();
+                var dw = rect.width - this.textPadding() * 2;
+
+                this.changeTextColor(this.systemColor());
+                this.drawText(TextManager.param(param), dx, rect.y, dw);
+
+                this.changeTextColor(this.paramchangeTextColor(paramValue));
+
+                var text = Yanfly.Util.toGroup(paramValue);
+                if (paramValue >= 0)
+                    text = '+' + text;
+                if (text === '+0')
+                    this.changePaintOpacity(false);
+
+                text = DreamX.ShowParam.percentParamText(param, text);
+                this.drawText(text, dx, rect.y, dw, 'right');
+                this.changePaintOpacity(true);
+            }
+        };
+    }
 
     if (Imported.YEP_X_AftermathLevelUp) {
         DreamX.ShowParam.BattleManager_prepareVictoryPreLevel = BattleManager.prepareVictoryPreLevel;
@@ -639,6 +863,8 @@ DreamX.ShowParam = DreamX.ShowParam || {};
             } else {
                 var text = Yanfly.Util.toGroup(this._actor._preVictoryParams[index]);
             }
+            text = DreamX.ShowParam.percentParamText(index, text);
+
             this.drawText(text, x, y, this._paramValueWidth, 'right');
         };
 
@@ -654,6 +880,7 @@ DreamX.ShowParam = DreamX.ShowParam || {};
                 var diffvalue = newValue - this._actor._preVictoryParams[index];
             }
             var text = Yanfly.Util.toGroup(newValue);
+            text = DreamX.ShowParam.percentParamText(index, text);
             this.changeTextColor(this.paramchangeTextColor(diffvalue));
             this.drawText(text, x, y, this._paramValueWidth, 'right');
         };
@@ -684,56 +911,5 @@ DreamX.ShowParam = DreamX.ShowParam || {};
             this.drawText(text, x, y, this._bonusValueWidth, 'left');
         };
     }
-
-    if (Imported.YEP_ItemCore) {
-        Window_ItemStatus.prototype.DXParamsEquip = function () {
-            return DreamX.ShowParam.DXParams(paramEquipParamsItemCore);
-        };
-
-        Window_ItemStatus.prototype.drawEquipInfo = function (item) {
-            var rect = new Rectangle();
-            if (eval(Yanfly.Param.ItemShowIcon)) {
-                rect.width = (this.contents.width - Window_Base._faceWidth) / 2;
-            } else {
-                rect.width = this.contents.width / 2;
-            }
-            var params = this.DXParamsEquip();
-            console.log(params);
-
-            for (var i = 0; i < params.length; ++i) {
-                var param = params[i];
-                var paramValue = item.params[i];
-
-                rect = this.getRectPosition(rect, i);
-                var dx = rect.x + this.textPadding();
-                var dw = rect.width - this.textPadding() * 2;
-
-                this.changeTextColor(this.systemColor());
-                this.drawText(TextManager.param(param), dx, rect.y, dw);
-
-                if (!new RegExp("^[0-9]+$").test(param)) {
-                    var qParamIndex = 0;
-                    QuasiParams._custom.forEach(function (qParam) {
-                        if (qParam.abr === param) {
-                            return;
-                        }
-                        qParamIndex++;
-                    });
-                    paramValue = parseInt(QuasiParams.equipParamsPlus(item)[qParamIndex + 17]);
-                }
-                this.changeTextColor(this.paramchangeTextColor(paramValue));
-
-                var text = Yanfly.Util.toGroup(paramValue);
-                if (paramValue >= 0)
-                    text = '+' + text;
-                if (text === '+0')
-                    this.changePaintOpacity(false);
-                this.drawText(text, dx, rect.y, dw, 'right');
-                this.changePaintOpacity(true);
-            }
-        };
-    }
-
-
 
 })();
