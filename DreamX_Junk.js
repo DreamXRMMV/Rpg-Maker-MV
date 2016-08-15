@@ -1,7 +1,12 @@
 /*:
- * @plugindesc Mark items as junk and sell them all at once.
+ * @plugindesc v1.1 Mark items as junk and sell them all at once.
  * @author DreamX
  *
+ * @param --Junk--
+ * @param Add Junk Commands
+ * @desc Whether to add Mark Junk & Unmark Junk commands. Default: true
+ * @default true
+ * 
  * @param Junk In Junk Category Only
  * @desc true: Show junk in junk category only. false: Show junk in other categories too.
  * @default false
@@ -22,8 +27,6 @@
  * @desc Whether to play Shop sound effect when selling all junk. Default: true
  * @default true
  * 
- * @param --Strings--
- * 
  * @param Junk Category Name
  * @desc String to display for junk item category.
  * @default Junk
@@ -39,13 +42,54 @@
  * @param Unmark As Junk String
  * @desc String to display for unmarking an item as junk.
  * @default Unmark As Junk
- *
+ * 
+ * @param --Dispose--
+ *  
+ * @param Add Dispose Command
+ * @desc Whether to add Dispose command. It removes 1 item. Default: true
+ * @default true
+ * 
+ * @param Add Dispose All Command
+ * @desc Whether to add Dispose All command. It removes all of the same item. Default: true
+ * @default true
+ * 
+ * @param Can Dispose Equipped Items
+ * @desc Whether you can dispose of equipped items. Default: true
+ * @default true
+ * 
+ * @param Dispose SE Name
+ * @desc Name of sound effect to play when disposing items. Leave blank for none.
+ * @default 
+ * 
+ * @param Dispose SE Volume
+ * @desc Volume of dispose SE. Default: 50
+ * @default 50
+ * 
+ * @param Dispose SE Pan
+ * @desc Pan of dispose SE. Default: 0
+ * @default 0
+ * 
+ * @param Dispose SE Pitch
+ * @desc Pitch of dispose SE. Default: 100
+ * @default 100
+ * 
+ * @param Dispose String
+ * @desc String to display for dispose command.
+ * @default Dispose
+ * 
+ * @param Dispose All String
+ * @desc String to display for dispose all command.
+ * @default Dispose All
+ * 
  * @help
  * ============================================================================
  * Important
  * ============================================================================
  * This plugin requires YEP Item Core and YEP Shop Menu Core. This plugin
  * must be put underneath them in the plugin list.
+ * 
+ * Equipped items that are not independent cannot be marked as junk or disposed.
+ * For this reason, I recommend making equipment independent in Item Core.
  *
  * In order to sell all junk items at the shop, the command Custom
  * must be somewhere in the command order parameter for YEP Shop Menu Core.
@@ -55,9 +99,6 @@
  * If you want the sell all junk command to appear somewhere else in the list,
  * just place Custom in a different place in the command order parameter in
  * YEP Shop Menu Core.
- * 
- * Equipment that is not independent cannot be marked as junk. 
- * For this reason, I recommend making equipment independent in Item Core.
  * ============================================================================
  * How To Use
  * ============================================================================
@@ -75,6 +116,9 @@
  *
  * <CantMarkJunk> will disallow an item from being marked as junk. Good for
  * important items.
+ * 
+ * <CantDispose> will disallow an item from being disposed with the dispose 
+ * command.
  * ============================================================================
  * Terms Of Use
  * ============================================================================
@@ -106,6 +150,21 @@ DreamX.Junk = DreamX.Junk || {};
     var paramMarkJunkEquipped = eval(parameters['Can Mark Equipped Items As Junk']);
     var paramUnequipMarkJunk = eval(parameters['Unequip Marked Junk Items']);
 
+
+    var paramAddJunkCommand = String(parameters['Add Junk Commands']);
+
+    var paramCanDisposeEquipped = String(parameters['Can Dispose Equipped Items']);
+    var paramDisposeString = String(parameters['Dispose String']);
+    var paramDisposeAllString = String(parameters['Dispose All String']);
+    var paramAddDisposeCommand = String(parameters['Add Dispose Command']);
+    var paramAddDisposeAllCommand = String(parameters['Add Dispose All Command']);
+
+
+    var paramDisposeSEName = String(parameters['Dispose SE Name']);
+    var paramDisposeSEVol = String(parameters['Dispose SE Volume']);
+    var paramDisposeSEPan = String(parameters['Dispose SE Pan']);
+    var paramDisposeSEPitch = String(parameters['Dispose SE Pitch']);
+
     DreamX.Junk.DataManager_loadDatabase = DataManager.loadDatabase;
     DataManager.loadDatabase = function () {
         DreamX.Junk.DataManager_loadDatabase.call(this);
@@ -129,6 +188,8 @@ DreamX.Junk = DreamX.Junk || {};
         DreamX.Junk.Scene_Item_createActionWindow.call(this);
         this._itemActionWindow.setHandler('markJunk', this.onActionMarkJunk.bind(this));
         this._itemActionWindow.setHandler('unmarkJunk', this.onActionUnmarkJunk.bind(this));
+        this._itemActionWindow.setHandler('dispose', this.onActionDispose.bind(this));
+        this._itemActionWindow.setHandler('disposeAll', this.onActionDisposeAll.bind(this));
     };
 
     DreamX.Junk.Game_System_initialize = Game_System.prototype.initialize;
@@ -143,6 +204,7 @@ DreamX.Junk = DreamX.Junk || {};
         if (!this._item)
             return;
         this.addJunkCommand();
+        this.addDisposeCommand();
     };
 
     DreamX.Junk.blockEquipJunk = function (item) {
@@ -203,10 +265,39 @@ DreamX.Junk = DreamX.Junk || {};
         var markEnabled = DreamX.Junk.canMarkJunk(item);
         var unmarkEnabled = DreamX.Junk.canUnmarkJunk(item);
 
+        if (!eval(paramAddJunkCommand)) {
+            return;
+        }
+
         if (unmarkEnabled) {
             this.addCommand(paramUnmarkJunkString, 'unmarkJunk');
         } else if (markEnabled) {
             this.addCommand(paramMarkJunkString, 'markJunk');
+        }
+    };
+
+    DreamX.Junk.canDispose = function (item) {
+        if ($gameParty.isAnyMemberEquipped(item) && !eval(paramCanDisposeEquipped)) {
+            return false;
+        }
+        return !item.meta.CantDispose;
+    };
+
+
+
+    Window_ItemActionCommand.prototype.addDisposeCommand = function () {
+        var item = this._item;
+        var disposeEnabled = DreamX.Junk.canDispose(item);
+
+        if (!disposeEnabled) {
+            return;
+        }
+
+        if (eval(paramAddDisposeCommand)) {
+            this.addCommand(paramDisposeString, 'dispose');
+        }
+        if (eval(paramAddDisposeAllCommand) && $gameParty.numItems(item) > 1) {
+            this.addCommand(paramDisposeAllString, 'disposeAll');
         }
     };
 
@@ -221,6 +312,34 @@ DreamX.Junk = DreamX.Junk || {};
         $gameSystem._junkItems.push(item);
         if (paramUnequipMarkJunk) {
             $gameParty.DXUnequipItemParty(item);
+        }
+
+        this.DXJunkOperation();
+    };
+
+    Scene_Item.prototype.onActionDispose = function () {
+        var item = this.item();
+        $gameParty.DXUnequipItemParty(item);
+        $gameParty.loseItem(item, 1);
+        this.DXDisposeOperation();
+    };
+
+    Scene_Item.prototype.onActionDisposeAll = function () {
+        var item = this.item();
+
+        $gameParty.DXUnequipItemParty(item);
+        $gameParty.loseItem(item, $gameParty.numItems(item));
+        this.DXDisposeOperation(item);
+    };
+
+    Scene_Item.prototype.DXDisposeOperation = function (item) {
+        if (paramDisposeSEName) {
+            var se = {};
+            se.name = paramDisposeSEName;
+            se.volume = paramDisposeSEVol;
+            se.pan = paramDisposeSEPan;
+            se.pitch = paramDisposeSEPitch;
+            AudioManager.playStaticSe(se);
         }
 
         this.DXJunkOperation();
