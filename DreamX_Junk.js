@@ -361,7 +361,9 @@ DreamX.Junk = DreamX.Junk || {};
     DreamX.Junk.Window_ItemCategory_makeCommandList = Window_ItemCategory.prototype.makeCommandList;
     Window_ItemCategory.prototype.makeCommandList = function () {
         DreamX.Junk.Window_ItemCategory_makeCommandList.call(this);
-        this.addCommand(paramJunkCatString, 'junk');
+        if (eval(paramAddJunkCommand)) {
+            this.addCommand(paramJunkCatString, 'junk');
+        }
     };
 
     DreamX.Junk.Window_ItemList_makeItemList = Window_ItemList.prototype.makeItemList;
@@ -460,7 +462,9 @@ DreamX.Junk = DreamX.Junk || {};
     DreamX.Junk.Window_ShopCommand_addCustomCommands = Window_ShopCommand.prototype.addCustomCommands;
     Window_ShopCommand.prototype.addCustomCommands = function () {
         DreamX.Junk.Window_ShopCommand_addCustomCommands.call(this);
-        this.addCommand(paramSellAllJunkString, 'sellJunk');
+        if (eval(paramAddJunkCommand)) {
+            this.addCommand(paramSellAllJunkString, 'sellJunk');
+        }
     };
 
     DreamX.Junk.Window_ShopCommand_select = Window_ShopCommand.prototype.select;
