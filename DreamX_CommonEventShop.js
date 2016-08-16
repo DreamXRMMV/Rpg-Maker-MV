@@ -1,5 +1,5 @@
 /*:
- * @plugindesc
+ * @plugindesc v1.0
  * @author DreamX
  * 
  * @param Default Cost
@@ -16,7 +16,8 @@
  * ============================================================================
  * This is a port of Yanfly's Common Event Shop from VX Ace to MV.
  * It requires YEP Shop Core.
- * Please remember to credit Yanfly for the original script this is a port of.
+ * Please remember to credit Yanfly for the original script this is a port of 
+ * and their Shop Menu Core plugin.
  * ============================================================================
  * Plugin Commands
  * ============================================================================
@@ -104,12 +105,13 @@
  * Terms Of Use
  * ============================================================================
  * Free to use and modify for commercial and noncommercial games, with credit.
- * Credit Yanfly for their VXACE Script Common Event Shop.
+ * Credit Yanfly for their VXACE Script Common Event Shop and Shop Menu Core 
+ * plugin.
  * ============================================================================
  * Credits
  * ============================================================================
  * DreamX
- * Yanfly
+ * Yanfly - Original script/plugin
  */
 
 var Imported = Imported || {};
