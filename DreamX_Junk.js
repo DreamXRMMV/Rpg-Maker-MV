@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.1 Mark items as junk and sell them all at once.
+ * @plugindesc v1.2 Manage undesired items
  * @author DreamX
  *
  * @param --Junk--
@@ -36,12 +36,12 @@
  * @default Sell All Junk
  *
  * @param Mark As Junk String
- * @desc String to display for marking an item as junk.
- * @default Mark As Junk
+ * @desc String to display for marking an item as junk. Default: Mark %1%2 As Junk x%3
+ * @default Mark %1%2 As Junk x%3
  *
  * @param Unmark As Junk String
- * @desc String to display for unmarking an item as junk.
- * @default Unmark As Junk
+ * @desc String to display for unmarking an item as junk. Default: Unmark %1%2 As Junk x%3
+ * @default Unmark %1%2 As Junk x%3
  * 
  * @param --Dispose--
  *  
@@ -51,6 +51,10 @@
  * 
  * @param Add Dispose All Command
  * @desc Whether to add Dispose All command. It removes all of the same item. Default: true
+ * @default true
+ * 
+ * @param Cancel Dipose Command First
+ * @desc Whether the cancel command appears first when confirming disposal. Default: true
  * @default true
  * 
  * @param Can Dispose Equipped Items
@@ -74,12 +78,20 @@
  * @default 100
  * 
  * @param Dispose String
- * @desc String to display for dispose command.
- * @default Dispose
+ * @desc String to display for dispose command. Default: Dispose %1%2
+ * @default Dispose %1%2
  * 
  * @param Dispose All String
- * @desc String to display for dispose all command.
- * @default Dispose All
+ * @desc String to display for dispose all command. Default: Dispose %1%2 x%3
+ * @default Dispose %1%2 x%3
+ * 
+ * @param Confirm Dispose String
+ * @desc String to display for dispose confirm command. Default: Dispose %1%2
+ * @default Dispose %1%2
+ * 
+ * @param Cancel Dispose String
+ * @desc String to display for canceling dispose command.
+ * @default Cancel
  * 
  * @help
  * ============================================================================
@@ -120,6 +132,16 @@
  * <CantDispose> will disallow an item from being disposed with the dispose 
  * command.
  * ============================================================================
+ * Command Name Text Codes
+ * ============================================================================
+ * Text codes can be used to configure the names of commands.
+ * 
+ * %1 - Icon of item
+ * %2 - Name of item
+ * %3 - Number of item in inventory
+ * 
+ * This does not apply to the Sell All Junk command.
+ * ============================================================================
  * Terms Of Use
  * ============================================================================
  * Free to use and modify for commercial and noncommercial games, with credit.
@@ -149,17 +171,17 @@ DreamX.Junk = DreamX.Junk || {};
     var paramPlayShop = eval(parameters['Play Shop Sound']);
     var paramMarkJunkEquipped = eval(parameters['Can Mark Equipped Items As Junk']);
     var paramUnequipMarkJunk = eval(parameters['Unequip Marked Junk Items']);
-
-
     var paramAddJunkCommand = String(parameters['Add Junk Commands']);
 
     var paramCanDisposeEquipped = String(parameters['Can Dispose Equipped Items']);
     var paramDisposeString = String(parameters['Dispose String']);
     var paramDisposeAllString = String(parameters['Dispose All String']);
+    var paramConfirmDisposeString = String(parameters['Confirm Dispose String']);
+    var paramCancelDisposeString = String(parameters['Cancel Dispose String']);
+    var paramCancelDisposeFirst = eval(parameters['Cancel Dipose Command First']);
+
     var paramAddDisposeCommand = String(parameters['Add Dispose Command']);
     var paramAddDisposeAllCommand = String(parameters['Add Dispose All Command']);
-
-
     var paramDisposeSEName = String(parameters['Dispose SE Name']);
     var paramDisposeSEVol = String(parameters['Dispose SE Volume']);
     var paramDisposeSEPan = String(parameters['Dispose SE Pan']);
@@ -183,42 +205,9 @@ DreamX.Junk = DreamX.Junk || {};
         }
     };
 
-    DreamX.Junk.Scene_Item_createActionWindow = Scene_Item.prototype.createActionWindow;
-    Scene_Item.prototype.createActionWindow = function () {
-        DreamX.Junk.Scene_Item_createActionWindow.call(this);
-        this._itemActionWindow.setHandler('markJunk', this.onActionMarkJunk.bind(this));
-        this._itemActionWindow.setHandler('unmarkJunk', this.onActionUnmarkJunk.bind(this));
-        this._itemActionWindow.setHandler('dispose', this.onActionDispose.bind(this));
-        this._itemActionWindow.setHandler('disposeAll', this.onActionDisposeAll.bind(this));
-    };
-
-    DreamX.Junk.Game_System_initialize = Game_System.prototype.initialize;
-    Game_System.prototype.initialize = function () {
-        DreamX.Junk.Game_System_initialize.call(this);
-        this._junkItems = [];
-    }
-
-    DreamX.Junk.Window_ItemActionCommand_addCustomCommandsF = Window_ItemActionCommand.prototype.addCustomCommandsF;
-    Window_ItemActionCommand.prototype.addCustomCommandsF = function () {
-        DreamX.Junk.Window_ItemActionCommand_addCustomCommandsF.call(this);
-        if (!this._item)
-            return;
-        this.addJunkCommand();
-        this.addDisposeCommand();
-    };
-
-    DreamX.Junk.blockEquipJunk = function (item) {
-        if ((DataManager.isWeapon(item)
-                || DataManager.isArmor(item))
-                && !DataManager.isIndependent(item)) {
-            return true;
-        }
-        if (!paramMarkJunkEquipped && $gameParty.isAnyMemberEquipped(item)) {
-            return true;
-        }
-        return false;
-    };
-
+    //==========================================================================
+    // DreamX.Junk
+    //==========================================================================
     DreamX.Junk.isJunk = function (item) {
         if (!item) {
             return false;
@@ -260,20 +249,16 @@ DreamX.Junk = DreamX.Junk || {};
         return true;
     };
 
-    Window_ItemActionCommand.prototype.addJunkCommand = function () {
-        var item = this._item;
-        var markEnabled = DreamX.Junk.canMarkJunk(item);
-        var unmarkEnabled = DreamX.Junk.canUnmarkJunk(item);
-
-        if (!eval(paramAddJunkCommand)) {
-            return;
+    DreamX.Junk.blockEquipJunk = function (item) {
+        if ((DataManager.isWeapon(item)
+                || DataManager.isArmor(item))
+                && !DataManager.isIndependent(item)) {
+            return true;
         }
-
-        if (unmarkEnabled) {
-            this.addCommand(paramUnmarkJunkString, 'unmarkJunk');
-        } else if (markEnabled) {
-            this.addCommand(paramMarkJunkString, 'markJunk');
+        if (!paramMarkJunkEquipped && $gameParty.isAnyMemberEquipped(item)) {
+            return true;
         }
+        return false;
     };
 
     DreamX.Junk.canDispose = function (item) {
@@ -283,54 +268,80 @@ DreamX.Junk = DreamX.Junk || {};
         return !item.meta.CantDispose;
     };
 
+    //==========================================================================
+    // Scene_Item
+    //==========================================================================
+    DreamX.Junk.Scene_Item_createActionWindow = Scene_Item.prototype.createActionWindow;
+    Scene_Item.prototype.createActionWindow = function () {
+        DreamX.Junk.Scene_Item_createActionWindow.call(this);
+        this._itemActionWindow.setHandler('markJunk', this.onActionMarkJunk.bind(this));
+        this._itemActionWindow.setHandler('unmarkJunk', this.onActionUnmarkJunk.bind(this));
+        this._itemActionWindow.setHandler('dispose', this.onActionDispose.bind(this));
+        this._itemActionWindow.setHandler('disposeAll', this.onActionDisposeAll.bind(this));
 
-
-    Window_ItemActionCommand.prototype.addDisposeCommand = function () {
-        var item = this._item;
-        var disposeEnabled = DreamX.Junk.canDispose(item);
-
-        if (!disposeEnabled) {
-            return;
-        }
-
-        if (eval(paramAddDisposeCommand)) {
-            this.addCommand(paramDisposeString, 'dispose');
-        }
-        if (eval(paramAddDisposeAllCommand) && $gameParty.numItems(item) > 1) {
-            this.addCommand(paramDisposeAllString, 'disposeAll');
-        }
+        var wy = this._itemWindow.y;
+        this._disposeConfirmWindow = new Window_DisposeConfirm(0, wy);
+        this._disposeConfirmWindow.setHandler('dispose', this.onActionDisposeConfirm.bind(this));
+        this._disposeConfirmWindow.setHandler('cancel', this.onActionCancelDispose.bind(this));
+        this.addWindow(this._disposeConfirmWindow);
     };
 
-    Game_Party.prototype.DXUnequipItemParty = function (item) {
-        this.allMembers().forEach(function (member) {
-            member.unequipItem(item);
-        });
-    };
-
-    Scene_Item.prototype.onActionMarkJunk = function () {
+    DreamX.Junk.Scene_Item_onItemOk = Scene_Item.prototype.onItemOk;
+    Scene_Item.prototype.onItemOk = function () {
+        DreamX.Junk.Scene_Item_onItemOk.call(this);
         var item = this.item();
-        $gameSystem._junkItems.push(item);
-        if (paramUnequipMarkJunk) {
-            $gameParty.DXUnequipItemParty(item);
-        }
+        this._disposeConfirmWindow.setItem(item);
+    };
 
-        this.DXJunkOperation();
+    Scene_Item.prototype.onActionCancelDispose = function () {
+        this._disposeConfirmWindow.hide();
+        this._disposeConfirmWindow.deactivate();
+
+        this._itemActionWindow.refresh();
+        this._itemActionWindow.show();
+        this._itemActionWindow.activate();
+        this._itemActionWindow.select(0);
+    };
+
+    Scene_Item.prototype.onActionDisposeConfirm = function () {
+        var item = this.item();
+        if (this._disposeAll) {
+            this.disposeItem(item, $gameParty.numItems(item));
+        } else {
+            this.disposeItem(item, 1);
+        }
+        this._disposeConfirmWindow.hide();
+        this._disposeConfirmWindow.deactivate();
+        this._itemWindow.activate();
     };
 
     Scene_Item.prototype.onActionDispose = function () {
-        var item = this.item();
-        $gameParty.DXUnequipItemParty(item);
-        $gameParty.loseItem(item, 1);
-        this.DXDisposeOperation();
+        this._disposeAll = false;
+        this.setupDisposeWindow();
     };
 
     Scene_Item.prototype.onActionDisposeAll = function () {
-        var item = this.item();
+        this._disposeAll = true;
+        this.setupDisposeWindow();
+    };
 
+
+    Scene_Item.prototype.setupDisposeWindow = function () {
+        this._itemActionWindow.hide();
+        this._itemActionWindow.deactivate();
+
+        this._disposeConfirmWindow.refresh();
+        this._disposeConfirmWindow.show();
+        this._disposeConfirmWindow.activate();
+        this._disposeConfirmWindow.select(0);
+    };
+
+    Scene_Item.prototype.disposeItem = function (item, quantity) {
         $gameParty.DXUnequipItemParty(item);
-        $gameParty.loseItem(item, $gameParty.numItems(item));
+        $gameParty.loseItem(item, quantity);
         this.DXDisposeOperation(item);
     };
+
 
     Scene_Item.prototype.DXDisposeOperation = function (item) {
         if (paramDisposeSEName) {
@@ -351,6 +362,16 @@ DreamX.Junk = DreamX.Junk || {};
         this.activateItemWindow();
     };
 
+    Scene_Item.prototype.onActionMarkJunk = function () {
+        var item = this.item();
+        $gameSystem._junkItems.push(item);
+        if (paramUnequipMarkJunk) {
+            $gameParty.DXUnequipItemParty(item);
+        }
+
+        this.DXJunkOperation();
+    };
+
     Scene_Item.prototype.onActionUnmarkJunk = function () {
         var item = this.item();
         var index = $gameSystem._junkItems.indexOf(item);
@@ -358,38 +379,140 @@ DreamX.Junk = DreamX.Junk || {};
         this.DXJunkOperation();
     };
 
-    DreamX.Junk.Window_ItemCategory_makeCommandList = Window_ItemCategory.prototype.makeCommandList;
-    Window_ItemCategory.prototype.makeCommandList = function () {
-        DreamX.Junk.Window_ItemCategory_makeCommandList.call(this);
-        if (eval(paramAddJunkCommand)) {
-            this.addCommand(paramJunkCatString, 'junk');
+    //==========================================================================
+    // Window_DisposeConfirm
+    //==========================================================================
+    function Window_DisposeConfirm() {
+        this.initialize.apply(this, arguments);
+    }
+
+    Window_DisposeConfirm.prototype = Object.create(Window_Command.prototype);
+    Window_DisposeConfirm.prototype.constructor = Window_DisposeConfirm;
+
+    Window_DisposeConfirm.prototype.initialize = function (x, y) {
+        this._windowHeight = Graphics.boxHeight - y;
+        Window_Command.prototype.initialize.call(this, x, y);
+        this._item = null;
+        this.hide();
+        this.deactivate();
+    };
+
+    Window_DisposeConfirm.prototype.windowWidth = function () {
+        return Graphics.boxWidth / 2;
+    };
+
+    Window_DisposeConfirm.prototype.setItem = function (item) {
+        this._item = item;
+    };
+
+    Window_DisposeConfirm.prototype.windowHeight = function () {
+        return this._windowHeight;
+    };
+
+    Window_DisposeConfirm.prototype.makeCommandList = function () {
+        if (!this._item)
+            return;
+        var item = this._item;
+        var itemIcon = "\\I[" + item.iconIndex + "]";
+        var itemName = item.name;
+        var itemNum = $gameParty.numItems(item);
+
+        var confirmString = paramConfirmDisposeString.format(itemIcon, itemName, itemNum);
+        var cancelString = paramCancelDisposeString.format(itemIcon, itemName, itemNum);
+
+        if (paramCancelDisposeFirst) {
+            this.addCommand(cancelString, 'cancel');
+            this.addCommand(confirmString, 'dispose');
+        } else {
+            this.addCommand(confirmString, 'dispose');
+            this.addCommand(cancelString, 'cancel');
+        }
+
+    };
+
+    Window_DisposeConfirm.prototype.drawItem = function (index) {
+        if (!this._item)
+            return;
+        var rect = this.itemRectForText(index);
+        this.resetTextColor();
+        this.drawTextEx(this.commandName(index), rect.x, rect.y);
+    };
+
+    //==========================================================================
+    // Game_System
+    //==========================================================================
+    DreamX.Junk.Game_System_initialize = Game_System.prototype.initialize;
+    Game_System.prototype.initialize = function () {
+        DreamX.Junk.Game_System_initialize.call(this);
+        this._junkItems = [];
+    };
+
+    //==========================================================================
+    // Window_ItemActionCommand
+    //==========================================================================
+    DreamX.Junk.Window_ItemActionCommand_addCustomCommandsF = Window_ItemActionCommand.prototype.addCustomCommandsF;
+    Window_ItemActionCommand.prototype.addCustomCommandsF = function () {
+        DreamX.Junk.Window_ItemActionCommand_addCustomCommandsF.call(this);
+        if (!this._item)
+            return;
+        this.addJunkCommand();
+        this.addDisposeCommand();
+    };
+
+    Window_ItemActionCommand.prototype.addJunkCommand = function () {
+        if (!eval(paramAddJunkCommand)) {
+            return;
+        }
+
+        var item = this._item;
+        var itemIcon = "\\I[" + item.iconIndex + "]";
+        var itemName = item.name;
+        var itemNum = $gameParty.numItems(item);
+
+        var unmarkString = paramUnmarkJunkString.format(itemIcon, itemName, itemNum);
+        var markString = paramMarkJunkString.format(itemIcon, itemName, itemNum);
+
+        var markEnabled = DreamX.Junk.canMarkJunk(item);
+        var unmarkEnabled = DreamX.Junk.canUnmarkJunk(item);
+
+        if (unmarkEnabled) {
+            this.addCommand(unmarkString, 'unmarkJunk');
+        } else if (markEnabled) {
+            this.addCommand(markString, 'markJunk');
         }
     };
 
-    DreamX.Junk.Window_ItemList_makeItemList = Window_ItemList.prototype.makeItemList;
-    Window_ItemList.prototype.makeItemList = function () {
-        DreamX.Junk.Window_ItemList_makeItemList.call(this);
-        if (SceneManager._scene instanceof Scene_Shop && this._category === 'junk') {
-            this._data = this._data.concat($gameParty.equippedJunkItems());
+    Window_ItemActionCommand.prototype.addDisposeCommand = function () {
+        var item = this._item;
+
+        var disposeEnabled = DreamX.Junk.canDispose(item);
+
+        if (!disposeEnabled) {
+            return;
+        }
+
+        var itemIcon = "\\I[" + item.iconIndex + "]";
+        var itemName = item.name;
+        var itemNum = $gameParty.numItems(item);
+
+        var disposeSingleString = paramDisposeString.format(itemIcon, itemName, itemNum);
+        var disposeAllString = paramDisposeAllString.format(itemIcon, itemName, itemNum);
+
+        if (eval(paramAddDisposeCommand)) {
+            this.addCommand(disposeSingleString, 'dispose');
+        }
+        if (eval(paramAddDisposeAllCommand) && $gameParty.numItems(item) > 1) {
+            this.addCommand(disposeAllString, 'disposeAll');
         }
     };
 
-    DreamX.Junk.Window_ItemList_includes = Window_ItemList.prototype.includes;
-    Window_ItemList.prototype.includes = function (item) {
-        var isJunk = DreamX.Junk.isJunk(item);
-        if (this._category === 'junk') {
-            return isJunk;
-        }
-        if (isJunk && paramJunkCatOnly) {
-            return false;
-        }
-        return DreamX.Junk.Window_ItemList_includes.call(this, item);
-    };
-
-    DreamX.Junk.Scene_Shop_setCommandWindowHandlers = Scene_Shop.prototype.setCommandWindowHandlers;
-    Scene_Shop.prototype.setCommandWindowHandlers = function () {
-        DreamX.Junk.Scene_Shop_setCommandWindowHandlers.call(this);
-        this._commandWindow.setHandler('sellJunk', this.commandSellJunk.bind(this));
+    //==========================================================================
+    // Game_Party
+    //==========================================================================
+    Game_Party.prototype.DXUnequipItemParty = function (item) {
+        this.allMembers().forEach(function (member) {
+            member.unequipItem(item);
+        });
     };
 
     Game_Party.prototype.equippedJunkItems = function () {
@@ -420,6 +543,75 @@ DreamX.Junk = DreamX.Junk || {};
         junkItems = junkNonEquipItems.concat(this.equippedJunkItems());
 
         return junkItems;
+    };
+
+    //==========================================================================
+    // Window_ItemCategory
+    //==========================================================================
+    DreamX.Junk.Window_ItemCategory_makeCommandList = Window_ItemCategory.prototype.makeCommandList;
+    Window_ItemCategory.prototype.makeCommandList = function () {
+        DreamX.Junk.Window_ItemCategory_makeCommandList.call(this);
+        if (eval(paramAddJunkCommand)) {
+            this.addCommand(paramJunkCatString, 'junk');
+        }
+    };
+
+    //==========================================================================
+    // Window_ItemList
+    //==========================================================================
+    DreamX.Junk.Window_ItemList_makeItemList = Window_ItemList.prototype.makeItemList;
+    Window_ItemList.prototype.makeItemList = function () {
+        DreamX.Junk.Window_ItemList_makeItemList.call(this);
+        if (SceneManager._scene instanceof Scene_Shop && this._category === 'junk') {
+            this._data = this._data.concat($gameParty.equippedJunkItems());
+        }
+    };
+
+    DreamX.Junk.Window_ItemList_includes = Window_ItemList.prototype.includes;
+    Window_ItemList.prototype.includes = function (item) {
+        var isJunk = DreamX.Junk.isJunk(item);
+        if (this._category === 'junk') {
+            return isJunk;
+        }
+        if (isJunk && paramJunkCatOnly) {
+            return false;
+        }
+        return DreamX.Junk.Window_ItemList_includes.call(this, item);
+    };
+
+    //==========================================================================
+    // Window_ShopCommand
+    //==========================================================================
+    DreamX.Junk.Window_ShopCommand_addCustomCommands = Window_ShopCommand.prototype.addCustomCommands;
+    Window_ShopCommand.prototype.addCustomCommands = function () {
+        DreamX.Junk.Window_ShopCommand_addCustomCommands.call(this);
+        if (eval(paramAddJunkCommand)) {
+            this.addCommand(paramSellAllJunkString, 'sellJunk');
+        }
+    };
+
+    DreamX.Junk.Window_ShopCommand_select = Window_ShopCommand.prototype.select;
+    Window_ShopCommand.prototype.select = function (index) {
+        DreamX.Junk.Window_ShopCommand_select.call(this, index);
+        var scene = SceneManager._scene;
+        if (!scene._dummyWindow) {
+            return;
+        }
+
+        if (this.commandSymbol(index) === 'sellJunk') {
+            scene._dummyWindow.setCategory('junk');
+        } else {
+            scene._dummyWindow.setCategory('none');
+        }
+    };
+
+    //==========================================================================
+    // Scene_Shop
+    //==========================================================================
+    DreamX.Junk.Scene_Shop_setCommandWindowHandlers = Scene_Shop.prototype.setCommandWindowHandlers;
+    Scene_Shop.prototype.setCommandWindowHandlers = function () {
+        DreamX.Junk.Scene_Shop_setCommandWindowHandlers.call(this);
+        this._commandWindow.setHandler('sellJunk', this.commandSellJunk.bind(this));
     };
 
     Scene_Shop.prototype.commandSellJunk = function () {
@@ -457,29 +649,6 @@ DreamX.Junk = DreamX.Junk || {};
             this._dummyWindow.refresh();
         }
         this._commandWindow.activate();
-    };
-
-    DreamX.Junk.Window_ShopCommand_addCustomCommands = Window_ShopCommand.prototype.addCustomCommands;
-    Window_ShopCommand.prototype.addCustomCommands = function () {
-        DreamX.Junk.Window_ShopCommand_addCustomCommands.call(this);
-        if (eval(paramAddJunkCommand)) {
-            this.addCommand(paramSellAllJunkString, 'sellJunk');
-        }
-    };
-
-    DreamX.Junk.Window_ShopCommand_select = Window_ShopCommand.prototype.select;
-    Window_ShopCommand.prototype.select = function (index) {
-        DreamX.Junk.Window_ShopCommand_select.call(this, index);
-        var scene = SceneManager._scene;
-        if (!scene._dummyWindow) {
-            return;
-        }
-
-        if (this.commandSymbol(index) === 'sellJunk') {
-            scene._dummyWindow.setCategory('junk');
-        } else {
-            scene._dummyWindow.setCategory('none');
-        }
     };
 
     Scene_Shop.prototype.createDummyWindow = function () {
