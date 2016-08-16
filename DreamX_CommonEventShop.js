@@ -111,7 +111,7 @@
  * Credits
  * ============================================================================
  * DreamX
- * Yanfly - Original script/plugin
+ * Yanfly - Original script/plugin.
  */
 
 var Imported = Imported || {};
