@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.6 Configure the number of frames and frame speed for SV.
+ * @plugindesc v1.7 Configure the number of frames and frame speed for SV.
  *
  * <DreamX Actor Sideview Frames>
  * @author DreamX
@@ -28,7 +28,8 @@
  * for an enemy or actor.
  * Use <SVFrameSpeed:x> with x as the number of frame speed to override the
  * parameter for an actor.
- * Use <holders:1> to configure the enemy or actor to use holder style
+ * Use <vertical> to configure the enemy or act to use vertical spritesheets.
+ * Use <holders> to configure the enemy or actor to use holder style
  * spritesheets(4 frames, 14 motions vertically).
  *
  * Use <SVStraightLoop:true> on an actor or enemy to have a battler's frames
@@ -76,6 +77,63 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
     var holdersFrameCount = 4;
     var holdersMotionCount = 14;
 
+    DreamX.SideviewFrames.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
+    DataManager.isDatabaseLoaded = function () {
+        if (!DreamX.SideviewFrames.DataManager_isDatabaseLoaded.call(this))
+            return false;
+        if (!DreamX.SideviewFramesLoaded) {
+            this.processDXSVFBattlerNotetags($dataActors);
+            this.processDXSVFBattlerNotetags($dataEnemies);
+            DreamX.SideviewFramesLoaded = true;
+        }
+        return true;
+    };
+
+    DataManager.processDXSVFBattlerNotetags = function (data) {
+        var evalMode = 'none';
+        for (var i = 0; i < data.length; i++) {
+            var battler = data[i];
+            if (!battler)
+                continue;
+            battler.motionConfiguration = {};
+            var notedata = battler.note.split(/[\r\n]+/);
+            for (var j = 0; j < notedata.length; j++) {
+                var line = notedata[j];
+
+                if (line.match(/<(?:MOTION CONFIGURATION):(.*)>/i)) {
+                    var motionType = String(RegExp.$1).trim().toLowerCase();
+                    battler.motionConfiguration[motionType] = {};
+                    evalMode = 'motion configuration';
+                } else if (line.match(/<\/(?:MOTION CONFIGURATION)>/i)) {
+                    evalMode = 'none';
+                } else if (evalMode === 'motion configuration') {
+                    this.processDXSVFBattlerLine(motionType, line, battler);
+                }
+            }
+
+        }
+    };
+
+    DataManager.processDXSVFBattlerLine = function (motionType, line, battler) {
+        var split = line.split(" ");
+        var configType = split[0];
+        var arg = split[1].toLowerCase();
+        switch (configType) {
+            case "speed":
+                if (!battler.motionConfiguration[motionType].speed) {
+                    battler.motionConfiguration[motionType].speed = [];
+                }
+                battler.motionConfiguration[motionType].speed.push(arg);
+                break;
+            case "is_loop":
+                battler.motionConfiguration[motionType].isLoop = arg;
+                break;
+            case "loop_limit":
+                battler.motionConfiguration[motionType].loopLimit = parseInt(arg);
+                break;
+        }
+    };
+
     Sprite_Actor.MOTIONS_HOLDERS = {
         walk: {index: 0, loop: true},
         wait: {index: 0, loop: true},
@@ -97,6 +155,7 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
         dead: {index: 12, loop: true}
     };
 
+
     DreamX.SideviewFrames.Sprite_Battler_initMembers
             = Sprite_Battler.prototype.initMembers;
     Sprite_Battler.prototype.initMembers = function () {
@@ -111,21 +170,26 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
     }
 
     Game_Battler.prototype.DXNumFrames = function () {
+        if (this.DXIsHolders()) {
+            return 4;
+        }
         if (this.isActor()) {
             return this.actor().meta.SVFrames ? this.actor().meta.SVFrames : paramEnemyFrames;
         }
         return this.enemy().meta.SVFrames ? this.enemy().meta.SVFrames : paramEnemyFrames;
     };
 
-    Game_Battler.prototype.DXFrameSpeed = function () {
-        if (this.isActor()) {
-            return this.actor().meta.SVFrameSpeed ? this.actor().meta.SVFrameSpeed : paramActorFrameSpeed;
-        }
-        return this.sideviewFrameSpeed();
+    Game_Battler.prototype.DXIsHolders = function () {
+        var dataBattler = this.isActor() ? this.actor() : this.enemy();
+        return dataBattler.meta.holders;
     };
 
-    Sprite_Battler.prototype.DXisHolders = function () {
+    Sprite_Battler.prototype.DXIsHolders = function () {
         return this.DXBattlerMeta().holders ? true : false;
+    };
+
+    Sprite_Battler.prototype.DXIsVertical = function () {
+        return this.DXBattlerMeta().vertical || this.DXIsHolders();
     };
 
     Sprite_Battler.prototype.DXIsStraightLoop = function () {
@@ -140,19 +204,50 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
     };
 
     Sprite_Battler.prototype.motions = function () {
-        if (this.DXisHolders() === true) {
+        if (this.DXIsHolders() === true) {
             return Sprite_Actor.MOTIONS_HOLDERS;
         } else {
             return Sprite_Actor.MOTIONS;
         }
     };
 
+    Sprite_Battler.prototype.configureMotion = function (motion) {
+        var dataBattler = this._battler.isActor() ? this._battler.actor() : this._battler.enemy();
+        var config = dataBattler.motionConfiguration[this._motionType];
+        if (!config) {
+            return;
+        }
+        var loopLimit = config.loopLimit;
+        if (loopLimit) {
+            this._loopLimit = loopLimit;
+        }
+        var isLoop = config.isLoop;
+        if (isLoop) {
+            this._isLoopMotion = eval(isLoop);
+        }
+    };
+
+
+
     Sprite_Battler.prototype.DXStartMotion = function (motionType) {
         var newMotion = this.motions()[motionType];
+
+
         if (this._motion !== newMotion) {
+            this._motionType = motionType;
             this._motion = newMotion;
             this._motionCount = 0;
             this._pattern = 0;
+            this._timesLooped = 0;
+            this._loopLimit = false;
+            this._isLoopMotion = undefined;
+
+            this.configureMotion(this._motion);
+
+
+            if (motionType === 'walk' && this.DXBattlerMeta().RandomStart) {
+                this._pattern = Math.floor(Math.random() * this.DXNumFrames());
+            }
         }
     };
     // override
@@ -161,16 +256,7 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
     };
 
     Sprite_Battler.prototype.DXNumFrames = function () {
-        if (this.DXisHolders())
-            return 4;
-        if (this.DXBattlerMeta().SVFrames) {
-            battlerFrames = parseInt(this.DXBattlerMeta().SVFrames);
-        } else {
-            battlerFrames = this._battler.isActor() ? paramActorFrames
-                    : paramEnemyFrames;
-        }
-
-        return battlerFrames;
+        return this._battler.DXNumFrames();
     }
 
 // override
@@ -179,18 +265,17 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
         var bitmap = this._mainSprite.bitmap;
         if (bitmap) {
             var motionIndex = this._motion ? this._motion.index : 0;
-            var cw = this.DXisHolders() === false
+            var cw = this.DXIsVertical() === false
                     ? bitmap.width / (this.DXNumFrames() * 3)
                     : bitmap.width / this.DXNumFrames();
-            var ch = this.DXisHolders() === false ? bitmap.height / 6
+            var ch = this.DXIsVertical() === false ? bitmap.height / 6
                     : bitmap.height / holdersMotionCount;
-            var cx = this.DXisHolders() === false
+            var cx = this.DXIsVertical() === false
                     ? Math.floor(motionIndex / 6) * this.DXNumFrames()
                     + this._pattern
                     : this._pattern;
-            var cy = this.DXisHolders() === false ? motionIndex % 6
+            var cy = this.DXIsVertical() === false ? motionIndex % 6
                     : motionIndex;
-            //console.log(cy * ch);
 
             this._mainSprite.setFrame(cx * cw, cy * ch, cw, ch);
         }
@@ -200,9 +285,54 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
         this.DXUpdateFrame();
     };
 
+    Sprite_Battler.prototype.specificMotionSpeed = function () {
+        var dataBattler = this._battler.isActor() ? this._battler.actor() : this._battler.enemy();
+        if (!dataBattler.motionConfiguration[this._motionType]) {
+            return -1;
+        }
+        if (!dataBattler.motionConfiguration[this._motionType].speed) {
+            return -1;
+        }
+        if (!dataBattler.motionConfiguration[this._motionType].speed[this._pattern]) {
+            return -1;
+        }
+
+        var seconds = dataBattler.motionConfiguration[this._motionType].speed[this._pattern];
+        return seconds * 60;
+    };
+
+    Sprite_Actor.prototype.motionSpeed = function () {
+        var specificMotionSpeed = this.specificMotionSpeed();
+        if (specificMotionSpeed !== -1) {
+            return specificMotionSpeed;
+        }
+        var frameSpeed = this.DXBattlerMeta().SVFrameSpeed
+                ? this.DXBattlerMeta().SVFrameSpeed : paramActorFrameSpeed;
+        return frameSpeed;
+    };
+
+    DreamX.SideviewFrames.Sprite_Enemy_motionSpeed = Sprite_Enemy.prototype.motionSpeed;
+    Sprite_Enemy.prototype.motionSpeed = function () {
+        var specificMotionSpeed = this.specificMotionSpeed();
+        if (specificMotionSpeed !== -1) {
+            return specificMotionSpeed;
+        }
+        return DreamX.SideviewFrames.Sprite_Enemy_motionSpeed.call(this);
+    };
+
+    Sprite_Battler.prototype.isLoopMotion = function () {
+        if (this._isLoopMotion !== undefined) {
+            return this._isLoopMotion;
+        }
+        return this._motion.loop;
+    };
+
     Sprite_Battler.prototype.DXupdateMotionCount = function () {
-        if (this._motion && ++this._motionCount >= this.motionSpeed()) {
-            if (this._motion.loop && this.DXNumFrames() >= 2) {
+        var isLoop = this.isLoopMotion();
+        if (this._motion && ++this._motionCount >= this.motionSpeed()
+                && (!this._loopLimit
+                        || this._timesLooped < this._loopLimit)) {
+            if (isLoop && this.DXNumFrames() >= 2) {
                 if (this.DXIsStraightLoop() === false) {
                     if (this._reverseFrame === false) {
                         this._pattern++;
@@ -212,11 +342,14 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
 
                     if (this.DXNumFrames() - 1 === this._pattern) {
                         this._reverseFrame = true;
+                        this._timesLooped++;
                     } else if (this._pattern === 0) {
                         this._reverseFrame = false;
+
                     }
                 } else {
                     if (this._pattern === this.DXNumFrames() - 1) {
+                        this._timesLooped++;
                         this._pattern = 0;
                     } else {
                         this._pattern++;
@@ -236,12 +369,7 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
         this.DXupdateMotionCount();
     };
 
-    Sprite_Actor.prototype.motionSpeed = function () {
-        // change: check for notetag or param
-        var frameSpeed = this.DXBattlerMeta().SVFrameSpeed
-                ? this.DXBattlerMeta().SVFrameSpeed : paramActorFrameSpeed;
-        return frameSpeed;
-    };
+
 
     Sprite_Battler.prototype.DXrefreshMotion = function () {
         var battler = this._battler;
@@ -285,7 +413,7 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
             DreamX.SideviewFrames.Sprite_Actor_stepFlinch.call(this);
             var battler = this._battler;
             var frames = battler.DXNumFrames();
-            var frameSpeed = battler.DXFrameSpeed();
+            var frameSpeed = this.motionSpeed();
             var waitTime = (frames * frameSpeed);
             BattleManager._logWindow._waitCount += waitTime;
 
@@ -298,7 +426,7 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
                     || (Imported.YEP_X_AnimatedSVEnemies && targets[0].hasSVBattler())) {
                 var battler = targets[0];
                 var frames = battler.DXNumFrames();
-                var frameSpeed = battler.DXFrameSpeed();
+                var frameSpeed = battler().motionSpeed();
                 var waitTime = frames * frameSpeed;
 
                 if (waitTime > 0) {
@@ -360,7 +488,7 @@ DreamX.SideviewFrames = DreamX.SideviewFrames || {};
 
                 // new
                 var frames = this.DXNumFrames();
-                var frameSpeed = this.DXFrameSpeed();
+                var frameSpeed = this.battler().motionSpeed();
                 var waitTime = (frames * frameSpeed) - 12;
                 if (waitTime > 0) {
                     BattleManager._logWindow._waitCount += waitTime;
