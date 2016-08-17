@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.7a Options for the option menu
+ * @plugindesc v1.8 Options for the option menu
  * @author DreamX
  * 
  * @param --General Options--
@@ -888,7 +888,7 @@ DreamX.Options = DreamX.Options || {};
     if (Imported.YEP_CoreEngine) {
         DreamX.Options.SceneManager_run = SceneManager.run;
         SceneManager.run = function (sceneClass) {
-            ConfigManager.load();
+            ConfigManager.loadResolution();
             if (!ConfigManager.resolution || !Utils.isNwjs()) {
                 DreamX.Options.SceneManager_run.call(this, sceneClass);
             } else {
@@ -901,15 +901,20 @@ DreamX.Options = DreamX.Options || {};
         };
     }
 
-    if (Imported.YEP_KeyboardConfig) {
-        DreamX.Options.ConfigManager_applyKeyConfig = ConfigManager.applyKeyConfig;
-        ConfigManager.applyKeyConfig = function () {
-            if (SceneManager._scene) {
-                DreamX.Options.ConfigManager_applyKeyConfig.call(this);
-            }
-        };
-    }
-
+    ConfigManager.loadResolution = function () {
+        var json;
+        var config = {};
+        try {
+            json = StorageManager.load(-1);
+        } catch (e) {
+            console.error(e);
+        }
+        if (json) {
+            config = JSON.parse(json);
+        }
+        this.resolution = config.resolution;
+        this.fullscreen = config.fullscreen;
+    };
 
     DreamX.Options.ConfigManager_makeData = ConfigManager.makeData;
     ConfigManager.makeData = function () {
@@ -938,6 +943,9 @@ DreamX.Options = DreamX.Options || {};
     };
 
     SceneManager.changeResolution = function () {
+        if (!ConfigManager.resolution) {
+            return;
+        }
         var split = ConfigManager.resolution.split(" ");
         var w = parseInt(split[0]);
         var h = parseInt(split[1]);
