@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.24a Random prefixes/suffixes
+ * @plugindesc v1.25 Random prefixes/suffixes
  * @author DreamX
  *
  * @param Bonus Parameter Text
@@ -1347,6 +1347,12 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
             dataType = $dataItems;
         }
 
+        if (newItem.meta.prefixSuffixUseArmorDatabase) {
+            dataType = $dataArmors;
+        } else if (newItem.meta.prefixSuffixUseWeaponDatabase) {
+            dataType = $dataWeapons;
+        }
+
         // add icon of original icon index if overlay
         if (baseItem.meta.OverlayIcon) {
             this.addIconOverlay(baseItem, newItem);
@@ -1407,6 +1413,7 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
 
         newItem.id = dataType.length;
         newItem.nonIndependent = false;
+        newItem.originalBaseItemId = baseItem.id;
         newItem.DXRPS124V = true;
         DataManager.processYanflyTags(newItem);
         DataManager.registerNewItem(newItem);
@@ -1518,6 +1525,27 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
         return DreamX.RandomPrefixSuffix.DataManager_isArmor.call(this, item);
     };
 
+    Game_Party.prototype.numIndependentItems = function (baseItem) {
+        var value = 0;
+        if (!DataManager.isIndependent(baseItem))
+            return this.numItems(baseItem);
+        var id = baseItem.id;
+        if (DataManager.isItem(baseItem))
+            var group = this.items();
+        if (DataManager.isWeapon(baseItem))
+            var group = this.weapons();
+        if (DataManager.isArmor(baseItem))
+            var group = this.armors();
+        for (var i = 0; i < group.length; ++i) {
+            var item = group[i];
+            if (!item)
+                continue;
+            if ((item.baseItemId && item.baseItemId === id) || (item.originalBaseItemId && item.originalBaseItemId === id))
+                value += 1;
+        }
+        return value;
+    };
+
     DreamX.RandomPrefixSuffix.applyAugments = function (newItem) {
         if (!newItem.DXRPSChosenAugments || newItem.id === newItem.baseItemId) {
             return;
@@ -1540,10 +1568,6 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
                 ItemManager.applyAugmentEffects(newItem, dataType[id], j, 1);
                 break;
             }
-
-//            var slotIndex = newItem.augmentSlots.indexOf(augmentType);
-//            ItemManager.applyAugmentEffects(newItem, dataType[id],
-//                    slotIndex, 1);
         }
 
         delete newItem.DXRPSChosenAugments;
@@ -1679,22 +1703,6 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
             }
         }
     };
-
-//    DreamX.RandomPrefixSuffix.Game_Party_hasMaxItems = Game_Party.prototype.hasMaxItems;
-//    Game_Party.prototype.hasMaxItems = function (item) {
-//        if (item.DXRPSItem) {
-//            return false;
-//        }
-//        return DreamX.RandomPrefixSuffix.Game_Party_hasMaxItems.call(this, item);
-//    };
-
-//    DreamX.RandomPrefixSuffix.Game_Party_maxItems = Game_Party.prototype.maxItems;
-//    Game_Party.prototype.maxItems = function (item) {
-//        if (item.DXRPSItem) {
-//            return 99999999;
-//        }
-//        return DreamX.RandomPrefixSuffix.Game_Party_maxItems.call(this, item);
-//    };
 
     if (Imported.YEP_ShopMenuCore) {
         DreamX.RandomPrefixSuffix.Scene_Shop_doBuyItem = Scene_Shop.prototype.doBuyItem;
