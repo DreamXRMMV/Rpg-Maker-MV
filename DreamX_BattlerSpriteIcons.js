@@ -1,5 +1,5 @@
 /*:
- * @plugindesc 1.8
+ * @plugindesc 1.9
  * @author DreamX
  *
  * @param Maximum State/Buffs Per Line
@@ -50,6 +50,10 @@
  * @desc The y coordinate for the transparent window carrying the bad state/buff icons. Default: this._battler.spritePosY() - this._battler.spriteHeight() - this.standardPadding() - (DreamX.Param.BSIIconHeight) - (this.standardPadding() / 2)
  * @default this._battler.spritePosY() - this._battler.spriteHeight() - this.standardPadding() - (DreamX.Param.BSIIconHeight) - (this.standardPadding() / 2)
  *
+ * @param Hide Switch
+ * @desc Switch if on, hides the icons. Use 0 to disable.
+ * @default 0
+ * 
  * @param ---Tooltips---
  * @default
  *
@@ -258,6 +262,9 @@ DreamX.Param.BSITooltipFrameOpacity = parseInt(String(DreamX.Parameters['Tooltip
 DreamX.Param.BSITooltipNameColor = parseInt(String(DreamX.Parameters['Default State/Buff Name Color']));
 DreamX.Param.BSITooltipDescColor = parseInt(String(DreamX.Parameters['Default State/Buff Desc Color']));
 DreamX.Param.BSITooltipTurnColor = parseInt(String(DreamX.Parameters['Default State/Buff Turn Color']));
+
+
+DreamX.Param.BSIHideIconsSwitch = parseInt(String(DreamX.Parameters['Hide Switch']));
 
 DreamX.Param.BSITooltipNameFS = parseInt(String(DreamX.Parameters['Default State/Buff Name Font Size']));
 DreamX.Param.BSITooltipDescFS = parseInt(String(DreamX.Parameters['Default State/Buff Name Desc Font Size']));
@@ -762,7 +769,7 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
     //==========================================================================
     if (Imported.MOG_BattleHud) {
         Battle_Hud.prototype.refresh_states = function () {
-            this.DXBSIRemoveTooltipObjects();
+            Window_Base.prototype.DXBSIRemoveTooltipObjects();
 
             this._states_data[0] = 0;
             this._states_data[2] = 0;
@@ -846,6 +853,13 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
 
     Window_BattleStateIcon.prototype.update = function () {
         Window_Selectable.prototype.update.call(this);
+        var switchId = DreamX.Param.BSIHideIconsSwitch;
+        if (switchId && $gameSwitches.value(switchId)) {
+            this.hide();
+        }
+        else {
+            this.show();
+        }
         this.updateWindowPosition();
     };
 
