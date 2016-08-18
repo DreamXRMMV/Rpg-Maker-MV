@@ -1411,7 +1411,6 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
             newItem.iconIndex = newCombIconId;
         }
 
-        newItem.id = dataType.length;
         newItem.nonIndependent = false;
         newItem.originalBaseItemId = baseItem.id;
         newItem.DXRPS124V = true;
@@ -1530,17 +1529,32 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
         if (!DataManager.isIndependent(baseItem))
             return this.numItems(baseItem);
         var id = baseItem.id;
-        if (DataManager.isItem(baseItem))
+        var dataType;
+        if (DataManager.isItem(baseItem)) {
             var group = this.items();
-        if (DataManager.isWeapon(baseItem))
+            dataType = $dataItems;
+        }
+
+        if (DataManager.isWeapon(baseItem)) {
             var group = this.weapons();
-        if (DataManager.isArmor(baseItem))
+            dataType = $dataWeapons;
+        }
+
+        if (DataManager.isArmor(baseItem)) {
             var group = this.armors();
+            dataType = $dataArmors;
+        }
+
         for (var i = 0; i < group.length; ++i) {
             var item = group[i];
             if (!item)
                 continue;
-            if ((item.baseItemId && item.baseItemId === id) || (item.originalBaseItemId && item.originalBaseItemId === id))
+            var dxrpsBaseItem;
+            if (item.DXRPSItem) {
+                dxrpsBaseItem = dataType[item.baseItemId];
+            }
+            if ((item.baseItemId && item.baseItemId === id)
+                    || (dxrpsBaseItem && dxrpsBaseItem.baseItemId === id))
                 value += 1;
         }
         return value;
