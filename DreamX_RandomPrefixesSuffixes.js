@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.25 Random prefixes/suffixes
+ * @plugindesc v1.26 Random prefixes/suffixes
  * @author DreamX
  *
  * @param Bonus Parameter Text
@@ -1437,12 +1437,67 @@ DreamX.RandomPrefixSuffix = DreamX.RandomPrefixSuffix || {};
         }
 
         // must have one of the meta tags and be a weapon/armor
-        if (DreamX.RandomPrefixSuffix.isConfiguredForPrefixSuffix(item)) {
+        if (amount > 0 && DreamX.RandomPrefixSuffix.isConfiguredForPrefixSuffix(item)) {
             DreamX.RandomPrefixSuffix.GainPrefixSuffixItem(item, amount, includeEquip);
         } else {
             DreamX.RandomPrefixSuffix.Game_Party_gainItem.call(this, item, amount, includeEquip);
         }
     };
+
+    Game_Party.prototype.getMatchingBaseItem = function (baseItem, equipped) {
+        if (!baseItem)
+            return null;
+        if (DataManager.isItem(baseItem))
+            var group = this.items();
+        if (DataManager.isWeapon(baseItem))
+            var group = this.weapons();
+        if (DataManager.isArmor(baseItem))
+            var group = this.armors();
+        if (equipped) {
+            for (var a = 0; a < this.members().length; ++a) {
+                var actor = this.members()[a];
+                if (!actor)
+                    continue;
+                if (DataManager.isWeapon(baseItem)) {
+                    group = group.concat(actor.weapons());
+                } else if (DataManager.isArmor(baseItem)) {
+                    group = group.concat(actor.armors());
+                }
+            }
+        }
+        var baseItemId = baseItem.id;
+        for (var i = 0; i < group.length; ++i) {
+            var item = group[i];
+            if (!item)
+                continue;
+            if (!item.baseItemId)
+                continue;
+            if (item.baseItemId !== baseItemId && item.originalBaseItemId !== baseItemId) {
+                continue;
+            }
+
+            return item;
+        }
+        return null;
+    };
+
+//    DreamX.RandomPrefixSuffix.Game_Actor_changeEquipById = Game_Actor.prototype.changeEquipById;
+//    Game_Actor.prototype.changeEquipById = function (etypeId, itemId) {
+//        if (itemId > 0) {
+//            var slotId = etypeId - 1;
+//            if (this.equipSlots()[slotId] === 1) {
+//                var baseItem = $dataWeapons[itemId];
+//            } else {
+//                var baseItem = $dataArmors[itemId];
+//            }
+//            if (baseItem && DreamX.RandomPrefixSuffix.isConfiguredForPrefixSuffix(baseItem)) {
+//                $gameParty.gainItem(baseItem, 1);
+//                this.changeEquip(slotId, $gameTemp.lastDXRPSItemCreated);
+//                return;
+//            }
+//        }
+//        DreamX.RandomPrefixSuffix.Game_Actor_changeEquipById.call(this, etypeId, itemId)
+//    };
 
     DreamX.RandomPrefixSuffix.isConfiguredForPrefixSuffix = function (item) {
         if (!item || item.DXRPSItem)
