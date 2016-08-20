@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.1
+ * @plugindesc v1.2
  * @author DreamX
  * 
  * @param Default Cost
@@ -35,6 +35,15 @@
  * <cost: x>
  * Sets the gold cost of the common event to x gold. If this notetag is not used
  * the default gold cost will be whatever Default Cost is in the parameters.
+ * 
+ * <cost eval>
+ * string
+ * cost = x;
+ * </cost eval>
+ * Advanced users can change the cost through code with this notetag. Replace 
+ * string with lines of code to assign a value to the cost variable. 
+ * If multiple lines are used, they are considered to be a part of the same 
+ * line.
  * 
  * <exit shop>
  * When this event is bought, the player will automatically exit the shop before
@@ -202,6 +211,7 @@ DataManager.processDXCESNotetags2 = function (event) {
     event.shopShowSwitch = "";
     event.shopEnableEval = "";
     event.shopShowEval = "";
+    event.costEval = "";
     event.cost = DreamX.Param.DXCESDefaultPrice;
     event.iconIndex = DreamX.Param.DXCESDefaultIcon;
     event.image = "";
@@ -242,6 +252,10 @@ DataManager.processDXCESNotetags2 = function (event) {
             evalMode = 'shopShowEval';
         } else if (line.match(/<\/(?:SHOP_SHOW_EVAL|shop show eval)>/i)) {
             evalMode = 'none';
+        } else if (line.match(/<(?:COST_EVAL|cost eval)>/i)) {
+            evalMode = 'costEval';
+        } else if (line.match(/<\/(?:COST_EVAL|cost eval)>/i)) {
+            evalMode = 'none';
         } else if (evalMode === 'help') {
             event.description += line + '\n';
         } else if (evalMode === 'shopData') {
@@ -250,6 +264,8 @@ DataManager.processDXCESNotetags2 = function (event) {
             event.shopEnableEval += line + '\n';
         } else if (evalMode === 'shopShowEval') {
             event.shopShowEval += line + '\n';
+        } else if (evalMode === 'costEval') {
+            event.costEval += line + '\n';
         }
     }
 
@@ -276,7 +292,7 @@ Scene_CommonEventShop.prototype.create = function () {
 };
 
 Scene_CommonEventShop.prototype.setupInterpreter = function () {
-    this._interpreter = new Game_Interpreter();
+    this._interpreter = new CommontEventShopInterpreter();
     this._messageWindow = new Window_Message();
     this.addChild(this._messageWindow);
 };
@@ -370,12 +386,6 @@ Scene_CommonEventShop.prototype.exitEvent = function () {
 Scene_CommonEventShop.prototype.update = function () {
     Scene_Shop.prototype.update.call(this);
     this._interpreter.update();
-    if (this._interpreter.isRunning() || this._interpreterWasRunning) {
-        this._interpreterWasRunning = true;
-        this.commonEventRefreshWindows();
-    } else {
-        this._interpreterWasRunning = false;
-    }
 };
 
 Scene_CommonEventShop.prototype.commonEventRefreshWindows = function () {
@@ -390,7 +400,40 @@ Scene_CommonEventShop.prototype.terminate = function () {
     $gameTemp._commonEventShopIds = [];
 };
 
+//-----------------------------------------------------------------------------
+// CommontEventShopInterpreter
+//
+// The window for inputting quantity of items to buy or sell on the shop
+// screen.
+function CommontEventShopInterpreter() {
+    this.initialize.apply(this, arguments);
+}
 
+CommontEventShopInterpreter.prototype = Object.create(Game_Interpreter.prototype);
+CommontEventShopInterpreter.prototype.constructor = CommontEventShopInterpreter;
+
+CommontEventShopInterpreter.prototype.update = function () {
+    while (this.isRunning()) {
+        if (this.updateChild() || this.updateWait()) {
+            break;
+        }
+        SceneManager._scene.commonEventRefreshWindows();
+        if (SceneManager.isSceneChanging()) {
+            break;
+        }
+        if (!this.executeCommand()) {
+            break;
+        }
+        if (this.checkFreeze()) {
+            break;
+        }
+    }
+};
+//-----------------------------------------------------------------------------
+// Window_CommonEventShopBuy
+//
+// The window for inputting quantity of items to buy or sell on the shop
+// screen.
 function Window_CommonEventShopBuy() {
     this.initialize.apply(this, arguments);
 }
@@ -401,6 +444,8 @@ Window_CommonEventShopBuy.prototype.constructor = Window_CommonEventShopBuy;
 Window_CommonEventShopBuy.prototype.makeItemList = function () {
     this._data = [];
     this._price = [];
+
+    console.log("makeItemList");
 
     if (!this._shopGoods) {
         return;
@@ -418,7 +463,12 @@ Window_CommonEventShopBuy.prototype.makeItemList = function () {
         }
 
         this._data.push(item);
-        this._price.push(item.cost);
+
+        var cost = item.cost;
+        if (item.costEval) {
+            eval(item.costEval);
+        }
+        this._price.push(cost);
     }
 };
 
@@ -582,7 +632,7 @@ Window_ShopNumber.prototype.createButtons = function () {
     this._buttons[0].setClickHandler(this.onButtonOk.bind(this));
 };
 
-Window_ShopNumber.prototype.drawItemName = function(item, x, y, width) {
+Window_ShopNumber.prototype.drawItemName = function (item, x, y, width) {
     width = width || 312;
     if (item) {
         var iconBoxWidth = Window_Base._iconWidth + 4;
