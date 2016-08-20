@@ -445,8 +445,6 @@ Window_CommonEventShopBuy.prototype.makeItemList = function () {
     this._data = [];
     this._price = [];
 
-    console.log("makeItemList");
-
     if (!this._shopGoods) {
         return;
     }
