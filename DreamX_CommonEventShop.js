@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.0
+ * @plugindesc v1.1
  * @author DreamX
  * 
  * @param Default Cost
@@ -344,6 +344,10 @@ Scene_CommonEventShop.prototype.onNumberOk = function () {
     this.exitEvent();
 };
 
+Scene_CommonEventShop.prototype.doBuy = function (number) {
+    $gameParty.loseGold(number * this.buyingPrice());
+};
+
 Scene_CommonEventShop.prototype.instoreEvent = function () {
     var event = this._item;
 
@@ -576,6 +580,16 @@ Window_ShopNumber.prototype.createButtons = function () {
         this.addChild(button);
     }
     this._buttons[0].setClickHandler(this.onButtonOk.bind(this));
+};
+
+Window_ShopNumber.prototype.drawItemName = function(item, x, y, width) {
+    width = width || 312;
+    if (item) {
+        var iconBoxWidth = Window_Base._iconWidth + 4;
+        this.resetTextColor();
+        this.drawIcon(item.iconIndex, x + 2, y + 2);
+        this.drawText(item.name, x + iconBoxWidth, y, width - iconBoxWidth);
+    }
 };
 
 //-----------------------------------------------------------------------------
