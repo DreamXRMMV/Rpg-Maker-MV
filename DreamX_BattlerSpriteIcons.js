@@ -1,5 +1,5 @@
 /*:
- * @plugindesc 1.9a
+ * @plugindesc 1.9b
  * @author DreamX
  *
  * @param Maximum State/Buffs Per Line
@@ -31,8 +31,8 @@
  * @default true
  *
  * @param Space X Between Icons
- * @desc The spacing to have between icons in the same line.
- * @default 0
+ * @desc The spacing to have between icons in the same line. Minimum is 1.
+ * @default 1
  *
  * @param Icon Width
  * @desc The width of the icons. Default: Window_Base._iconWidth
@@ -250,7 +250,9 @@ DreamX.Param.BSIShowEnemyIcons = eval(String(DreamX.Parameters['Show Icons For E
 DreamX.Param.BSIShowIconsOnDeath = eval(String(DreamX.Parameters['Show Icons On Death']) || true);
 DreamX.Param.BSIShowDefaultBuffDesc = eval(String(DreamX.Parameters['Buff Description']) || true);
 DreamX.Param.BSIDefaultBuffDesc = Number(DreamX.Parameters['Default Buff Description State']);
-
+if (DreamX.Param.BSISpaceX === 0) {
+    DreamX.Param.BSISpaceX = 1;
+}
 
 DreamX.Param.BSIShowBuffStateTooltips = eval(String(DreamX.Parameters['Show State/Buff Tooltips']));
 DreamX.Param.BSIShowGaugeTooltips = eval(String(DreamX.Parameters['Show Gauge Tooltips']));
@@ -477,6 +479,7 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
             return false;
         }
         if (old.xOffset !== obj.xOffset) {
+                        console.log("xOffset");
             return false;
         }
         if (old.yOffset !== obj.yOffset) {
@@ -533,6 +536,7 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
             }
 
             if (!this.sameTooltip(obj) || this._refreshAllTooltips) {
+                console.log("me");
                 this._tooltipWindow.refresh(obj, sourceX, sourceY);
                 this._refreshAllTooltips = false;
             }
