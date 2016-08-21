@@ -1,5 +1,5 @@
 /*:
- * @plugindesc 1.9
+ * @plugindesc 1.9a
  * @author DreamX
  *
  * @param Maximum State/Buffs Per Line
@@ -468,6 +468,23 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
         return add;
     };
 
+    Scene_Base.prototype.sameTooltip = function (obj) {
+        var old = this._lastTooltipObjHoveredOver;
+        if (!old) {
+            return false;
+        }
+        if (old.window !== obj.window) {
+            return false;
+        }
+        if (old.xOffset !== obj.xOffset) {
+            return false;
+        }
+        if (old.yOffset !== obj.yOffset) {
+            return false;
+        }
+        return true;
+    };
+
     DreamX.BattlerSpriteIcons.Scene_Base_update = Scene_Base.prototype.update;
     Scene_Base.prototype.update = function () {
         DreamX.BattlerSpriteIcons.Scene_Base_update.call(this);
@@ -515,8 +532,9 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
                 continue;
             }
 
-            if (this._lastTooltipObjHoveredOver !== obj) {
+            if (!this.sameTooltip(obj) || this._refreshAllTooltips) {
                 this._tooltipWindow.refresh(obj, sourceX, sourceY);
+                this._refreshAllTooltips = false;
             }
             this._tooltipWindow.show();
             this._lastTooltipObjHoveredOver = obj;
@@ -695,6 +713,7 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
     //==========================================================================
     Window_Base.prototype.DXBSIRemoveTooltipObjects = function () {
         var scene = SceneManager._scene;
+        scene._refreshAllTooltips = true;
         var tObjs = scene._tooltipHitObjs;
         if (!tObjs) {
             return;
@@ -856,8 +875,7 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
         var switchId = DreamX.Param.BSIHideIconsSwitch;
         if (switchId && $gameSwitches.value(switchId)) {
             this.hide();
-        }
-        else {
+        } else {
             this.show();
         }
         this.updateWindowPosition();
