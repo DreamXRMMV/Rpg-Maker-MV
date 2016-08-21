@@ -479,7 +479,6 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
             return false;
         }
         if (old.xOffset !== obj.xOffset) {
-                        console.log("xOffset");
             return false;
         }
         if (old.yOffset !== obj.yOffset) {
@@ -536,7 +535,6 @@ DreamX.Param.BSIShowBuffRate = eval(String(DreamX.Parameters['Show Buff Rate']))
             }
 
             if (!this.sameTooltip(obj) || this._refreshAllTooltips) {
-                console.log("me");
                 this._tooltipWindow.refresh(obj, sourceX, sourceY);
                 this._refreshAllTooltips = false;
             }
