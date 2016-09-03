@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.2
+ * @plugindesc v1.3
  * @author DreamX
  * 
  * @param Default Cost
@@ -176,6 +176,14 @@ DreamX.parseNumberRanges = function (string) {
         }
     }
     return nums;
+};
+
+DreamX.CommonEventShop.DataManager_loadDatabase = DataManager.loadDatabase;
+DataManager.loadDatabase = function () {
+    DreamX.CommonEventShop.DataManager_loadDatabase.call(this);
+    if (!Imported.YEP_ShopMenuCore) {
+        throw new Error('DreamX_RandomPrefixesSuffixes requires YEP Shop Menu Core');
+    }
 };
 
 DreamX.CommonEventShop.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
@@ -611,7 +619,7 @@ function Window_CommonEventShopNumber() {
 Window_CommonEventShopNumber.prototype = Object.create(Window_ShopNumber.prototype);
 Window_CommonEventShopNumber.prototype.constructor = Window_CommonEventShopNumber;
 
-Window_ShopNumber.prototype.createButtons = function () {
+Window_CommonEventShopNumber.prototype.createButtons = function () {
     var bitmap = ImageManager.loadSystem('ButtonSet');
     var buttonWidth = 48;
     var buttonHeight = 48;
@@ -630,7 +638,7 @@ Window_ShopNumber.prototype.createButtons = function () {
     this._buttons[0].setClickHandler(this.onButtonOk.bind(this));
 };
 
-Window_ShopNumber.prototype.drawItemName = function (item, x, y, width) {
+Window_CommonEventShopNumber.prototype.drawItemName = function (item, x, y, width) {
     width = width || 312;
     if (item) {
         var iconBoxWidth = Window_Base._iconWidth + 4;
@@ -638,6 +646,9 @@ Window_ShopNumber.prototype.drawItemName = function (item, x, y, width) {
         this.drawIcon(item.iconIndex, x + 2, y + 2);
         this.drawText(item.name, x + iconBoxWidth, y, width - iconBoxWidth);
     }
+};
+
+Window_CommonEventShopNumber.prototype.processNumberChange = function () {
 };
 
 //-----------------------------------------------------------------------------
@@ -690,5 +701,7 @@ Window_CommonEventShopInfo.prototype.drawLargeIcon = function () {
         window.contents.blt(picture, 0, 0, picture.width, picture.height,
                 0, 0);
     });
+
+
 
 };
