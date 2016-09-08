@@ -52,6 +52,26 @@
  * @desc Eval. Default: Yanfly.Param.BECCommandRows || 4
  * @default Yanfly.Param.BECCommandRows || 4
  * 
+ * @param Battle Status Spacing
+ * @desc Eval. Default: 0
+ * @default 0
+ * 
+ * @param Battle Status Dummy Windows
+ * @desc Create dummy windows for selection rectangles. Default: false
+ * @default false
+ * 
+ * @param Battle Status Dummy Window Prevent Cutoff
+ * @desc Prevent dummy window from being made if it would go out of bounds. Default: true
+ * @default true
+ * 
+ * @param Battle Status Dummy Window Quantity
+ * @desc Number of dummy windows to make. Default: $gameParty.battleMembers().length
+ * @default $gameParty.battleMembers().length
+ * 
+ * @param Flash Current Actor Rect
+ * @desc Whether to have a flashing cursor on rect of current actor. Default: false
+ * @default false
+ * 
  * @param --Status Faces--
  *  
  * @param Draw Face
@@ -76,9 +96,23 @@
  * 
  * @param --Status Gauges--
  * 
+ * @param Current Value Font Size
+ * @desc Eval. Default: Yanfly.Param.BSWParamFontSize
+ * @default Yanfly.Param.BSWParamFontSize
+ * 
+ * @param Max Value Font Size
+ * @desc Eval. Default: Yanfly.Param.BSWParamFontSize
+ * @default Yanfly.Param.BSWParamFontSize
+ * 
+ * @param -HP Gauge-
+ * 
  * @param Draw HP Gauge
  * @desc Eval. Default: true
  * @default true
+ * 
+ * @param Hide HP Gauge
+ * @desc Eval. Hide the actual gauge graphic. Default: false
+ * @default false
  * 
  * @param HP Gauge X
  * @desc Eval. Default: gaugeRect.x
@@ -92,9 +126,55 @@
  * @desc Eval. Default: gaugeRect.width
  * @default gaugeRect.width
  * 
+ * @param Hide HP Name
+ * @desc Eval. Hide HP Name. Default: false
+ * @default false
+ * 
+ * @param HP Name X
+ * @desc Eval. eval(paramHpGaugeX)
+ * @default eval(paramHpGaugeX)
+ * 
+ * @param HP Name Y
+ * @desc Eval. Default: eval(paramHpGaugeY)
+ * @default eval(paramHpGaugeY)
+ * 
+ * @param HP Name Width
+ * @desc Eval. Default: 44
+ * @default 44
+ * 
+ * @param HP Name Alignment
+ * @desc Default: left
+ * @default left
+ * 
+ * @param Hide HP Values
+ * @desc Eval. Hide Values. Default: false
+ * @default false
+ * 
+ * @param HP Values X
+ * @desc Eval. Default: eval(paramHpGaugeX)
+ * @default eval(paramHpGaugeX)
+ * 
+ * @param HP Values Y
+ * @desc Eval. Default: eval(paramHpGaugeY)
+ * @default eval(paramHpGaugeY)
+ * 
+ * @param HP Values Width
+ * @desc Default: eval(paramHpGaugeWidth)
+ * @default eval(paramHpGaugeWidth)
+ * 
+ * @param HP Values Alignment
+ * @desc When not drawing the max only. Default: right
+ * @default right
+ * 
+ * @param -MP Gauge-
+ * 
  * @param Draw MP Gauge
  * @desc Eval. Default: true
  * @default true
+ * 
+ * @param Hide MP Gauge
+ * @desc Eval. Hide the actual gauge graphic. Default: false
+ * @default false
  * 
  * @param MP Gauge X
  * @desc Eval. Default: gaugeRect.x
@@ -105,12 +185,58 @@
  * @default gaugeRect.y + gaugeRect.height - this.lineHeight()
  * 
  * @param MP Gauge Width
- * @desc Eval. Default: this.getGaugesDrawn(actor) ? gaugeRect.width : gaugeRect.width / 2
- * @default this.getGaugesDrawn(actor) ? gaugeRect.width : gaugeRect.width / 2
+ * @desc Eval. Default: this.getGaugesDrawn(actor) <= 2 ? gaugeRect.width : gaugeRect.width / 2
+ * @default this.getGaugesDrawn(actor) <= 2  ? gaugeRect.width : gaugeRect.width / 2
+ * 
+ * @param Hide MP Name
+ * @desc Eval. Hide HP Name. Default: false
+ * @default false
+ * 
+ * @param MP Name X
+ * @desc Eval. Default: eval(paramMpGaugeX)
+ * @default eval(paramMpGaugeX)
+ * 
+ * @param MP Name Y
+ * @desc Eval. Default: eval(paramMpGaugeY)
+ * @default eval(paramMpGaugeY)
+ * 
+ * @param MP Name Width
+ * @desc Eval. Default: 44
+ * @default 44
+ * 
+ * @param MP Name Alignment
+ * @desc Default: left
+ * @default left
+ * 
+ * @param Hide MP Values
+ * @desc Eval. Hide Values. Default: false
+ * @default false
+ * 
+ * @param MP Values X
+ * @desc Eval. Default: eval(paramMpGaugeX)
+ * @default eval(paramMpGaugeX)
+ * 
+ * @param MP Values Y
+ * @desc Eval. Default: eval(paramMpGaugeY)
+ * @default eval(paramMpGaugeY)
+ * 
+ * @param MP Values Width
+ * @desc Default: eval(paramMpGaugeWidth)
+ * @default eval(paramMpGaugeWidth)
+ 
+ * @param MP Values Alignment
+ * @desc When not drawing the max only. Default: right
+ * @default right
+ * 
+ * @param -TP Gauge-
  * 
  * @param Draw TP Gauge
  * @desc Eval. Default: $dataSystem.optDisplayTp
  * @default $dataSystem.optDisplayTp
+ * 
+ * @param Hide TP Gauge
+ * @desc Eval. Hide the actual gauge graphic. Default: false
+ * @default false
  * 
  * @param TP Gauge X
  * @desc Eval. Default: gaugeRect.x + (gaugeRect.width / 2)
@@ -123,6 +249,48 @@
  * @param TP Gauge Width
  * @desc Eval. Default: gaugeRect.width / 2
  * @default gaugeRect.width / 2
+ * 
+ * @param Hide TP Name
+ * @desc Eval. Hide HP Name. Default: false
+ * @default false
+ * 
+ * @param TP Name X
+ * @desc Eval. Default: eval(paramTpGaugeX)
+ * @default eval(paramTpGaugeX)
+ * 
+ * @param TP Name Y
+ * @desc Eval. Default: eval(paramTpGaugeY)
+ * @default eval(paramTpGaugeY)
+ * 
+ * @param TP Name Width
+ * @desc Eval. Default: 44
+ * @default 44
+ * 
+ * @param TP Name Alignment
+ * @desc Default: left
+ * @default left
+ * 
+ * @param Hide TP Values
+ * @desc Eval. Hide Values. Default: false
+ * @default false
+ * 
+ * @param TP Values X
+ * @desc Eval. Default: eval(paramTpGaugeY) + eval(paramTpGaugeWidth) - 64
+ * @default eval(paramTpGaugeX) + eval(paramTpGaugeWidth) - 64
+ * 
+ * @param TP Values Y
+ * @desc Eval. Default: eval(paramTpGaugeY)
+ * @default eval(paramTpGaugeY)
+ * 
+ * @param TP Values Width
+ * @desc Default: 64
+ * @default 64
+ * 
+ * @param TP Values Alignment
+ * @desc Default: right
+ * @default right
+ *
+ * @param -ATB Gauge-
  * 
  * @param ATB Gauge X
  * @desc Eval. Default: basicAreaRect.x
@@ -356,6 +524,62 @@
  * @desc Eval. Default: this._helpWindow.fittingHeight(2)
  * @default this._helpWindow.fittingHeight(2)
  * 
+ * @param --Battle Log Window--
+ * 
+ * @param Battle Log X
+ * @desc Eval. Default: 0
+ * @default 0
+ * 
+ * @param Battle Log Y
+ * @desc Eval. Default: 0
+ * @default 0
+ * 
+ * @param Battle Log Width
+ * @desc Eval. Default: Graphics.boxWidth
+ * @default Graphics.boxWidth
+ * 
+ * @param Battle Log Height
+ * @desc Eval. Default: this.fittingHeight(this.maxLines())
+ * @default this.fittingHeight(this.maxLines())
+ * 
+ * @param Battle Log Window Style
+ * @desc Eval. Whether Battle Log Window appears like a normal window. Default: false
+ * @default false
+ * 
+ * @param --Battler Picture--
+ * 
+ * @param Show Battler Picture
+ * @desc Eval. Whether to show battler picture Default: false
+ * @default false
+ * 
+ * @param Always Show Battler Picture
+ * @desc Eval. Whether to always show battler picture Default: false
+ * @default false
+ * 
+ * @param Show Battler Picture When Inputting
+ * @desc Eval. Show battler picture when battler is inputting Default: true
+ * @default true
+ * 
+ * @param Show Battler Picture When Targeted By Enemy
+ * @desc Eval. Show battler picture when targeted by enemy Default: false
+ * @default false
+ * 
+ * @param Show Battler Picture When Targeted By Ally
+ * @desc Eval. Show battler picture when targeted by ally Default: false
+ * @default false
+ * 
+ * @param Show Battler Picture When Acting
+ * @desc Eval. Show battler picture when acting Default: true
+ * @default true
+ * 
+ * @param Battler Picture X
+ * @desc Eval. Default: (battleStatusWindow.x + battleStatusWindow.standardPadding() + rect.x) + (rect.width / 2) - (this.bitmap.width / 2)
+ * @default (battleStatusWindow.x + battleStatusWindow.standardPadding() + rect.x) + (rect.width / 2) - (this.bitmap.width / 2)
+ * 
+ * @param Battler Picture Y
+ * @desc Eval. Default: battleStatusWindow.y - this.bitmap.height
+ * @default battleStatusWindow.y - this.bitmap.height
+ * 
  * @param --Misc--
  * 
  * @param Frontview Animations On Top
@@ -387,6 +611,8 @@
  * 
  * <HideBattleStatusAtb> will hide the tp gauge from the battle status window 
  * for the actor.
+ * 
+ * <BattlerPicture: x> will use x as the actor's picture. See parameters.
  * ============================================================================
  * Tips
  * ============================================================================
@@ -431,29 +657,6 @@
  * Yanfly for YEP Battle Status Window
  */
 
-
-// * 
-
-
-// * @param --Actor Picture--
-// *  
-// * @param Actor Picture X
-// * @desc Eval. Default: rect.x
-// * @default rect.x
-// * 
-// * @param Actor Picture Y
-// * @desc Eval. Default: rect.y
-// * @default rect.y
-
-// * ============================================================================
-// * Actor Picture Parameters
-// * ============================================================================
-// * These parameters allow you to draw a picture in the battle hud for 
-// * each actor. It is drawn underneath just about everything else.
-// * 
-// * Use <BattleHudPicture: x> with x as the name of the picture as an actor 
-// * notetag.
-
 var Imported = Imported || {};
 Imported.DreamX_Ext_BattleStatusCore = true;
 
@@ -468,20 +671,55 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     var paramDrawFaceHeight = String(parameters['Draw Face Height']);
     var paramDrawFaceX = String(parameters['Face X']);
     var paramDrawFaceY = String(parameters['Face Y']);
+
     var paramHpGauge = String(parameters['Draw HP Gauge']);
     var paramHpGaugeWidth = String(parameters['HP Gauge Width']);
     var paramHpGaugeX = String(parameters['HP Gauge X']);
     var paramHpGaugeY = String(parameters['HP Gauge Y']);
+    var paramHpHideGauge = String(parameters['Hide HP Gauge']);
+    var paramHpHideName = String(parameters['Hide HP Name']);
+    var paramHpNameX = String(parameters['HP Name X']);
+    var paramHpNameY = String(parameters['HP Name Y']);
+    var paramHpNameAlignment = String(parameters['HP Name Alignment']);
+    var paramHpNameWidth = String(parameters['HP Name Width']);
+    var paramHpValuesX = String(parameters['HP Values X']);
+    var paramHpValuesY = String(parameters['HP Values Y']);
+    var paramHpValuesWidth = String(parameters['HP Values Width']);
+    var paramHpValuesAlignment = String(parameters['HP Values Alignment']);
+    var paramHpHideValues = String(parameters['Hide HP Values']);
 
     var paramMpGauge = String(parameters['Draw MP Gauge']);
     var paramMpGaugeX = String(parameters['MP Gauge X']);
     var paramMpGaugeY = String(parameters['MP Gauge Y']);
     var paramMpGaugeWidth = String(parameters['MP Gauge Width']);
+    var paramMpHideGauge = String(parameters['Hide MP Gauge']);
+    var paramMpHideName = String(parameters['Hide MP Name']);
+    var paramMpNameX = String(parameters['MP Name X']);
+    var paramMpNameY = String(parameters['MP Name Y']);
+    var paramMpNameAlignment = String(parameters['MP Name Alignment']);
+    var paramMpNameWidth = String(parameters['MP Name Width']);
+    var paramMpValuesX = String(parameters['MP Values X']);
+    var paramMpValuesY = String(parameters['MP Values Y']);
+    var paramMpValuesWidth = String(parameters['MP Values Width']);
+    var paramMpValuesAlignment = String(parameters['MP Values Alignment']);
+    var paramMpHideValues = String(parameters['Hide MP Values']);
 
     var paramTpGauge = String(parameters['Draw TP Gauge']);
     var paramTpGaugeX = String(parameters['TP Gauge X']);
     var paramTpGaugeY = String(parameters['TP Gauge Y']);
     var paramTpGaugeWidth = String(parameters['TP Gauge Width']);
+    var paramTpHideGauge = String(parameters['Hide TP Gauge']);
+    var paramTpHideName = String(parameters['Hide TP Name']);
+    var paramTpNameX = String(parameters['TP Name X']);
+    var paramTpNameY = String(parameters['TP Name Y']);
+    var paramTpNameAlignment = String(parameters['TP Name Alignment']);
+    var paramTpNameWidth = String(parameters['TP Name Width']);
+    var paramTpValuesX = String(parameters['TP Values X']);
+    var paramTpValuesY = String(parameters['TP Values Y']);
+    var paramTpValuesWidth = String(parameters['TP Values Width']);
+    var paramTpValuesAlignment = String(parameters['TP Values Alignment']);
+    var paramTpHideValues = String(parameters['Hide TP Values']);
+
 
     var paramDrawActionIcon = String(parameters['Draw Action Icon']);
     var paramActionIconX = String(parameters['Action Icon X']);
@@ -509,9 +747,6 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     var paramWindowOpacity = parseInt(String(parameters['Battle Status Window Opacity']));
 
     var paramDXStyle = eval(String(parameters['DreamX Setup Suggestion']));
-
-    var paramActorPictureX = String(parameters['Actor Picture X']);
-    var paramActorPictureY = String(parameters['Actor Picture Y']);
 
     var paramActorCommandX = String(parameters['Actor Command X']);
     var paramActorCommandY = String(parameters['Actor Command Y']);
@@ -556,6 +791,16 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     var paramHelpW = String(parameters['Help Window Width']);
     var paramHelpH = String(parameters['Help Window Height']);
 
+    var paramBLogX = String(parameters['Battle Log X']);
+    var paramBLogY = String(parameters['Battle Log Y']);
+    var paramBLogW = String(parameters['Battle Log Width']);
+    var paramBLogH = String(parameters['Battle Log Height']);
+    var paramBLogRegWindowStyle = String(parameters['Battle Log Window Style']);
+
+
+    var paramCurrentValueFontSize = String(parameters['Current Value Font Size']);
+    var paramMaxValueFontSize = String(parameters['Max Value Font Size']);
+
     var paramStatusWidth = String(parameters['Battle Status Width']);
     var paramStatusHeight = String(parameters['Battle Status Height']);
     var paramStatusInputX = String(parameters['Battle Status Input X']);
@@ -566,7 +811,23 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     var paramStatusVisRows = String(parameters['Battle Status Max Visible Rows']);
     var paramStatusItemWidth = String(parameters['Battle Status Item Width']);
     var paramStatusItemHeight = String(parameters['Battle Status Item Height']);
+    var paramStatusSpacing = String(parameters['Battle Status Spacing']);
+    var paramStatusDummyWindows = String(parameters['Battle Status Dummy Windows']);
+    var paramStatusDummyPreventCutoff = String(parameters['Battle Status Dummy Window Prevent Cutoff']);
+    var paramStatusDummyQuantity = String(parameters['Battle Status Dummy Window Quantity']);
 
+    var paramShowBattlerPic = String(parameters['Show Battler Picture']);
+    var paramShowBattlerPicAlways = String(parameters['Always Show Battler Picture']);
+    var paramShowBattlerPicInput = String(parameters['Show Battler Picture When Inputting']);
+    var paramShowBattlerEnemyTarget = String(parameters['Show Battler Picture When Targeted By Enemy']);
+    var paramShowBattlerAllyTarget = String(parameters['Show Battler Picture When Targeted By Ally']);
+    var paramShowBattlerActing = String(parameters['Show Battler Picture When Acting']);
+    var paramBattlerPicX = String(parameters['Battler Picture X']);
+    var paramBattlerPicY = String(parameters['Battler Picture Y']);
+
+
+
+    var paramFlashCurrentActorRect = String(parameters['Flash Current Actor Rect']);
 
     //Battle Status Item Width
 
@@ -600,14 +861,31 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         paramNameAlign = "center";
     }
 
+    //==========================================================================
+    // DataManager
+    //==========================================================================
     DreamX.Ext_BattleStatusCore.DataManager_loadDatabase = DataManager.loadDatabase;
     DataManager.loadDatabase = function () {
         DreamX.Ext_BattleStatusCore.DataManager_loadDatabase.call(this);
+        if (!Imported.YEP_CoreEngine) {
+            throw new Error('DreamX_Ext_BattleStatusCore requires YEP_CoreEngine');
+        }
         if (!Imported.YEP_BattleEngineCore) {
             throw new Error('DreamX_Ext_BattleStatusCore requires YEP_BattleEngineCore');
         }
         if (!Imported.YEP_BattleStatusWindow) {
             throw new Error('DreamX_Ext_BattleStatusCore requires YEP_BattleStatusWindow');
+        }
+    };
+
+    //==========================================================================
+    // Window_BattleStatus
+    //==========================================================================
+    DreamX.Ext_BattleStatusCore.Window_BattleStatus_update = Window_BattleStatus.prototype.update;
+    Window_BattleStatus.prototype.update = function () {
+        DreamX.Ext_BattleStatusCore.Window_BattleStatus_update.call(this);
+        if (!this.active && eval(paramFlashCurrentActorRect)) {
+            this._animationCount++;
         }
     };
 
@@ -619,12 +897,53 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         return eval(paramStatusItemHeight);
     };
 
+    Window_BattleStatus.prototype._updateCursor = function () {
+        var blinkCount = this._animationCount % 40;
+        var cursorOpacity = this.contentsOpacity;
+
+        if (this.active || eval(paramFlashCurrentActorRect)) {
+            if (blinkCount < 20) {
+                cursorOpacity -= blinkCount * 8;
+            } else {
+                cursorOpacity -= (40 - blinkCount) * 8;
+            }
+        }
+        this._windowCursorSprite.alpha = cursorOpacity / 255;
+        this._windowCursorSprite.visible = this.isOpen();
+    };
+
     DreamX.Ext_BattleStatusCore.Window_BattleStatus_initialize = Window_BattleStatus.prototype.initialize;
     Window_BattleStatus.prototype.initialize = function () {
         DreamX.Ext_BattleStatusCore.Window_BattleStatus_initialize.call(this);
         this._windowFrameSprite.alpha = paramFrameOpacity;
         this.opacity = paramWindowOpacity;
         this.y = eval(paramStatusY);
+        if (eval(paramStatusDummyWindows)) {
+            this.createDummyWindows();
+        }
+    };
+
+    Window_BattleStatus.prototype.createDummyWindows = function () {
+        var numWindows = eval(paramStatusDummyQuantity);
+
+        for (var i = 0; i < numWindows; i++) {
+            var rect = this.itemRect(i);
+            var padding = Window_Base.prototype.standardPadding();
+            var x = rect.x;
+            var y = rect.y;
+            var w = rect.width + (padding * 2);
+            var h = rect.height + (padding * 2);
+
+            var cutOffW = this.x + x + w;
+            var cutOffH = this.y + y + h;
+
+            if (eval(paramStatusDummyPreventCutoff) && (cutOffW > Graphics.boxWidth || cutOffH > Graphics.boxHeight)) {
+                break;
+            }
+
+            this.addChildAt(new Window_Base(x, y, w, h), 0);
+        }
+
     };
 
     Window_BattleStatus.prototype.windowWidth = function () {
@@ -647,38 +966,10 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         return eval(paramStatusVisRows);
     };
 
-    DreamX.Ext_BattleStatusCore.Spriteset_Battle_updateActors = Spriteset_Battle.prototype.updateActors;
-    Spriteset_Battle.prototype.updateActors = function () {
-        DreamX.Ext_BattleStatusCore.Spriteset_Battle_updateActors.call(this);
-        if ($gameSystem.isSideView() || !eval(paramCenterFrontViewSprites)) {
-            return;
-        }
-        for (var i = 0; i < this._actorSprites.length; i++) {
-            this._actorSprites[i].setActorHomeFrontViewCenter();
-        }
+    Window_BattleStatus.prototype.spacing = function () {
+        return eval(paramStatusSpacing);
     };
 
-    Sprite_Actor.prototype.setActorHomeFrontViewCenter = function () {
-
-        var obj = this._faceActorPositionObj;
-        if (obj) {
-            var window = SceneManager._scene._statusWindow;
-
-            var x = (window.x + window.standardPadding() + obj.xOffset)
-                    - this._offsetX;
-            var y = (window.y + window.height) - (window.standardPadding()
-                    + obj.yOffset);
-
-            if (!Imported['VE - Damge Popup']) {
-                x -= this.damageOffsetX();
-                y -= this.damageOffsetY();
-                y += 32;
-            }
-
-            this.setHome(x, y);
-            this.moveToStartPosition();
-        }
-    };
     Window_BattleStatus.prototype.drawStatusFace = function (index) {
         var actor = $gameParty.battleMembers()[index];
         var rect = this.itemRect(index);
@@ -703,24 +994,8 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
 
     Window_BattleStatus.prototype.drawItem = function (index) {
         var actor = $gameParty.battleMembers()[index];
-        //this.drawActorPicture(actor, index);
         this.drawBasicArea(this.basicAreaRect(index), actor, index);
         this.drawGaugeArea(this.gaugeAreaRect(index), actor, index);
-    };
-
-    Window_BattleStatus.prototype.drawActorPicture = function (actor, index) {
-        var pictureName = actor.actor().meta.BattleHudPicture;
-        var rect = this.itemRect(index);
-
-        if (!pictureName) {
-            return;
-        }
-        pictureName = pictureName.trim();
-
-        var picture = ImageManager.loadPicture(pictureName);
-
-        this.contents.blt(picture, 0, 0, picture.width, picture.height,
-                eval(paramActorPictureX), eval(paramActorPictureY));
     };
 
     Window_BattleStatus.prototype.drawGaugeArea = function (gaugeRect, actor, index) {
@@ -728,31 +1003,138 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         this.contents.fontSize = Yanfly.Param.BSWParamFontSize;
         this._enableYBuffer = true;
 
-        var hpGaugeX = eval(paramHpGaugeX);
-        var hpGaugeY = eval(paramHpGaugeY);
-        var hpGaugeWidth = eval(paramHpGaugeWidth);
-
-        var mpGaugeX = eval(paramMpGaugeX);
-        var mpGaugeY = eval(paramMpGaugeY);
-        var mpGaugeWidth = eval(paramMpGaugeWidth);
-
-        var tpGaugeX = eval(paramTpGaugeX);
-        var tpGaugeY = eval(paramTpGaugeY);
-        var tpGaugeWidth = eval(paramTpGaugeWidth);
-
         if (eval(paramHpGauge) && !actor.actor().meta.HideBattleStatusHp) {
-            this.drawActorHp(actor, hpGaugeX, hpGaugeY, hpGaugeWidth);
+            this.drawActorHp(actor, gaugeRect, rect);
         }
 
         if (eval(paramMpGauge) && !actor.actor().meta.HideBattleStatusMp) {
-            this.drawActorMp(actor, mpGaugeX, mpGaugeY, mpGaugeWidth);
+            this.drawActorMp(actor, gaugeRect, rect);
         }
 
         if (eval(paramTpGauge) && !actor.actor().meta.HideBattleStatusTp) {
-            this.drawActorTp(actor, tpGaugeX, tpGaugeY, tpGaugeWidth);
+            this.drawActorTp(actor, gaugeRect, rect);
         }
 
         this._enableYBuffer = false;
+    };
+
+    Window_Base.prototype.drawCurrentAndMax2 = function (current, max, x, y,
+            width, color1, color2, alignment) {
+        var labelWidth = this.textWidth('HP');
+        var valueWidth = this.textWidth(Yanfly.Util.toGroup(max));
+        var slashWidth = this.textWidth('/');
+        var x1 = x + width - valueWidth;
+        var x2 = x1 - slashWidth;
+        var x3 = x2 - valueWidth;
+        if (x3 >= x + labelWidth) {
+            this.changeTextColor(color1);
+
+            this.contents.fontSize = eval(paramCurrentValueFontSize);
+
+            this.drawText(Yanfly.Util.toGroup(current), x3, y, valueWidth,
+                    alignment);
+            this.changeTextColor(color2);
+            this.drawText('/', x2, y, slashWidth, alignment);
+
+            this.contents.fontSize = eval(paramMaxValueFontSize);
+
+            this.drawText(Yanfly.Util.toGroup(max), x1, y, valueWidth, alignment);
+        } else {
+            this.contents.fontSize = eval(paramCurrentValueFontSize);
+            this.changeTextColor(color1);
+            this.drawText(Yanfly.Util.toGroup(current), x1, y, valueWidth,
+                    alignment);
+        }
+        this.contents.fontSize = Yanfly.Param.BSWParamFontSize;
+    };
+
+    Window_BattleStatus.prototype.drawCurrentAndMax = function (current, max, x, y,
+            width, color1, color2, alignment) {
+
+        if (this._currentMax) {
+            // problem right here
+            this.drawCurrentAndMax2(current, max,
+                    x, y, width, color1, color2, alignment);
+        } else {
+            this.contents.fontSize = eval(paramCurrentValueFontSize);
+            this.changeTextColor(color1);
+            var value = Yanfly.Util.toGroup(current);
+            this.drawText(value, x, y, width, alignment);
+        }
+
+        this.contents.fontSize = Yanfly.Param.BSWParamFontSize;
+    };
+
+    Window_BattleStatus.prototype.drawActorHp = function (actor, gaugeRect, rect) {
+        var color1 = this.hpGaugeColor1();
+        var color2 = this.hpGaugeColor2();
+
+        if (!eval(paramHpHideGauge)) {
+            this.drawGauge(eval(paramHpGaugeX), eval(paramHpGaugeY),
+                    eval(paramHpGaugeWidth), actor.hpRate(), color1, color2);
+        }
+
+        this.changeTextColor(this.systemColor());
+
+        if (!eval(paramHpHideName)) {
+            this.drawText(TextManager.hpA, eval(paramHpNameX),
+                    eval(paramHpNameY), eval(paramHpNameWidth), paramHpNameAlignment);
+        }
+
+        if (!eval(paramHpHideValues)) {
+            this.drawCurrentAndMax(actor.hp, actor.mhp, eval(paramHpValuesX),
+                    eval(paramHpValuesY), eval(paramHpValuesWidth),
+                    this.hpColor(actor), this.normalColor(), paramHpValuesAlignment);
+        }
+    };
+
+    Window_BattleStatus.prototype.drawActorMp = function (actor, gaugeRect, rect) {
+        var color1 = this.mpGaugeColor1();
+        var color2 = this.mpGaugeColor2();
+
+        if (!eval(paramMpHideGauge)) {
+            this.drawGauge(eval(paramMpGaugeX), eval(paramMpGaugeY),
+                    eval(paramMpGaugeWidth), actor.mpRate(), color1, color2);
+        }
+
+        this.changeTextColor(this.systemColor());
+
+        if (!eval(paramMpHideName)) {
+            this.drawText(TextManager.mpA, eval(paramMpNameX),
+                    eval(paramMpNameY), eval(paramMpNameWidth), paramMpNameAlignment);
+        }
+
+        if (!eval(paramMpHideValues)) {
+            this.drawCurrentAndMax(actor.mp, actor.mmp, eval(paramMpValuesX),
+                    eval(paramMpValuesY), eval(paramMpValuesWidth),
+                    this.mpColor(actor), this.normalColor(), paramMpValuesAlignment);
+        }
+    };
+
+    Window_BattleStatus.prototype.drawActorTp = function (actor, gaugeRect, rect) {
+        var color1 = this.tpGaugeColor1();
+        var color2 = this.tpGaugeColor2();
+
+        if (!eval(paramTpHideGauge)) {
+            this.drawGauge(eval(paramTpGaugeX), eval(paramTpGaugeY),
+                    eval(paramTpGaugeWidth), actor.tpRate(), color1, color2);
+        }
+
+        this.changeTextColor(this.systemColor());
+
+        if (!eval(paramTpHideName)) {
+            this.drawText(TextManager.tpA, eval(paramTpNameX),
+                    eval(paramTpNameY), eval(paramTpNameWidth), paramTpNameAlignment);
+        }
+
+        if (!eval(paramTpHideValues)) {
+            this.contents.fontSize = eval(paramCurrentValueFontSize);
+
+            this.changeTextColor(this.tpColor(actor));
+            this.drawText(actor.tp, eval(paramTpValuesX), eval(paramTpValuesY), eval(paramTpValuesWidth), paramTpValuesAlignment);
+
+            this.contents.fontSize = Yanfly.Param.BSWParamFontSize;
+        }
     };
 
     Window_BattleStatus.prototype.drawActorName = function (actor, x, y, width,
@@ -801,59 +1183,60 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         }
     };
 
+    //==========================================================================
+    // Window_BattleStatus - DreamX Setup
+    //==========================================================================
+    Window_BattleStatus.prototype.DXIconX = function (actor, rect) {
+        var availableSpace = this.DXRectFreeSpace(rect);
 
-    //==========================================================================
-    // Scene_Battle
-    //==========================================================================
-    Scene_Battle.prototype.updateWindowPositions = function () {
-        var statusX = 0;
-        if (BattleManager.isInputting()) {
-            statusX = eval(paramStatusInputX);
+        var x2 = rect.x + rect.width;
+        if (availableSpace < actor.allIcons().length * Window_Base._iconWidth) {
+            return x2 - (actor.allIcons().length * Window_Base._iconWidth) - this.textPadding();
         } else {
-            statusX = eval(paramStatusActionX);
-        }
-        if (this._statusWindow.x < statusX) {
-            this._statusWindow.x += 16;
-            if (this._statusWindow.x > statusX) {
-                this._statusWindow.x = statusX;
-            }
-        }
-        if (this._statusWindow.x > statusX) {
-            this._statusWindow.x -= 16;
-            if (this._statusWindow.x < statusX) {
-                this._statusWindow.x = statusX;
-            }
+            return rect.x + Window_Base._faceWidth;
         }
     };
 
-    DreamX.Ext_BattleStatusCore.Scene_Battle_createSkillWindow = Scene_Battle.prototype.createSkillWindow;
-    Scene_Battle.prototype.createSkillWindow = function () {
-        DreamX.Ext_BattleStatusCore.Scene_Battle_createSkillWindow.call(this);
-        this._skillWindow.x = eval(paramBattleSkillX);
-        this._skillWindow.y = eval(paramBattleSkillY);
-        this._skillWindow.width = eval(paramBattleSkillW);
-        this._skillWindow.height = eval(paramBattleSkillH);
-        this._skillWindow.createContents();
+    Window_BattleStatus.prototype.DXIconW = function (actor, rect) {
+        var x2 = rect.x + rect.width;
+
+        if (this.DXRectFreeSpace(rect) + Window_Base._iconWidth
+                < actor.allIcons() * Window_Base._iconWidth) {
+            return x2 - (x2 - (actor.allIcons() * Window_Base._iconWidth));
+        } else {
+            return this.DXRectFreeSpace(rect) + Window_Base._iconWidth;
+        }
     };
 
-    DreamX.Ext_BattleStatusCore.Scene_Battle_createItemWindow = Scene_Battle.prototype.createItemWindow;
-    Scene_Battle.prototype.createItemWindow = function () {
-        DreamX.Ext_BattleStatusCore.Scene_Battle_createItemWindow.call(this);
-        this._itemWindow.x = eval(paramBattleItemX);
-        this._itemWindow.y = eval(paramBattleItemY);
-        this._itemWindow.width = eval(paramBattleItemW);
-        this._itemWindow.height = eval(paramBattleItemH);
-        this._itemWindow.createContents();
+    Window_BattleStatus.prototype.DXThreshold = function () {
+        return 64;
     };
 
-    DreamX.Ext_BattleStatusCore.Scene_Battle_createHelpWindow = Scene_Battle.prototype.createHelpWindow;
-    Scene_Battle.prototype.createHelpWindow = function () {
-        DreamX.Ext_BattleStatusCore.Scene_Battle_createHelpWindow.call(this);
-        this._helpWindow.x = eval(paramHelpX);
-        this._helpWindow.y = eval(paramHelpY);
-        this._helpWindow.width = eval(paramHelpW);
-        this._helpWindow.height = eval(paramHelpH);
-        this._helpWindow.createContents();
+    Window_BattleStatus.prototype.DXGaugeNameX = function (actor, rect) {
+        var availableSpace = this.DXRectFreeSpace(rect);
+
+        if (availableSpace > this.DXThreshold()) {
+            return rect.x + rect.width - (this.DXRectFreeSpace(rect));
+        } else {
+            return rect.x + rect.width - (this.DXRectFreeSpace(rect)
+                    + Window_Base._iconWidth);
+        }
+    };
+
+    Window_BattleStatus.prototype.DXGaugeNameWidth = function (actor, rect) {
+        var availableSpace = this.DXRectFreeSpace(rect);
+
+        if (availableSpace > this.DXThreshold()) {
+            return this.DXRectFreeSpace(rect) - this.textPadding();
+        } else {
+            return (this.DXRectFreeSpace(rect) - this.textPadding())
+                    + Window_Base._iconWidth;
+        }
+    };
+
+
+    Window_BattleStatus.prototype.DXRectFreeSpace = function (rect) {
+        return rect.width - Window_Base._faceWidth;
     };
 
     //==========================================================================
@@ -895,11 +1278,67 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     };
 
     //==========================================================================
+    // Window_BattleLog
+    //==========================================================================
+    DreamX.Ext_BattleStatusCore.Window_BattleLog_initialize = Window_BattleLog.prototype.initialize;
+    Window_BattleLog.prototype.initialize = function () {
+        DreamX.Ext_BattleStatusCore.Window_BattleLog_initialize.call(this);
+        this.x = eval(paramBLogX);
+        this.y = eval(paramBLogY);
+    };
+
+    DreamX.Ext_BattleStatusCore.Window_BattleLog_update = Window_BattleLog.prototype.update;
+    Window_BattleLog.prototype.update = function () {
+        DreamX.Ext_BattleStatusCore.Window_BattleLog_update.call(this);
+        if (this._lines.length > 0 && eval(paramBLogRegWindowStyle)) {
+            this.opacity = 255;
+        } else {
+            this.opacity = 0;
+        }
+    };
+
+    DreamX.Ext_BattleStatusCore.Window_BattleLog_drawBackground = Window_BattleLog.prototype.drawBackground;
+    Window_BattleLog.prototype.drawBackground = function () {
+        if (eval(paramBLogRegWindowStyle)) {
+            return;
+        }
+        DreamX.Ext_BattleStatusCore.Window_BattleLog_drawBackground.call(this);
+    };
+
+    Window_BattleLog.prototype.windowWidth = function () {
+        return eval(paramBLogW);
+    };
+
+    Window_BattleLog.prototype.windowHeight = function () {
+        return eval(paramBLogH);
+    };
+    //==========================================================================
     // Window_ActorCommand
     //==========================================================================
-    DreamX.Ext_BattleStatusCore.Window_ActorCommand_initialize = Window_ActorCommand.prototype.initialize;
-    Window_ActorCommand.prototype.initialize = function () {
-        DreamX.Ext_BattleStatusCore.Window_ActorCommand_initialize.call(this);
+    DreamX.Ext_BattleStatusCore.Window_ActorCommand_update = Window_ActorCommand.prototype.update;
+    Window_ActorCommand.prototype.update = function () {
+        DreamX.Ext_BattleStatusCore.Window_ActorCommand_update.call(this);
+        this.updatePosition();
+    };
+
+    Window_ActorCommand.prototype.updatePosition = function () {
+        var scene = SceneManager._scene;
+        var battleStatusWindow = scene._statusWindow;
+        var index = $gameParty.battleMembers().indexOf(BattleManager.actor());
+        var rect = battleStatusWindow.itemRect(index);
+
+        var leoIndex = index === $gameParty.battleMembers().length - 1 ? index - 2 : index;
+        var leoRect = leoIndex >= 0 ? battleStatusWindow.itemRect(leoIndex) : battleStatusWindow.itemRect(index);
+
+        if (leoIndex >= 0) {
+            var leoX = battleStatusWindow.x + leoRect.x + leoRect.width + (battleStatusWindow.standardPadding() * 2);
+        } else {
+            leoX = battleStatusWindow.x + leoRect.x - leoRect.width - (battleStatusWindow.standardPadding() * 2);
+        }
+        leoX = Math.max(0, leoX);
+        leoX = Math.min(Graphics.boxWidth - this.width, leoX);
+        var leoY = battleStatusWindow.y - this.height;
+
         this.x = eval(paramActorCommandX);
         this.y = eval(paramActorCommandY);
     };
@@ -971,173 +1410,8 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     };
 
     //==========================================================================
-    // DreamX Setup
+    // Window_Base
     //==========================================================================
-    Window_BattleStatus.prototype.DXIconX = function (actor, rect) {
-        var availableSpace = this.DXRectFreeSpace(rect);
-
-        var x2 = rect.x + rect.width;
-        if (availableSpace < actor.allIcons().length * Window_Base._iconWidth) {
-            return x2 - (actor.allIcons().length * Window_Base._iconWidth) - this.textPadding();
-        } else {
-            return rect.x + Window_Base._faceWidth;
-        }
-    };
-
-    Window_BattleStatus.prototype.DXIconW = function (actor, rect) {
-        var x2 = rect.x + rect.width;
-
-        if (this.DXRectFreeSpace(rect) + Window_Base._iconWidth
-                < actor.allIcons() * Window_Base._iconWidth) {
-            return x2 - (x2 - (actor.allIcons() * Window_Base._iconWidth));
-        } else {
-            return this.DXRectFreeSpace(rect) + Window_Base._iconWidth;
-        }
-    };
-
-    Window_BattleStatus.prototype.DXThreshold = function () {
-        return 64;
-    };
-
-    Window_BattleStatus.prototype.DXGaugeNameX = function (actor, rect) {
-        var availableSpace = this.DXRectFreeSpace(rect);
-
-        if (availableSpace > this.DXThreshold()) {
-            return rect.x + rect.width - (this.DXRectFreeSpace(rect));
-        } else {
-            return rect.x + rect.width - (this.DXRectFreeSpace(rect)
-                    + Window_Base._iconWidth);
-        }
-    };
-
-    Window_BattleStatus.prototype.DXGaugeNameWidth = function (actor, rect) {
-        var availableSpace = this.DXRectFreeSpace(rect);
-
-        if (availableSpace > this.DXThreshold()) {
-            return this.DXRectFreeSpace(rect) - this.textPadding();
-        } else {
-            return (this.DXRectFreeSpace(rect) - this.textPadding())
-                    + Window_Base._iconWidth;
-        }
-    };
-
-
-    Window_BattleStatus.prototype.DXRectFreeSpace = function (rect) {
-        return rect.width - Window_Base._faceWidth;
-    };
-
-    //==========================================================================
-    // Game_System
-    //==========================================================================
-    Game_System.prototype.DXIsAboveBattleStatus = function () {
-        if ($gameSystem.isSideView() || !eval(paramTopAnimations)) {
-            return false;
-        }
-        return true;
-    };
-
-    //==========================================================================
-    // Spriteset_Battle
-    //==========================================================================
-    DreamX.Ext_BattleStatusCore.Spriteset_Battle_createActors = Spriteset_Battle.prototype.createActors;
-    Spriteset_Battle.prototype.createActors = function () {
-        DreamX.Ext_BattleStatusCore.Spriteset_Battle_createActors.call(this);
-        if (!$gameSystem.DXIsAboveBattleStatus()) {
-            return;
-        }
-
-        var sprites = this._actorSprites;
-
-        if (!sprites) {
-            return;
-        }
-
-        var scene = SceneManager._scene;
-        var spriteset = this;
-        sprites.forEach(function (sprite) {
-            spriteset._battleField.removeChild(sprite);
-            scene.addChild(sprite);
-        });
-    };
-
-    //==========================================================================
-    // Sprite_Battler
-    //==========================================================================
-    if (!Imported['VE - Damge Popup']) {
-        DreamX.Ext_BattleStatusCore.Sprite_Battler_setupDamagePopup = Sprite_Battler.prototype.setupDamagePopup;
-        Sprite_Battler.prototype.setupDamagePopup = function () {
-            DreamX.Ext_BattleStatusCore.Sprite_Battler_setupDamagePopup.call(this);
-
-            if (!$gameSystem.DXIsAboveBattleStatus()) {
-                return;
-            }
-
-            var parent = this.parent;
-            var scene = SceneManager._scene;
-            this._damages.forEach(function (sprite) {
-                parent.removeChild(sprite);
-                scene.addChild(sprite);
-            });
-        };
-    }
-
-
-    Sprite_Battler.prototype.createVisualHpGaugeWindow = function () {
-        var scene = SceneManager._scene;
-        var spriteset = scene._spriteset;
-        if (!spriteset) {
-            return;
-        }
-
-        var baseSprite = spriteset._baseSprite;
-        var newParent = baseSprite;
-        if (!$gameSystem.DXIsAboveBattleStatus()) {
-            newParent = scene;
-        }
-
-        if (this._createdVisualHpGaugeWindow)
-            return;
-        if (!this._battler)
-            return;
-        if (this.checkVisualATBGauge()) {
-            if (!this._visualATBWindow)
-                return;
-            if (!baseSprite.children.contains(this._visualATBWindow))
-                return;
-        }
-        this._createdVisualHpGaugeWindow = true;
-        this._visualHpGauge = new Window_VisualHPGauge();
-        this._visualHpGauge.setBattler(this._battler);
-        newParent.addChild(this._visualHpGauge);
-    };
-
-//    Sprite_Animation.prototype.updateCellSprite = function (sprite, cell) {
-//        var pattern = cell[0];
-//        if (pattern >= 0) {
-//            var sx = pattern % 5 * 192;
-//            var sy = Math.floor(pattern % 100 / 5) * 192;
-//            var mirror = this._mirror;
-//            sprite.bitmap = pattern < 100 ? this._bitmap1 : this._bitmap2;
-//            sprite.setFrame(sx, sy, 192, 192);
-//            sprite.x = cell[1];
-//            sprite.y = cell[2];
-//            if (this._mirror) {
-//                sprite.x *= -1;
-//            }
-//            sprite.rotation = cell[4] * Math.PI / 180;
-//            sprite.scale.x = cell[3] / 100;
-//            if ((cell[5] && !mirror) || (!cell[5] && mirror)) {
-//                sprite.scale.x *= -1;
-//            }
-//            sprite.scale.y = cell[3] / 100;
-//            sprite.opacity = cell[6];
-//            sprite.blendMode = cell[7];
-//            sprite.visible = true;
-//        } else {
-//            sprite.visible = false;
-//        }
-//    };
-
     Window_Base.prototype.drawActorIcons = function (actor, x, y, width, height) {
         width = width || 144;
         height = height || Window_Base._iconHeight;
@@ -1225,5 +1499,285 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
             this.resetTextColor();
         };
     }
+
+    //==========================================================================
+    // Scene_Battle
+    //==========================================================================
+    Scene_Battle.prototype.updateWindowPositions = function () {
+        var statusX = 0;
+        if (BattleManager.isInputting()) {
+            statusX = eval(paramStatusInputX);
+        } else {
+            statusX = eval(paramStatusActionX);
+        }
+        if (this._statusWindow.x < statusX) {
+            this._statusWindow.x += 16;
+            if (this._statusWindow.x > statusX) {
+                this._statusWindow.x = statusX;
+            }
+        }
+        if (this._statusWindow.x > statusX) {
+            this._statusWindow.x -= 16;
+            if (this._statusWindow.x < statusX) {
+                this._statusWindow.x = statusX;
+            }
+        }
+    };
+
+    DreamX.Ext_BattleStatusCore.Scene_Battle_createSkillWindow = Scene_Battle.prototype.createSkillWindow;
+    Scene_Battle.prototype.createSkillWindow = function () {
+        DreamX.Ext_BattleStatusCore.Scene_Battle_createSkillWindow.call(this);
+        this._skillWindow.x = eval(paramBattleSkillX);
+        this._skillWindow.y = eval(paramBattleSkillY);
+        this._skillWindow.width = eval(paramBattleSkillW);
+        this._skillWindow.height = eval(paramBattleSkillH);
+        this._skillWindow.createContents();
+    };
+
+    DreamX.Ext_BattleStatusCore.Scene_Battle_createItemWindow = Scene_Battle.prototype.createItemWindow;
+    Scene_Battle.prototype.createItemWindow = function () {
+        DreamX.Ext_BattleStatusCore.Scene_Battle_createItemWindow.call(this);
+        this._itemWindow.x = eval(paramBattleItemX);
+        this._itemWindow.y = eval(paramBattleItemY);
+        this._itemWindow.width = eval(paramBattleItemW);
+        this._itemWindow.height = eval(paramBattleItemH);
+        this._itemWindow.createContents();
+    };
+
+    DreamX.Ext_BattleStatusCore.Scene_Battle_createHelpWindow = Scene_Battle.prototype.createHelpWindow;
+    Scene_Battle.prototype.createHelpWindow = function () {
+        DreamX.Ext_BattleStatusCore.Scene_Battle_createHelpWindow.call(this);
+        this._helpWindow.x = eval(paramHelpX);
+        this._helpWindow.y = eval(paramHelpY);
+        this._helpWindow.width = eval(paramHelpW);
+        this._helpWindow.height = eval(paramHelpH);
+        this._helpWindow.createContents();
+    };
+
+    //==========================================================================
+    // Sprite_CurrentBattler
+    //==========================================================================
+    function Sprite_CurrentBattler() {
+        this.initialize.apply(this, arguments);
+    }
+
+    Sprite_CurrentBattler.prototype = Object.create(Sprite_Base.prototype);
+    Sprite_CurrentBattler.prototype.constructor = Sprite_CurrentBattler;
+
+    Sprite_CurrentBattler.prototype.initialize = function (battler) {
+        Sprite_Base.prototype.initialize.call(this);
+        this._battler = battler;
+    };
+
+    Sprite_CurrentBattler.prototype.update = function () {
+        Sprite_Base.prototype.update.call(this);
+        this.updatePicAndVisibility();
+        this.updatePosition();
+
+    };
+
+    Sprite_CurrentBattler.prototype.updatePosition = function () {
+        if (!this.bitmap) {
+            return;
+        }
+
+        var scene = SceneManager._scene;
+        var battleStatusWindow = scene._statusWindow;
+        if (!battleStatusWindow) {
+            return;
+        }
+
+        var index = $gameParty.battleMembers().indexOf(this._battler);
+        if (index === -1) {
+            return;
+        }
+
+        var rect = battleStatusWindow.itemRect(index);
+
+
+        this.x = eval(paramBattlerPicX);
+        this.y = eval(paramBattlerPicY);
+    };
+
+    Sprite_CurrentBattler.prototype.shouldShow = function () {
+        if (eval(paramShowBattlerPicAlways)) {
+            return true;
+        }
+        if (eval(paramShowBattlerPicInput) && BattleManager.isInputting() && BattleManager.actor() === this._battler) {
+            return true;
+        }
+        var action = BattleManager._action;
+        if (action && !BattleManager.isInputting()) {
+            if (BattleManager._targets.indexOf(this._battler) !== -1) {
+                if (eval(paramShowBattlerEnemyTarget) && action.isForOpponent()) {
+                    return true;
+                }
+                if (eval(paramShowBattlerAllyTarget) && action.isForFriend()) {
+                    return true;
+                }
+            }
+            if (eval(paramShowBattlerActing) && action.subject() === this._battler) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    Sprite_CurrentBattler.prototype.updatePicAndVisibility = function () {
+        this.hide();
+        var actorPic = this._battler.actor().meta.BattlerPicture;
+        if (!actorPic) {
+            return;
+        }
+        if (!this.shouldShow()) {
+            return;
+        }
+
+        actorPic = actorPic.trim();
+        this.bitmap = ImageManager.loadPicture(actorPic);
+        this.show();
+    };
+
+    //==========================================================================
+    // Sprite_Actor
+    //==========================================================================
+    Sprite_Actor.prototype.setActorHomeFrontViewCenter = function () {
+
+        var obj = this._faceActorPositionObj;
+        if (obj) {
+            var window = SceneManager._scene._statusWindow;
+
+            var x = (window.x + window.standardPadding() + obj.xOffset)
+                    - this._offsetX;
+            var y = (window.y + window.height) - (window.standardPadding()
+                    + obj.yOffset);
+
+            if (!Imported['VE - Damge Popup']) {
+                x -= this.damageOffsetX();
+                y -= this.damageOffsetY();
+                y += 32;
+            }
+
+            this.setHome(x, y);
+            this.moveToStartPosition();
+        }
+    };
+
+    //==========================================================================
+    // Sprite_Battler
+    //==========================================================================
+    if (!Imported['VE - Damge Popup']) {
+        DreamX.Ext_BattleStatusCore.Sprite_Battler_setupDamagePopup = Sprite_Battler.prototype.setupDamagePopup;
+        Sprite_Battler.prototype.setupDamagePopup = function () {
+            DreamX.Ext_BattleStatusCore.Sprite_Battler_setupDamagePopup.call(this);
+
+            if (!$gameSystem.DXIsAboveBattleStatus()) {
+                return;
+            }
+
+            var parent = this.parent;
+            var scene = SceneManager._scene;
+            this._damages.forEach(function (sprite) {
+                parent.removeChild(sprite);
+                scene.addChild(sprite);
+            });
+        };
+    }
+
+
+    Sprite_Battler.prototype.createVisualHpGaugeWindow = function () {
+        var scene = SceneManager._scene;
+        var spriteset = scene._spriteset;
+        if (!spriteset) {
+            return;
+        }
+
+        var baseSprite = spriteset._baseSprite;
+        var newParent = baseSprite;
+        if (!$gameSystem.DXIsAboveBattleStatus()) {
+            newParent = scene;
+        }
+
+        if (this._createdVisualHpGaugeWindow)
+            return;
+        if (!this._battler)
+            return;
+        if (this.checkVisualATBGauge()) {
+            if (!this._visualATBWindow)
+                return;
+            if (!baseSprite.children.contains(this._visualATBWindow))
+                return;
+        }
+        this._createdVisualHpGaugeWindow = true;
+        this._visualHpGauge = new Window_VisualHPGauge();
+        this._visualHpGauge.setBattler(this._battler);
+        newParent.addChild(this._visualHpGauge);
+    };
+
+    //==========================================================================
+    // Game_System
+    //==========================================================================
+    Game_System.prototype.DXIsAboveBattleStatus = function () {
+        if ($gameSystem.isSideView() || !eval(paramTopAnimations)) {
+            return false;
+        }
+        return true;
+    };
+
+    //==========================================================================
+    // Spriteset_Battle
+    //==========================================================================
+    DreamX.Ext_BattleStatusCore.Spriteset_Battle_createActors = Spriteset_Battle.prototype.createActors;
+    Spriteset_Battle.prototype.createActors = function () {
+        DreamX.Ext_BattleStatusCore.Spriteset_Battle_createActors.call(this);
+        if (!$gameSystem.DXIsAboveBattleStatus()) {
+            return;
+        }
+
+        var sprites = this._actorSprites;
+
+        if (!sprites) {
+            return;
+        }
+
+        var scene = SceneManager._scene;
+        var spriteset = this;
+        sprites.forEach(function (sprite) {
+            spriteset._battleField.removeChild(sprite);
+            scene.addChild(sprite);
+        });
+    };
+
+    DreamX.Ext_BattleStatusCore.Spriteset_Battle_updateActors = Spriteset_Battle.prototype.updateActors;
+    Spriteset_Battle.prototype.updateActors = function () {
+        DreamX.Ext_BattleStatusCore.Spriteset_Battle_updateActors.call(this);
+        if ($gameSystem.isSideView() || !eval(paramCenterFrontViewSprites)) {
+            return;
+        }
+        for (var i = 0; i < this._actorSprites.length; i++) {
+            this._actorSprites[i].setActorHomeFrontViewCenter();
+        }
+    };
+
+    DreamX.Ext_BattleStatusCore.Spriteset_Battle_createLowerLayer = Spriteset_Battle.prototype.createLowerLayer;
+    Spriteset_Battle.prototype.createLowerLayer = function () {
+        DreamX.Ext_BattleStatusCore.Spriteset_Battle_createLowerLayer.call(this);
+        this.createCurrentActorSprite();
+    };
+
+    Spriteset_Battle.prototype.createCurrentActorSprite = function () {
+        if (!eval(paramShowBattlerPic)) {
+            return;
+        }
+        this._currentBattlerSprites = [];
+        for (var i = 0; i < $gameParty.battleMembers().length; i++) {
+            var member = $gameParty.battleMembers()[i];
+            var sprite = new Sprite_CurrentBattler(member);
+            this._currentBattlerSprites.push(sprite);
+            this.addChild(sprite);
+        }
+    };
+
+
 
 })();
