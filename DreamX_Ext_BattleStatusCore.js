@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.4
+ * @plugindesc v1.4a
  * @author DreamX
  * 
  * @param --General Status--
@@ -438,6 +438,10 @@
  * @desc Eval. Default: this.lineHeight()
  * @default this.lineHeight()
  * 
+ * @param Actor Command Close When Selecting
+ * @desc Eval. Whether to close actor command window when selecting an action. Default: false
+ * @default false
+ * 
  * @param --Battle Skill Window--
  * 
  * @param Battle Skill X
@@ -741,6 +745,10 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     var paramIconsY = String(parameters['Icons Y']);
     var paramIconsWidth = String(parameters['Icons Width']);
     var paramIconsHeight = String(parameters['Icons Height']);
+
+    var paramActorCommandCloseSelect = String(parameters['Actor Command Close When Selecting']);
+
+
 
 
     var paramFrameOpacity = parseInt(String(parameters['Battle Status Frame Opacity']));
@@ -1319,6 +1327,24 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     Window_ActorCommand.prototype.update = function () {
         DreamX.Ext_BattleStatusCore.Window_ActorCommand_update.call(this);
         this.updatePosition();
+    };
+
+    DreamX.Ext_BattleStatusCore.Scene_Battle_selectEnemySelection = Scene_Battle.prototype.selectEnemySelection;
+    Scene_Battle.prototype.selectEnemySelection = function () {
+        DreamX.Ext_BattleStatusCore.Scene_Battle_selectEnemySelection.call(this);
+        if (!eval(paramActorCommandCloseSelect)) {
+            return;
+        }
+        this._actorCommandWindow.close();
+    };
+
+    DreamX.Ext_BattleStatusCore.Scene_Battle_onEnemyCancel = Scene_Battle.prototype.onEnemyCancel;
+    Scene_Battle.prototype.onEnemyCancel = function () {
+        DreamX.Ext_BattleStatusCore.Scene_Battle_onEnemyCancel.call(this);
+        if (!eval(paramActorCommandCloseSelect)) {
+            return;
+        }
+        this._actorCommandWindow.open();
     };
 
     Window_ActorCommand.prototype.updatePosition = function () {
