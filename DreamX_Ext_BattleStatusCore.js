@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.4a
+ * @plugindesc v1.4b
  * @author DreamX
  * 
  * @param --General Status--
@@ -1080,6 +1080,12 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         if (!eval(paramHpHideGauge)) {
             this.drawGauge(eval(paramHpGaugeX), eval(paramHpGaugeY),
                     eval(paramHpGaugeWidth), actor.hpRate(), color1, color2);
+        }
+        
+        if (Imported.YEP_AbsorptionBarrier) {
+            if (actor.barrierPoints() > 0) {
+                this.drawBarrierGauge(actor, eval(paramHpGaugeX), eval(paramHpGaugeY), eval(paramHpGaugeWidth));
+            }
         }
 
         this.changeTextColor(this.systemColor());
