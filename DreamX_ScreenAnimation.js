@@ -20,7 +20,7 @@
  */
 
 var Imported = Imported || {};
-Imported.DreamX_REPLACEME = true;
+Imported.DreamX_ScreenAnimation = true;
 
 var DreamX = DreamX || {};
 DreamX.ScreenAnimation = DreamX.ScreenAnimation || {};
