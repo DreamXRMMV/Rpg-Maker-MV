@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.3
+ * @plugindesc v1.3a
  * @author DreamX
  * 
  * @param Default Cost
@@ -406,6 +406,10 @@ Scene_CommonEventShop.prototype.commonEventRefreshWindows = function () {
 Scene_CommonEventShop.prototype.terminate = function () {
     Scene_Shop.prototype.terminate.call(this);
     $gameTemp._commonEventShopIds = [];
+};
+
+Scene_CommonEventShop.prototype.maxBuy = function() {
+    return 1;
 };
 
 //-----------------------------------------------------------------------------
