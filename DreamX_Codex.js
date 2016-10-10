@@ -12,6 +12,20 @@
  * @desc The folder where the json is. Leave blank for root folder. Default: data/
  * @default data/
  * 
+ * @param --Menu Options--
+ * 
+ * @param Add Codex Command To Menu
+ * @desc Eval. Whether to command that opens the codex to the menu. Default: true
+ * @default true
+ * 
+ * @param Codex Command Text
+ * @desc Text of codex command in menu. Default: Codex
+ * @default Codex
+ * 
+ * @param Codex Command Enabled Eval
+ * @desc Eval. Condition evaluated to decide whether Codex Command is enabled. Default: true
+ * @default true
+ * 
  * @param --Window Options--
  * 
  * @param -Category Window-
@@ -182,6 +196,12 @@
  * ============================================================================
  * How To Use
  * ============================================================================
+ * To start the Codex scene, use this script call:
+ * SceneManager.push(Scene_Codex);
+ * 
+ * To use with YEP Main Menu Manager, you can use the main bind:
+ * this.commandDXCodex.bind(this)
+ * 
  * See example json file.
  * 
  * IDs (for example, BeastiaryCategory and SlimeEntry are IDs) must be unique.
@@ -214,7 +234,7 @@
  *  "pictureAnchorX": "1",
  *  "pictureAnchorY": "0"
  *  
-* Getting an image to display at the lower left:
+ * Getting an image to display at the lower left:
  *  "pictureX": "0",
  *  "pictureY": "this.height",
  *  "pictureAnchorX": "0",
@@ -322,6 +342,12 @@ DreamX.Param = DreamX.Param || {};
 
 DreamX.Param.CodexFileFolder = String(DreamX.Parameters['Json Folder']);
 DreamX.Param.CodexFileName = String(DreamX.Parameters['Json Filename']);
+DreamX.Param.CodexCommandInMenu = String(DreamX.Parameters['Add Codex Command To Menu']);
+DreamX.Param.CodexCommandName = String(DreamX.Parameters['Codex Command Text']);
+DreamX.Param.CodexCommandEnableEval = String(DreamX.Parameters['Codex Command Enabled Eval']);
+
+// 
+
 DreamX.Param.CodexPrimWindowContentsWidth = String(DreamX.Parameters['Default Contents Width Of Primary Info Window']);
 DreamX.Param.CodexPrimWindowContentsHeight = String(DreamX.Parameters['Default Contents Height Of Primary Info Window']);
 DreamX.Param.CodexPrimWindowTextX = String(DreamX.Parameters['Default Text X Of Primary Info Window']);
@@ -481,6 +507,32 @@ Scene_Codex.prototype.createSelectionWindow = function () {
     this.addWindow(this._secondaryHelpWindow);
 };
 
+//=============================================================================
+// Scene_Menu
+//=============================================================================
+DreamX.Codex.Scene_Menu_createCommandWindow = Scene_Menu.prototype.createCommandWindow;
+Scene_Menu.prototype.createCommandWindow = function () {
+    DreamX.Codex.Scene_Menu_createCommandWindow.call(this);
+    if (eval(DreamX.Param.CodexCommandInMenu)) {
+        this._commandWindow.setHandler('codex', this.commandDXCodex.bind(this));
+    }
+};
+
+Scene_Menu.prototype.commandDXCodex = function () {
+    SceneManager.push(Scene_Codex);
+};
+
+//=============================================================================
+// Window_MenuCommand
+//=============================================================================
+DreamX.Codex.Window_MenuCommand_makeCommandList = Window_MenuCommand.prototype.makeCommandList;
+Window_MenuCommand.prototype.makeCommandList = function () {
+    DreamX.Codex.Window_MenuCommand_makeCommandList.call(this);
+    if (eval(DreamX.Param.CodexCommandInMenu)) {
+        this.addCommand(DreamX.Param.CodexCommandName, 'codex', eval(DreamX.Param.CodexCommandEnableEval));
+    }
+};
+
 //-----------------------------------------------------------------------------
 // Window_CodexCommandBase
 //
@@ -536,19 +588,19 @@ Window_CodexCategory.prototype.windowHeight = function () {
     return eval(DreamX.Param.CodexCatWindowH);
 };
 
-Window_CodexCategory.prototype.maxRows = function() {
+Window_CodexCategory.prototype.maxRows = function () {
     return eval(DreamX.Param.CodexCatWindowMaxRows);
 };
 
-Window_CodexCategory.prototype.numVisibleRows = function() {
+Window_CodexCategory.prototype.numVisibleRows = function () {
     return eval(DreamX.Param.CodexCatWindowRows);
 };
 
-Window_CodexCategory.prototype.maxCols = function() {
+Window_CodexCategory.prototype.maxCols = function () {
     return eval(DreamX.Param.CodexCatWindowCols);
 };
 
-Window_CodexCategory.prototype.itemTextAlign = function() {
+Window_CodexCategory.prototype.itemTextAlign = function () {
     return DreamX.Param.CodexCatTextAlign;
 };
 
@@ -613,6 +665,7 @@ Window_CodexCategory.prototype.data = function () {
     return DreamX.Codex.Categories[symbol];
 };
 
+
 //-----------------------------------------------------------------------------
 // Window_CodexEntryList
 //
@@ -643,19 +696,19 @@ Window_CodexEntryList.prototype.windowHeight = function () {
     return eval(DreamX.Param.CodexEntryWindowH);
 };
 
-Window_CodexEntryList.prototype.maxRows = function() {
+Window_CodexEntryList.prototype.maxRows = function () {
     return eval(DreamX.Param.CodexEntryWindowMaxRows);
 };
 
-Window_CodexEntryList.prototype.numVisibleRows = function() {
+Window_CodexEntryList.prototype.numVisibleRows = function () {
     return eval(DreamX.Param.CodexEntryWindowVisibleRows);
 };
 
-Window_CodexEntryList.prototype.maxCols = function() {
+Window_CodexEntryList.prototype.maxCols = function () {
     return eval(DreamX.Param.CodexEntryWindowCols);
 };
 
-Window_CodexEntryList.prototype.itemTextAlign = function() {
+Window_CodexEntryList.prototype.itemTextAlign = function () {
     return DreamX.Param.CodexEntryTextAlign;
 };
 Window_CodexEntryList.prototype.category = function () {
@@ -715,8 +768,14 @@ Window_CodexHelp.prototype.initialize = function () {
     var h = eval(DreamX.Param.CodexPrimWindowH);
 
     this._text = '';
+    this._numLines = 1;
     this._script = '';
+
     Window_Base.prototype.initialize.call(this, x, y, w, h);
+
+    var normalContentsHeight = this._height - this._padding * 2;
+    this._maxLinesForContentsHeight = Math.floor(normalContentsHeight / this.lineHeight());
+
     this.opacity = eval(DreamX.Param.CodexPrimWindowOpacity);
     this._windowFrameSprite.alpha = eval(DreamX.Param.CodexPrimWindowFrameAlpha);
 
@@ -751,7 +810,11 @@ Window_CodexHelp.prototype.update = function () {
     if (TouchInput.wheelY <= -threshold) {
         newOriginY -= scrollRate;
     }
-    if (((this._height - this._padding * 2) - this.lineHeight()) - this._highestTextY + newOriginY <= 0) {
+
+    var numLines = this._numLines + Math.ceil(eval(DreamX.Param.CodexPrimWindowTextY) / this.lineHeight());
+    var highestCompletedLineForNewOriginY = Math.floor(newOriginY / this.lineHeight());
+
+    if (highestCompletedLineForNewOriginY + this._maxLinesForContentsHeight <= numLines) {
         this.origin.y = Math.max(0, newOriginY);
     }
 };
@@ -777,14 +840,13 @@ Window_CodexHelp.prototype.setText = function (data) {
     if (eval(data.textEval)) {
         text = eval(text);
     }
-    
+
     if (eval(data.pictureUnderContents)) {
         this.addChildAt(this._picture, this.children.indexOf(this._windowContentsSprite));
-    }
-    else {
+    } else {
         this.addChild(this._picture);
     }
-    
+
     this._picture.bitmap = ImageManager.loadPicture(pictureName);
     this._picture.scale.x = pictureScaleX;
     this._picture.scale.y = pictureScaleY;
@@ -799,8 +861,7 @@ Window_CodexHelp.prototype.setText = function (data) {
 
 Window_CodexHelp.prototype.refresh = function () {
     this.contents.clear();
-    this._textY = 0;
-    this._highestTextY = 0;
+    this._numLines = 1;
     this.origin.y = 0;
     this.drawTextEx(this._text, eval(DreamX.Param.CodexPrimWindowTextX), eval(DreamX.Param.CodexPrimWindowTextY));
     this._highestTextY = this._textY;
@@ -808,7 +869,7 @@ Window_CodexHelp.prototype.refresh = function () {
 
 Window_CodexHelp.prototype.processNewLine = function (textState) {
     Window_Base.prototype.processNewLine.call(this, textState);
-    this._textY = textState.y;
+    this._numLines++;
 };
 
 //-----------------------------------------------------------------------------
