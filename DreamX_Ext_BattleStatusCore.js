@@ -1,21 +1,21 @@
 /*:
- * @plugindesc v1.4b
+ * @plugindesc v1.5
  * @author DreamX
- * 
+ *
  * @param --General Status--
- *  
+ *
  * @param Battle Status Frame Opacity
  * @desc From 0 to 1 Default: 1
  * @default 1
- * 
+ *
  * @param Battle Status Window Opacity
  * @desc Includes frame. Default: 255
  * @default 255
- * 
+ *
  * @param Battle Status Width
  * @desc Eval. Default: Graphics.boxWidth - 192
  * @default Graphics.boxWidth - 192
- * 
+ *
  * @param Battle Status Height
  * @desc Eval. Default: this.fittingHeight(this.numVisibleRows())
  * @default this.fittingHeight(this.numVisibleRows())
@@ -23,203 +23,203 @@
  * @param Battle Status Input X
  * @desc Eval. Default: this._partyCommandWindow.width
  * @default this._partyCommandWindow.width
- * 
+ *
  * @param Battle Status Action X
  * @desc Eval. Default: this._partyCommandWindow.width / 2
  * @default this._partyCommandWindow.width / 2
- * 
+ *
  * @param Battle Status Y
  * @desc Eval. Default: Graphics.boxHeight - this.windowHeight()
  * @default Graphics.boxHeight - this.windowHeight()
- * 
+ *
  * @param Battle Status Rows
  * @desc Eval. Default: 1
  * @default 1
- * 
+ *
  * @param Battle Status Item Width
  * @desc Eval. Default: this.contents.width / this.maxCols()
  * @default this.contents.width / this.maxCols()
- * 
+ *
  * @param Battle Status Item Height
  * @desc Eval. Default: this.lineHeight() * this.numVisibleRows()
  * @default this.lineHeight() * this.numVisibleRows()
- * 
+ *
  * @param Battle Status Columns
  * @desc Eval. Default: Yanfly.Param.BSWAdjustCol ? this.maxItems() : $gameParty.maxBattleMembers()
  * @default Yanfly.Param.BSWAdjustCol ? this.maxItems() : $gameParty.maxBattleMembers()
- * 
+ *
  * @param Battle Status Max Visible Rows
  * @desc Eval. Default: Yanfly.Param.BECCommandRows || 4
  * @default Yanfly.Param.BECCommandRows || 4
- * 
+ *
  * @param Battle Status Spacing
  * @desc Eval. Default: 0
  * @default 0
- * 
+ *
  * @param Battle Status Dummy Windows
  * @desc Create dummy windows for selection rectangles. Default: false
  * @default false
- * 
+ *
  * @param Battle Status Dummy Window Prevent Cutoff
  * @desc Prevent dummy window from being made if it would go out of bounds. Default: true
  * @default true
- * 
+ *
  * @param Battle Status Dummy Window Quantity
  * @desc Number of dummy windows to make. Default: $gameParty.battleMembers().length
  * @default $gameParty.battleMembers().length
- * 
+ *
  * @param Flash Current Actor Rect
  * @desc Whether to have a flashing cursor on rect of current actor. Default: false
  * @default false
- * 
+ *
  * @param --Status Faces--
- *  
+ *
  * @param Draw Face
  * @desc Eval. Default: true
  * @default true
- * 
+ *
  * @param Draw Face Width
  * @desc Eval. Default: Math.min(rect.width - 8, Window_Base._faceWidth)
  * @default Math.min(rect.width - 8, Window_Base._faceWidth)
- * 
+ *
  * @param Draw Face Height
  * @desc Eval. Default: Math.min(rect.height - 8, Window_Base._faceHeight)
  * @default Math.min(rect.height - 8, Window_Base._faceHeight)
- * 
+ *
  * @param Face X
  * @desc Eval. rect.x + rect.width - ww - 6
  * @default rect.x + rect.width - ww - 6
- * 
+ *
  * @param Face Y
  * @desc Eval. rect.y + 4
  * @default rect.y + 4
- * 
+ *
  * @param --Status Gauges--
- * 
+ *
  * @param Current Value Font Size
  * @desc Eval. Default: Yanfly.Param.BSWParamFontSize
  * @default Yanfly.Param.BSWParamFontSize
- * 
+ *
  * @param Max Value Font Size
  * @desc Eval. Default: Yanfly.Param.BSWParamFontSize
  * @default Yanfly.Param.BSWParamFontSize
- * 
+ *
  * @param -HP Gauge-
- * 
+ *
  * @param Draw HP Gauge
  * @desc Eval. Default: true
  * @default true
- * 
+ *
  * @param Hide HP Gauge
  * @desc Eval. Hide the actual gauge graphic. Default: false
  * @default false
- * 
+ *
  * @param HP Gauge X
  * @desc Eval. Default: gaugeRect.x
  * @default gaugeRect.x
- * 
+ *
  * @param HP Gauge Y
  * @desc Eval. Default: gaugeRect.y + gaugeRect.height - this.lineHeight() - (Math.max(16, (Imported.YEP_CoreEngine) ? Yanfly.Param.GaugeHeight : 6))
  * @default gaugeRect.y + gaugeRect.height - this.lineHeight() - (Math.max(16, (Imported.YEP_CoreEngine) ? Yanfly.Param.GaugeHeight : 6))
- * 
+ *
  * @param HP Gauge Width
  * @desc Eval. Default: gaugeRect.width
  * @default gaugeRect.width
- * 
+ *
  * @param Hide HP Name
  * @desc Eval. Hide HP Name. Default: false
  * @default false
- * 
+ *
  * @param HP Name X
  * @desc Eval. eval(paramHpGaugeX)
  * @default eval(paramHpGaugeX)
- * 
+ *
  * @param HP Name Y
  * @desc Eval. Default: eval(paramHpGaugeY)
  * @default eval(paramHpGaugeY)
- * 
+ *
  * @param HP Name Width
  * @desc Eval. Default: 44
  * @default 44
- * 
+ *
  * @param HP Name Alignment
  * @desc Default: left
  * @default left
- * 
+ *
  * @param Hide HP Values
  * @desc Eval. Hide Values. Default: false
  * @default false
- * 
+ *
  * @param HP Values X
  * @desc Eval. Default: eval(paramHpGaugeX)
  * @default eval(paramHpGaugeX)
- * 
+ *
  * @param HP Values Y
  * @desc Eval. Default: eval(paramHpGaugeY)
  * @default eval(paramHpGaugeY)
- * 
+ *
  * @param HP Values Width
  * @desc Default: eval(paramHpGaugeWidth)
  * @default eval(paramHpGaugeWidth)
- * 
+ *
  * @param HP Values Alignment
  * @desc When not drawing the max only. Default: right
  * @default right
- * 
+ *
  * @param -MP Gauge-
- * 
+ *
  * @param Draw MP Gauge
  * @desc Eval. Default: true
  * @default true
- * 
+ *
  * @param Hide MP Gauge
  * @desc Eval. Hide the actual gauge graphic. Default: false
  * @default false
- * 
+ *
  * @param MP Gauge X
  * @desc Eval. Default: gaugeRect.x
  * @default gaugeRect.x
- * 
+ *
  * @param MP Gauge Y
  * @desc Eval. Default: gaugeRect.y + gaugeRect.height - this.lineHeight()
  * @default gaugeRect.y + gaugeRect.height - this.lineHeight()
- * 
+ *
  * @param MP Gauge Width
  * @desc Eval. Default: this.getGaugesDrawn(actor) <= 2 ? gaugeRect.width : gaugeRect.width / 2
  * @default this.getGaugesDrawn(actor) <= 2  ? gaugeRect.width : gaugeRect.width / 2
- * 
+ *
  * @param Hide MP Name
  * @desc Eval. Hide HP Name. Default: false
  * @default false
- * 
+ *
  * @param MP Name X
  * @desc Eval. Default: eval(paramMpGaugeX)
  * @default eval(paramMpGaugeX)
- * 
+ *
  * @param MP Name Y
  * @desc Eval. Default: eval(paramMpGaugeY)
  * @default eval(paramMpGaugeY)
- * 
+ *
  * @param MP Name Width
  * @desc Eval. Default: 44
  * @default 44
- * 
+ *
  * @param MP Name Alignment
  * @desc Default: left
  * @default left
- * 
+ *
  * @param Hide MP Values
  * @desc Eval. Hide Values. Default: false
  * @default false
- * 
+ *
  * @param MP Values X
  * @desc Eval. Default: eval(paramMpGaugeX)
  * @default eval(paramMpGaugeX)
- * 
+ *
  * @param MP Values Y
  * @desc Eval. Default: eval(paramMpGaugeY)
  * @default eval(paramMpGaugeY)
- * 
+ *
  * @param MP Values Width
  * @desc Default: eval(paramMpGaugeWidth)
  * @default eval(paramMpGaugeWidth)
@@ -227,428 +227,480 @@
  * @param MP Values Alignment
  * @desc When not drawing the max only. Default: right
  * @default right
- * 
+ *
  * @param -TP Gauge-
- * 
+ *
  * @param Draw TP Gauge
  * @desc Eval. Default: $dataSystem.optDisplayTp
  * @default $dataSystem.optDisplayTp
- * 
+ *
  * @param Hide TP Gauge
  * @desc Eval. Hide the actual gauge graphic. Default: false
  * @default false
- * 
+ *
  * @param TP Gauge X
  * @desc Eval. Default: gaugeRect.x + (gaugeRect.width / 2)
  * @default gaugeRect.x + (gaugeRect.width / 2)
- * 
+ *
  * @param TP Gauge Y
  * @desc Eval. Default: gaugeRect.y + gaugeRect.height - this.lineHeight()
  * @default gaugeRect.y + gaugeRect.height - this.lineHeight()
- * 
+ *
  * @param TP Gauge Width
  * @desc Eval. Default: gaugeRect.width / 2
  * @default gaugeRect.width / 2
- * 
+ *
  * @param Hide TP Name
  * @desc Eval. Hide HP Name. Default: false
  * @default false
- * 
+ *
  * @param TP Name X
  * @desc Eval. Default: eval(paramTpGaugeX)
  * @default eval(paramTpGaugeX)
- * 
+ *
  * @param TP Name Y
  * @desc Eval. Default: eval(paramTpGaugeY)
  * @default eval(paramTpGaugeY)
- * 
+ *
  * @param TP Name Width
  * @desc Eval. Default: 44
  * @default 44
- * 
+ *
  * @param TP Name Alignment
  * @desc Default: left
  * @default left
- * 
+ *
  * @param Hide TP Values
  * @desc Eval. Hide Values. Default: false
  * @default false
- * 
+ *
  * @param TP Values X
  * @desc Eval. Default: eval(paramTpGaugeY) + eval(paramTpGaugeWidth) - 64
  * @default eval(paramTpGaugeX) + eval(paramTpGaugeWidth) - 64
- * 
+ *
  * @param TP Values Y
  * @desc Eval. Default: eval(paramTpGaugeY)
  * @default eval(paramTpGaugeY)
- * 
+ *
  * @param TP Values Width
  * @desc Default: 64
  * @default 64
- * 
+ *
  * @param TP Values Alignment
  * @desc Default: right
  * @default right
  *
  * @param -ATB Gauge-
- * 
+ *
  * @param ATB Gauge X
  * @desc Eval. Default: basicAreaRect.x
  * @default basicAreaRect.x
- * 
+ *
  * @param ATB Gauge Y
  * @desc Eval. Default: basicAreaRect.y
  * @default basicAreaRect.y
- * 
+ *
  * @param ATB Gauge Width
  * @desc Eval. Default: basicAreaRect.width
  * @default basicAreaRect.width
- * 
+ *
  * @param --Status Action Icons--
- * 
+ *
  * @param Draw Action Icon
  * @desc Eval. Default: true
  * @default true
- * 
+ *
  * @param Action Icon X
  * @desc Eval. Default: basicAreaRect.x
  * @default basicAreaRect.x
- * 
+ *
  * @param Action Icon Y
  * @desc Eval. Default: basicAreaRect.y
  * @default basicAreaRect.y
- * 
+ *
  * @param --Status Names--
- * 
+ *
  * @param Draw Name
  * @desc Eval. Default: true
  * @default true
- * 
+ *
  * @param Name X
  * @desc Eval. Default: basicAreaRect.x + Window_Base._iconWidth + 4
  * @default basicAreaRect.x + Window_Base._iconWidth + 4
- * 
+ *
  * @param Name Y
  * @desc Eval. Default: basicAreaRect.y
  * @default basicAreaRect.y
- * 
+ *
  * @param Name Width
  * @desc Eval. Default: basicAreaRect.width
  * @default basicAreaRect.width
- * 
+ *
  * @param Name Alignment
  * @desc Eval. Default: left
  * @default left
- * 
+ *
  * @param -- Status Icons--
- * 
+ *
  * @param Draw Icons
- * @desc Eval. Default: true
+ * @desc Eval. Whether to draw normal state icons. Default: true
  * @default true
- * 
+ *
  * @param Icons X
  * @desc Eval. Default: basicAreaRect.x + 2
  * @default basicAreaRect.x + 2
- * 
+ *
  * @param Icons Y
  * @desc Eval. Default: basicAreaRect.y + this.lineHeight()
  * @default basicAreaRect.y + this.lineHeight()
- * 
+ *
  * @param Icons Width
  * @desc Eval. Default: basicAreaRect.width
  * @default basicAreaRect.width
- * 
+ *
  * @param Icons Height
  * @desc Eval. Default: Window_Base._iconHeight
  * @default Window_Base._iconHeight
+ *
+ * @param --Rolling States--
  * 
+ * @param Rolling States
+ * @desc Eval. Use rolling states that alternate the state icons. Default: false
+ * @default false
+ * 
+ * @param Rolling States X
+ * @desc Eval. Rolling States Y position. Default: rect.x + Window_Base._iconWidth + (this.textPadding() * 2)
+ * @default rect.x + Window_Base._iconWidth + (this.textPadding() * 2)
+ 
+ * @param Rolling States Y
+ * @desc Eval. Rolling States Y position. Default: rect.y + this.textPadding() + Window_Base._iconHeight + this.lineHeight()
+ * @default rect.y + this.textPadding() + Window_Base._iconHeight + this.lineHeight()
+ *
  * @param --Party Command Window--
- * 
+ *
  * @param Party Command X
  * @desc Eval. Default: 0
  * @default 0
- * 
+ *
  * @param Party Command Y
  * @desc Eval. Default: Graphics.boxHeight - this.windowHeight()
  * @default Graphics.boxHeight - this.windowHeight()
- * 
+ *
  * @param Party Command Width
  * @desc Eval. Default: 192
  * @default 192
- * 
+ *
  * @param Party Command Height
  * @desc Eval. Default: this.fittingHeight(this.numVisibleRows())
  * @default this.fittingHeight(this.numVisibleRows())
- * 
+ *
  * @param Party Command Rows
  * @desc Eval. Default: Math.max(Math.ceil(this.maxItems() / this.maxCols()), 1)
  * @default Math.max(Math.ceil(this.maxItems() / this.maxCols()), 1)
- * 
+ *
  * @param Party Command Columns
  * @desc Eval. Default: 1
  * @default 1
- * 
+ *
  * @param Party Command Visible Rows
  * @desc Eval. Default: 4
  * @default 4
- * 
+ *
  * @param Party Command Item Width
  * @desc Eval. Default: Math.floor((this.width - this.padding * 2 + this.spacing()) / this.maxCols() - this.spacing())
  * @default Math.floor((this.width - this.padding * 2 + this.spacing()) / this.maxCols() - this.spacing())
- * 
+ *
  * @param Party Command Item Height
  * @desc Eval. Default: this.lineHeight()
  * @default this.lineHeight()
  * 
+ * @param Party Command Opacity
+ * @desc Eval. Default: 255
+ * @default 255
+ *
  * @param --Actor Command Window--
- * 
+ *
  * @param Actor Command X
  * @desc Eval. Default: 0
  * @default 0
- * 
+ *
  * @param Actor Command Y
  * @desc Eval. Default: Graphics.boxHeight - this.windowHeight()
  * @default Graphics.boxHeight - this.windowHeight()
- * 
+ *
  * @param Actor Command Width
  * @desc Eval. Default: 192
  * @default 192
- * 
+ *
  * @param Actor Command Height
  * @desc Eval. Default: this.fittingHeight(this.numVisibleRows())
  * @default this.fittingHeight(this.numVisibleRows())
- * 
+ *
  * @param Actor Command Rows
  * @desc Eval. Default: Math.max(Math.ceil(this.maxItems() / this.maxCols()), 1)
  * @default Math.max(Math.ceil(this.maxItems() / this.maxCols()), 1)
- * 
+ *
  * @param Actor Command Columns
  * @desc Eval. Default: 1
  * @default 1
- * 
+ *
  * @param Actor Command Visible Rows
  * @desc Eval. Default: 4
  * @default 4
- * 
+ *
  * @param Actor Command Item Width
  * @desc Eval. Default: Math.floor((this.width - this.padding * 2 + this.spacing()) / this.maxCols() - this.spacing())
  * @default Math.floor((this.width - this.padding * 2 + this.spacing()) / this.maxCols() - this.spacing())
- * 
+ *
  * @param Actor Command Item Height
  * @desc Eval. Default: this.lineHeight()
  * @default this.lineHeight()
- * 
+ *
  * @param Actor Command Close When Selecting
  * @desc Eval. Whether to close actor command window when selecting an action. Default: false
  * @default false
  * 
+ * @param Actor Command Opacity
+ * @desc Eval. Default: 255
+ * @default 255
+ *
  * @param --Battle Skill Window--
- * 
+ *
  * @param Battle Skill X
  * @desc Eval. Default: 0
  * @default 0
- * 
+ *
  * @param Battle Skill Y
  * @desc Eval. Default: eval(Yanfly.Param.BECLowerWindows) ? Graphics.boxHeight - this._skillWindow.height : this._helpWindow.y + this._helpWindow.height
  * @default eval(Yanfly.Param.BECLowerWindows) ? Graphics.boxHeight - this._skillWindow.height : this._helpWindow.y + this._helpWindow.height
- * 
+ *
  * @param Battle Skill Width
  * @desc Eval. Default: Graphics.boxWidth
  * @default Graphics.boxWidth
- * 
+ *
  * @param Battle Skill Height
  * @desc Eval. Default: eval(Yanfly.Param.BECLowerWindows) ? this._skillWindow.fittingHeight(eval(Yanfly.Param.BECWindowRows)) : this._statusWindow.y - (this._helpWindow.y + this._helpWindow.height)
  * @default eval(Yanfly.Param.BECLowerWindows) ? this._skillWindow.fittingHeight(eval(Yanfly.Param.BECWindowRows)) : this._statusWindow.y - (this._helpWindow.y + this._helpWindow.height)
- * 
+ *
  * @param Battle Skill Rows
  * @desc Eval. Default: Math.max(Math.ceil(this.maxItems() / this.maxCols()), 1)
  * @default Math.max(Math.ceil(this.maxItems() / this.maxCols()), 1)
- * 
+ *
  * @param Battle Skill Columns
  * @desc Eval. Default: 2
  * @default 2
- * 
+ *
  * @param Battle Skill Item Width
  * @desc Eval. Default: Math.floor((this.width - this.padding * 2 + this.spacing()) / this.maxCols() - this.spacing())
  * @default Math.floor((this.width - this.padding * 2 + this.spacing()) / this.maxCols() - this.spacing())
- * 
+ *
  * @param Battle Skill Item Height
  * @desc Eval. Default: this.lineHeight()
  * @default this.lineHeight()
  * 
+ * @param Battle Skill Opacity
+ * @desc Eval. Default: 255
+ * @default 255
+ *
  * @param --Battle Item Window--
- *  
+ *
  * @param Battle Item X
  * @desc Eval. Default: 0
  * @default 0
- * 
+ *
  * @param Battle Item Y
  * @desc Eval. Default: eval(Yanfly.Param.BECLowerWindows) ? Graphics.boxHeight - this._itemWindow.height : this._helpWindow.y + this._helpWindow.height
  * @default eval(Yanfly.Param.BECLowerWindows) ? Graphics.boxHeight - this._itemWindow.height : this._helpWindow.y + this._helpWindow.height
- * 
+ *
  * @param Battle Item Width
  * @desc Eval. Default: Graphics.boxWidth
  * @default Graphics.boxWidth
- * 
+ *
  * @param Battle Item Height
  * @desc Eval. Default: eval(Yanfly.Param.BECLowerWindows) ? this._itemWindow.fittingHeight(eval(Yanfly.Param.BECWindowRows)) : this._statusWindow.y - (this._helpWindow.y + this._helpWindow.height)
  * @default eval(Yanfly.Param.BECLowerWindows) ? this._itemWindow.fittingHeight(eval(Yanfly.Param.BECWindowRows)) : this._statusWindow.y - (this._helpWindow.y + this._helpWindow.height)
- * 
+ *
  * @param Battle Item Rows
  * @desc Eval. Default: Math.max(Math.ceil(this.maxItems() / this.maxCols()), 1)
  * @default Math.max(Math.ceil(this.maxItems() / this.maxCols()), 1)
- * 
+ *
  * @param Battle Item Columns
  * @desc Eval. Default: 2
  * @default 2
- * 
+ *
  * @param Battle Item Item Width
  * @desc Eval. Default: Math.floor((this.width - this.padding * 2 + this.spacing()) / this.maxCols() - this.spacing())
  * @default Math.floor((this.width - this.padding * 2 + this.spacing()) / this.maxCols() - this.spacing())
- * 
+ *
  * @param Battle Item Item Height
  * @desc Eval. Default: this.lineHeight()
  * @default this.lineHeight()
  * 
+ * @param Battle Item Opacity
+ * @desc Eval. Default: 255
+ * @default 255
+ *
  * @param --Help Window--
- * 
+ *
  * @param Help Window X
  * @desc Eval. Default: 0
  * @default 0
- * 
+ *
  * @param Help Window Y
  * @desc Eval. Default: 0
  * @default 0
- * 
+ *
  * @param Help Window Width
  * @desc Eval. Default: Graphics.boxWidth
  * @default Graphics.boxWidth
- * 
+ *
  * @param Help Window Height
  * @desc Eval. Default: this._helpWindow.fittingHeight(2)
  * @default this._helpWindow.fittingHeight(2)
  * 
+ * @param Help Window Opacity
+ * @desc Eval. Default: 255
+ * @default 255
+ *
  * @param --Battle Log Window--
- * 
+ *
  * @param Battle Log X
  * @desc Eval. Default: 0
  * @default 0
- * 
+ *
  * @param Battle Log Y
  * @desc Eval. Default: 0
  * @default 0
- * 
+ *
  * @param Battle Log Width
  * @desc Eval. Default: Graphics.boxWidth
  * @default Graphics.boxWidth
- * 
+ *
  * @param Battle Log Height
  * @desc Eval. Default: this.fittingHeight(this.maxLines())
  * @default this.fittingHeight(this.maxLines())
- * 
+ *
  * @param Battle Log Window Style
  * @desc Eval. Whether Battle Log Window appears like a normal window. Default: false
  * @default false
  * 
+ * @param Battle Log Window Opacity
+ * @desc Eval. Default: 0
+ * @default 0
+ *
  * @param --Battler Picture--
- * 
+ *
  * @param Show Battler Picture
  * @desc Eval. Whether to show battler picture Default: false
  * @default false
- * 
+ *
  * @param Always Show Battler Picture
  * @desc Eval. Whether to always show battler picture Default: false
  * @default false
- * 
+ *
  * @param Show Battler Picture When Inputting
  * @desc Eval. Show battler picture when battler is inputting Default: true
  * @default true
- * 
+ *
  * @param Show Battler Picture When Targeted By Enemy
  * @desc Eval. Show battler picture when targeted by enemy Default: false
  * @default false
- * 
+ *
  * @param Show Battler Picture When Targeted By Ally
  * @desc Eval. Show battler picture when targeted by ally Default: false
  * @default false
- * 
+ *
  * @param Show Battler Picture When Acting
  * @desc Eval. Show battler picture when acting Default: true
  * @default true
- * 
+ *
  * @param Battler Picture X
  * @desc Eval. Default: (battleStatusWindow.x + battleStatusWindow.standardPadding() + rect.x) + (rect.width / 2) - (this.bitmap.width / 2)
  * @default (battleStatusWindow.x + battleStatusWindow.standardPadding() + rect.x) + (rect.width / 2) - (this.bitmap.width / 2)
- * 
+ *
  * @param Battler Picture Y
  * @desc Eval. Default: battleStatusWindow.y - this.bitmap.height
  * @default battleStatusWindow.y - this.bitmap.height
- * 
- * @param --Misc--
- * 
+ *
+ * @param --Frontview--
+ *
  * @param Frontview Animations On Top
  * @desc Eval. Animations on actors in frontview appear above battle hud instead of below. Default: false
  * @default false
  * 
- * @param Center Animations and Popups On Face
- * @desc Eval. Whether to center animations and popups on face when using frontview. Default: false
- * @default false
+ * @param Frontview Actor Sprite X
+ * @desc Eval. Actor Sprite X in Frontview. Affects where animations on actor are. Default: statusWindow.x + statusWindow.standardPadding() + rect.x + (rect.width / 2)
+ * @default statusWindow.x + statusWindow.standardPadding() + rect.x + (rect.width / 2)
+ * 
+ * @param Frontview Actor Sprite Y
+ * @desc Eval. Actor Sprite X in Frontview. Affects where animations on actor are. Default: statusWindow.y + statusWindow.standardPadding() + rect.y + (rect.height / 2) + (this.height / 2)
+ * @default statusWindow.y + statusWindow.standardPadding() + rect.y + (rect.height / 2) + (this.height / 2)
  * 
  * @param --Quick Settings--
+ *
+ * @param Center Animations and Popups On Face
+ * @desc Eval. Overrides Frontview Actor Sprite X & Y to be centered on face.  Default: false
+ * @default false
+ * 
+ * @param Center Animations and Popups On Battler Pic
+ * @desc Eval. Overrides Frontview Actor Sprite X & Y to be centered on battler pic.  Default: false
+ * @default false
  * 
  * @param DreamX Setup Suggestion
  * @desc Overrides several parameters Default: false
  * @default false
  * 
+ 
+ *
  * @help
  * ============================================================================
  * Actor Notetags
  * ============================================================================
- * <HideBattleStatusHp> will hide the hp gauge from the battle status window 
+ * <HideBattleStatusHp> will hide the hp gauge from the battle status window
  * for the actor.
- * 
- * <HideBattleStatusMp> will hide the mp gauge from the battle status window 
+ *
+ * <HideBattleStatusMp> will hide the mp gauge from the battle status window
  * for the actor.
- * 
- * <HideBattleStatusTp> will hide the tp gauge from the battle status window 
+ *
+ * <HideBattleStatusTp> will hide the tp gauge from the battle status window
  * for the actor.
- * 
- * <HideBattleStatusAtb> will hide the tp gauge from the battle status window 
+ *
+ * <HideBattleStatusAtb> will hide the tp gauge from the battle status window
  * for the actor.
- * 
+ *
  * <BattlerPicture: x> will use x as the actor's picture. See parameters.
  * ============================================================================
  * Tips
  * ============================================================================
- * Other Yanfly plugins like Core Engine, Buffs State Core and of course 
- * Battle Status will change how the battle hud looks like. Also look at those 
+ * Other Yanfly plugins like Core Engine, Buffs State Core and of course
+ * Battle Status will change how the battle hud looks like. Also look at those
  * parameters to customize your hud.
- * 
- * The rect variable refers to the entire rectangle. It's best to use this 
+ *
+ * The rect variable refers to the entire rectangle. It's best to use this
  * instead of basicAreaRect, gaugeRect etc if you want to change positioning.
  * ============================================================================
  * DreamX Setup Suggestion Parameter Info
  * ============================================================================
- * This parameter sets up the hud similar to my example screenshot. 
+ * This parameter sets up the hud similar to my example screenshot.
  * It overrides parameters for these things:
- * 
+ *
  * Face X, Width, Height
  * Gauge/Name X, Width
- * 
+ *
  * Name Y
  * HP Gauge Y
  * MP Gauge Y
- * 
+ *
  * Icons X, Y
- * 
+ *
  * Name Alignment
- * 
+ *
  * Adjust Columns set to true in YEP Battle Status Window
- * 
- * Therefore, you can still use the other parameters to your liking to 
+ *
+ * Therefore, you can still use the other parameters to your liking to
  * customize further.
- * 
- * You can also of course individually use the functions provided by this 
+ *
+ * You can also of course individually use the functions provided by this
  * plugin.
  * ============================================================================
  * Terms Of Use
@@ -765,6 +817,7 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     var paramActorCommandVisRows = String(parameters['Actor Command Visible Rows']);
     var paramActorCommandItemWidth = String(parameters['Actor Command Item Width']);
     var paramActorCommandItemHeight = String(parameters['Actor Command Item Height']);
+    var paramActorCommandOpacity = String(parameters['Actor Command Opacity']);
 
     var paramPartyCommandX = String(parameters['Party Command X']);
     var paramPartyCommandY = String(parameters['Party Command Y']);
@@ -775,6 +828,7 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     var paramPartyCommandVisRows = String(parameters['Party Command Visible Rows']);
     var paramPartyCommandItemWidth = String(parameters['Party Command Item Width']);
     var paramPartyCommandItemHeight = String(parameters['Party Command Item Height']);
+    var paramPartyCommandOpacity = String(parameters['Party Command Opacity']);
 
     var paramBattleSkillX = String(parameters['Battle Skill X']);
     var paramBattleSkillY = String(parameters['Battle Skill Y']);
@@ -784,6 +838,7 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     var paramBattleSkillCols = String(parameters['Battle Skill Columns']);
     var paramBattleSkillItemWidth = String(parameters['Battle Skill Item Width']);
     var paramBattleSkillItemHeight = String(parameters['Battle Skill Item Height']);
+    var paramBattleSkillOpacity = String(parameters['Battle Skill Opacity']);
 
     var paramBattleItemX = String(parameters['Battle Item X']);
     var paramBattleItemY = String(parameters['Battle Item Y']);
@@ -793,17 +848,20 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     var paramBattleItemCols = String(parameters['Battle Item Columns']);
     var paramBattleItemItemWidth = String(parameters['Battle Item Item Width']);
     var paramBattleItemItemHeight = String(parameters['Battle Item Item Height']);
+    var paramBattleItemOpacity = String(parameters['Battle Item Opacity']);
 
     var paramHelpX = String(parameters['Help Window X']);
     var paramHelpY = String(parameters['Help Window Y']);
     var paramHelpW = String(parameters['Help Window Width']);
     var paramHelpH = String(parameters['Help Window Height']);
+    var paramHelpOpacity = String(parameters['Help Window Opacity']);
 
     var paramBLogX = String(parameters['Battle Log X']);
     var paramBLogY = String(parameters['Battle Log Y']);
     var paramBLogW = String(parameters['Battle Log Width']);
     var paramBLogH = String(parameters['Battle Log Height']);
     var paramBLogRegWindowStyle = String(parameters['Battle Log Window Style']);
+    var paramBLogOpacity = String(parameters['Battle Log Window Opacity']);
 
 
     var paramCurrentValueFontSize = String(parameters['Current Value Font Size']);
@@ -835,12 +893,18 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
 
 
 
+    var paramRollingStates = String(parameters['Rolling States']);
+    var paramRollingStatesX = String(parameters['Rolling States X']);
+    var paramRollingStatesY = String(parameters['Rolling States Y']);
+
     var paramFlashCurrentActorRect = String(parameters['Flash Current Actor Rect']);
 
-    //Battle Status Item Width
+    var paramActorSpriteFrontViewX = String(parameters['Frontview Actor Sprite X']);
+    var paramActorSpriteFrontViewY = String(parameters['Frontview Actor Sprite Y']);
 
     var paramTopAnimations = String(parameters['Frontview Animations On Top']);
-    var paramCenterFrontViewSprites = String(parameters['Center Animations and Popups On Face']);
+    var paramCenterFrontViewSprites = eval(parameters['Center Animations and Popups On Face']);
+    var paramCenterFrontViewSpritesOnBPic = eval(parameters['Center Animations and Popups On Battler Pic']);
 
     if (paramDXStyle) {
         paramDrawFaceX = "rect.x";
@@ -869,6 +933,16 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         paramNameAlign = "center";
     }
 
+    if (paramCenterFrontViewSprites) {
+        paramActorSpriteFrontViewX = "statusWindow.x + eval(paramDrawFaceX) + statusWindow.standardPadding() + (ww / 2)";
+        paramActorSpriteFrontViewY = "statusWindow.y + eval(paramDrawFaceY) + statusWindow.standardPadding() + (wh / 2) + (this.height / 2)";
+    }
+
+    if (paramCenterFrontViewSpritesOnBPic) {
+        paramActorSpriteFrontViewX = "currentBattlerSprite ? currentBattlerSprite.x + (currentBattlerSprite.width/2) : 0";
+        paramActorSpriteFrontViewY = "currentBattlerSprite ? currentBattlerSprite.y + (currentBattlerSprite.height/2) + (this.height/2)  : 0";
+    }
+
     //==========================================================================
     // DataManager
     //==========================================================================
@@ -889,11 +963,55 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     //==========================================================================
     // Window_BattleStatus
     //==========================================================================
+    DreamX.Ext_BattleStatusCore.Window_BattleStatus_initialize = Window_BattleStatus.prototype.initialize;
+    Window_BattleStatus.prototype.initialize = function () {
+        DreamX.Ext_BattleStatusCore.Window_BattleStatus_initialize.call(this);
+        this._windowFrameSprite.alpha = paramFrameOpacity;
+        this.opacity = paramWindowOpacity;
+        this.y = eval(paramStatusY);
+        if (eval(paramStatusDummyWindows)) {
+            this.createDummyWindows();
+        }
+        if (eval(paramRollingStates)) {
+            this.createRollingStates();
+        }
+    };
+
     DreamX.Ext_BattleStatusCore.Window_BattleStatus_update = Window_BattleStatus.prototype.update;
     Window_BattleStatus.prototype.update = function () {
         DreamX.Ext_BattleStatusCore.Window_BattleStatus_update.call(this);
         if (!this.active && eval(paramFlashCurrentActorRect)) {
             this._animationCount++;
+        }
+    };
+
+    DreamX.Ext_BattleStatusCore.Window_BattleStatus_refresh = Window_BattleStatus.prototype.refresh;
+    Window_BattleStatus.prototype.refresh = function () {
+        DreamX.Ext_BattleStatusCore.Window_BattleStatus_refresh.call(this);
+        if (!this._rollingStateSprites) {
+            return;
+        }
+        for (var i = 0; i < this._rollingStateSprites.length; i++) {
+            var stateSprite = this._rollingStateSprites[i];
+            var battler = $gameParty.battleMembers()[i];
+            if (battler !== stateSprite.battler()) {
+                stateSprite.setup(battler);
+            }
+        }
+    };
+
+    Window_BattleStatus.prototype.createRollingStates = function () {
+        this._rollingStateSprites = [];
+        for (var i = 0; i < $gameParty.maxBattleMembers(); i++) {
+            var rect = this.itemRect(i);
+            var basicAreaRect = this.basicAreaRect(i);
+            var stateSprite = new Sprite_StateIconActorStatus();
+
+            this._rollingStateSprites.push(stateSprite);
+            stateSprite.x = eval(paramRollingStatesX);
+            stateSprite.y = eval(paramRollingStatesY);
+
+            this.addChild(stateSprite);
         }
     };
 
@@ -918,17 +1036,6 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         }
         this._windowCursorSprite.alpha = cursorOpacity / 255;
         this._windowCursorSprite.visible = this.isOpen();
-    };
-
-    DreamX.Ext_BattleStatusCore.Window_BattleStatus_initialize = Window_BattleStatus.prototype.initialize;
-    Window_BattleStatus.prototype.initialize = function () {
-        DreamX.Ext_BattleStatusCore.Window_BattleStatus_initialize.call(this);
-        this._windowFrameSprite.alpha = paramFrameOpacity;
-        this.opacity = paramWindowOpacity;
-        this.y = eval(paramStatusY);
-        if (eval(paramStatusDummyWindows)) {
-            this.createDummyWindows();
-        }
     };
 
     Window_BattleStatus.prototype.createDummyWindows = function () {
@@ -1081,7 +1188,7 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
             this.drawGauge(eval(paramHpGaugeX), eval(paramHpGaugeY),
                     eval(paramHpGaugeWidth), actor.hpRate(), color1, color2);
         }
-        
+
         if (Imported.YEP_AbsorptionBarrier) {
             if (actor.barrierPoints() > 0) {
                 this.drawBarrierGauge(actor, eval(paramHpGaugeX), eval(paramHpGaugeY), eval(paramHpGaugeWidth));
@@ -1299,6 +1406,7 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         DreamX.Ext_BattleStatusCore.Window_BattleLog_initialize.call(this);
         this.x = eval(paramBLogX);
         this.y = eval(paramBLogY);
+        this.opacity = eval(paramBLogOpacity);
     };
 
     DreamX.Ext_BattleStatusCore.Window_BattleLog_update = Window_BattleLog.prototype.update;
@@ -1307,7 +1415,7 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         if (this._lines.length > 0 && eval(paramBLogRegWindowStyle)) {
             this.opacity = 255;
         } else {
-            this.opacity = 0;
+            this.opacity = eval(paramBLogOpacity);
         }
     };
 
@@ -1329,6 +1437,12 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     //==========================================================================
     // Window_ActorCommand
     //==========================================================================
+    DreamX.Ext_BattleStatusCore.Window_ActorCommand_initialize = Window_ActorCommand.prototype.initialize;
+    Window_ActorCommand.prototype.initialize = function () {
+        DreamX.Ext_BattleStatusCore.Window_ActorCommand_initialize.call(this);
+        this.opacity = eval(paramActorCommandOpacity);
+    };
+
     DreamX.Ext_BattleStatusCore.Window_ActorCommand_update = Window_ActorCommand.prototype.update;
     Window_ActorCommand.prototype.update = function () {
         DreamX.Ext_BattleStatusCore.Window_ActorCommand_update.call(this);
@@ -1353,12 +1467,9 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         this._actorCommandWindow.open();
     };
 
-    Window_ActorCommand.prototype.updatePosition = function () {
+    Window_ActorCommand.prototype.leoX = function (index) {
         var scene = SceneManager._scene;
         var battleStatusWindow = scene._statusWindow;
-        var index = $gameParty.battleMembers().indexOf(BattleManager.actor());
-        var rect = battleStatusWindow.itemRect(index);
-
         var leoIndex = index === $gameParty.battleMembers().length - 1 ? index - 2 : index;
         var leoRect = leoIndex >= 0 ? battleStatusWindow.itemRect(leoIndex) : battleStatusWindow.itemRect(index);
 
@@ -1369,7 +1480,24 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         }
         leoX = Math.max(0, leoX);
         leoX = Math.min(Graphics.boxWidth - this.width, leoX);
+        return leoX;
+    };
+
+    Window_ActorCommand.prototype.leoY = function () {
+        var scene = SceneManager._scene;
+        var battleStatusWindow = scene._statusWindow;
         var leoY = battleStatusWindow.y - this.height;
+        return leoY;
+    };
+
+    Window_ActorCommand.prototype.updatePosition = function () {
+        var scene = SceneManager._scene;
+        var battleStatusWindow = scene._statusWindow;
+        var index = $gameParty.battleMembers().indexOf(BattleManager.actor());
+        var rect = battleStatusWindow.itemRect(index);
+
+        var leoX = this.leoX(index);
+        var leoY = this.leoY();
 
         this.x = eval(paramActorCommandX);
         this.y = eval(paramActorCommandY);
@@ -1411,6 +1539,7 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         DreamX.Ext_BattleStatusCore.Window_PartyCommand_initialize.call(this);
         this.x = eval(paramPartyCommandX);
         this.y = eval(paramPartyCommandY);
+        this.opacity = eval(paramPartyCommandOpacity);
     };
 
     Window_PartyCommand.prototype.windowWidth = function () {
@@ -1563,6 +1692,7 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         this._skillWindow.y = eval(paramBattleSkillY);
         this._skillWindow.width = eval(paramBattleSkillW);
         this._skillWindow.height = eval(paramBattleSkillH);
+        this._skillWindow.opacity = eval(paramBattleSkillOpacity);
         this._skillWindow.createContents();
     };
 
@@ -1573,6 +1703,7 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         this._itemWindow.y = eval(paramBattleItemY);
         this._itemWindow.width = eval(paramBattleItemW);
         this._itemWindow.height = eval(paramBattleItemH);
+        this._itemWindow.opacity = eval(paramBattleItemOpacity);
         this._itemWindow.createContents();
     };
 
@@ -1583,8 +1714,19 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         this._helpWindow.y = eval(paramHelpY);
         this._helpWindow.width = eval(paramHelpW);
         this._helpWindow.height = eval(paramHelpH);
+        this._helpWindow.opacity = eval(paramHelpOpacity);
         this._helpWindow.createContents();
     };
+
+//    DreamX.Ext_BattleStatusCore.Scene_Battle_createDisplayObjects = Scene_Battle.prototype.createDisplayObjects;
+//    Scene_Battle.prototype.createDisplayObjects = function () {
+//        DreamX.Ext_BattleStatusCore.Scene_Battle_createDisplayObjects.call(this);
+//        var actorSprites = this._spriteset._actorSprites;
+//        for (var i = 0; i < actorSprites.length; i++) {
+//            var sprite = actorSprites[i];
+//            this.addChild(sprite);
+//        };
+//    };
 
     //==========================================================================
     // Sprite_CurrentBattler
@@ -1673,27 +1815,31 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     //==========================================================================
     // Sprite_Actor
     //==========================================================================
-    Sprite_Actor.prototype.setActorHomeFrontViewCenter = function () {
-
-        var obj = this._faceActorPositionObj;
-        if (obj) {
-            var window = SceneManager._scene._statusWindow;
-
-            var x = (window.x + window.standardPadding() + obj.xOffset)
-                    - this._offsetX;
-            var y = (window.y + window.height) - (window.standardPadding()
-                    + obj.yOffset);
-
-            if (!Imported['VE - Damge Popup']) {
-                x -= this.damageOffsetX();
-                y -= this.damageOffsetY();
-                y += 32;
-            }
-
-            this.setHome(x, y);
-            this.moveToStartPosition();
+    Sprite_Actor.prototype.setActorHomeFrontViewCenter = function (index) {
+        var scene = SceneManager._scene;
+        var statusWindow = scene._statusWindow;
+        if (!statusWindow) {
+            return;
         }
+        var rect = statusWindow.itemRect(index);
+        var currentBattlerSprite;
+
+        var currentBattlerPics = scene._spriteset._currentBattlerSprites;
+        if (currentBattlerPics) {
+            currentBattlerSprite = currentBattlerPics[index];
+        }
+
+        var ww = eval(paramDrawFaceWidth);
+        var wh = eval(paramDrawFaceHeight);
+        // defaults
+        var x = eval(paramActorSpriteFrontViewX);
+        var y = eval(paramActorSpriteFrontViewY);
+
+        this.setHome(x, y);
+        this.moveToStartPosition();
     };
+
+
 
     //==========================================================================
     // Sprite_Battler
@@ -1783,11 +1929,11 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     DreamX.Ext_BattleStatusCore.Spriteset_Battle_updateActors = Spriteset_Battle.prototype.updateActors;
     Spriteset_Battle.prototype.updateActors = function () {
         DreamX.Ext_BattleStatusCore.Spriteset_Battle_updateActors.call(this);
-        if ($gameSystem.isSideView() || !eval(paramCenterFrontViewSprites)) {
+        if ($gameSystem.isSideView()) {
             return;
         }
         for (var i = 0; i < this._actorSprites.length; i++) {
-            this._actorSprites[i].setActorHomeFrontViewCenter();
+            this._actorSprites[i].setActorHomeFrontViewCenter(i);
         }
     };
 
@@ -1810,6 +1956,17 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         }
     };
 
+//==========================================================================
+// Spriteset_Battle
+//==========================================================================
+    function Sprite_StateIconActorStatus() {
+        this.initialize.apply(this, arguments);
+    }
 
+    Sprite_StateIconActorStatus.prototype = Object.create(Sprite_StateIcon.prototype);
+    Sprite_StateIconActorStatus.prototype.constructor = Sprite_StateIconActorStatus;
 
+    Sprite_StateIconActorStatus.prototype.battler = function () {
+        return this._battler;
+    };
 })();
