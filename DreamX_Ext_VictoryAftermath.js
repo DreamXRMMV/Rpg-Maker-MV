@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.4b Perform actions like messages during Victory Aftermath
+ * @plugindesc v1.4c Perform actions like messages during Victory Aftermath
  * @author DreamX
  *
  * @param Always Use VX-Ace Style EXP Window
@@ -398,6 +398,7 @@ DreamX.VictoryAftermath = DreamX.VictoryAftermath || {};
             if (currentPriority === highestPriority) {
                 priorityEffects.push(currentEffect);
             } else if (currentPriority > highestPriority) {
+                highestPriority = currentPriority;
                 priorityEffects = [];
                 priorityEffects.push(currentEffect);
             }
