@@ -53,7 +53,7 @@
  * @default Yanfly.Param.BECCommandRows || 4
  *
  * @param Battle Status Spacing
- * @desc Eval. Default: 0
+ * @desc Eval. Horizontal spacing between status rectangles. Default: 0
  * @default 0
  *
  * @param Battle Status Dummy Windows
