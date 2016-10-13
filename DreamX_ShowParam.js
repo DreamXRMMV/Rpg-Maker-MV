@@ -1,6 +1,6 @@
 /*:
- * @plugindesc v0.3
- *
+ * @plugindesc v0.4
+ * 
  * @param --Status Menu Core--
  *
  * @param General Parameters
@@ -154,6 +154,15 @@
  * For Parameter "General Parameters", use lo or hi after each parameter to
  * designate whether is displayed with a long box or a short one.
  * ============================================================================
+ * AP Blocking
+ * ============================================================================
+ * If you use AP Blocking, you can display parameters from it using these 
+ * keywords:
+ * 
+ * phyb - physical block
+ * magb - magic block
+ * cerb - certain block
+ * ============================================================================
  * Terms Of Use
  * ============================================================================
  * Free to use and modify for commercial and noncommercial games, with credit.
@@ -220,6 +229,18 @@ DreamX.ShowParam = DreamX.ShowParam || {};
 
     DreamX.ShowParam.defSParamStr = function () {
         return ["tgr", "grd", "rec", "pha", "mcr", "tcr", "pdr", "mdr", "fdr", "exr"];
+    };
+
+    DreamX.ShowParam.percentParamText = function (paramId, text) {
+
+        var xParamIndex = DreamX.ShowParam.defXParamStr().indexOf(paramId);
+        var sParamIndex = DreamX.ShowParam.defSParamStr().indexOf(paramId);
+
+        if ((xParamIndex !== -1 || sParamIndex !== -1) && paramShowXSParamsPercent) {
+            text = (text * 100) + "%";
+        }
+
+        return text;
     };
 
     DreamX.ShowParam.TextManager_param = TextManager.param;
@@ -300,6 +321,19 @@ DreamX.ShowParam = DreamX.ShowParam || {};
             case "exr":
                 return paramExrName;
                 break;
+            case "exr":
+                return paramExrName;
+                break;
+                // AP Block
+            case "phyb":
+                return APPhyBlockRateName;
+                break;
+            case "magb":
+                return APMagBlockRateName;
+                break;
+            case "cerb":
+                return APCerBlockRateName;
+                break;
         }
 
         return DreamX.ShowParam.TextManager_param.call(this, paramId);
@@ -344,9 +378,6 @@ DreamX.ShowParam = DreamX.ShowParam || {};
                 this.changeTextColor(this.systemColor());
                 this.drawText(TextManager.param(param), dx + 4, dy, dw - 4);
                 text = Yanfly.Util.toGroup(this._actor.param(param));
-
-
-
                 this.changeTextColor(this.normalColor());
                 dw2 = dw * rate;
                 this.drawText(text, dx, dy, dw2 - 4, 'right');
@@ -514,6 +545,7 @@ DreamX.ShowParam = DreamX.ShowParam || {};
                     paramNameText = TextManager.level;
                     paramValueText = Yanfly.Util.toGroup(this._actor.level);
                 }
+                paramValueText = parseFloat(parseFloat(paramValueText).toFixed(4));
 
                 paramValueText = DreamX.ShowParam.percentParamText(param, paramValueText);
 
@@ -586,6 +618,7 @@ DreamX.ShowParam = DreamX.ShowParam || {};
             return paramValue;
         }
 
+        // Quasi Params
         if (Imported.Quasi_ParamsPlus) {
             var qParamIndex = 0;
             QuasiParams._custom.forEach(function (qParam) {
@@ -595,6 +628,15 @@ DreamX.ShowParam = DreamX.ShowParam || {};
                 qParamIndex++;
             });
             paramValue = parseInt(QuasiParams.equipParamsPlus(item)[qParamIndex + 17]);
+        }
+
+        switch (param) {
+            case "phyb":
+                break;
+            case "magb":
+                break;
+            case "cerb":
+                break;
         }
 
         if (paramValue) {
@@ -629,7 +671,7 @@ DreamX.ShowParam = DreamX.ShowParam || {};
 
                 this.changeTextColor(this.paramchangeTextColor(paramValue));
                 var text = Yanfly.Util.toGroup(paramValue);
-
+                text = parseFloat(parseFloat(text).toFixed(4));
                 text = DreamX.ShowParam.percentParamText(param, text);
 
                 if (paramValue >= 0)
@@ -678,24 +720,12 @@ DreamX.ShowParam = DreamX.ShowParam || {};
             this.changeTextColor(this.paramchangeTextColor(change));
 
             var text = (change > 0 ? '+' : '') + Yanfly.Util.toGroup(change);
-
+            text = parseFloat(parseFloat(text).toFixed(4));
             text = DreamX.ShowParam.percentParamText(param, change);
 
             this.drawText(text, rect.x, rect.y, rect.width, 'right');
         };
     }
-
-    DreamX.ShowParam.percentParamText = function (paramId, text) {
-
-        var xParamIndex = DreamX.ShowParam.defXParamStr().indexOf(paramId);
-        var sParamIndex = DreamX.ShowParam.defSParamStr().indexOf(paramId);
-
-        if ((xParamIndex !== -1 || sParamIndex !== -1) && paramShowXSParamsPercent) {
-            text = (text * 100) + "%";
-        }
-
-        return text;
-    };
 
     if (Imported.YEP_EquipCore) {
         Window_StatCompare.prototype.DXParams = function () {
@@ -716,7 +746,7 @@ DreamX.ShowParam = DreamX.ShowParam || {};
             x -= this._paramValueWidth * 2 + this._arrowWidth + this._bonusValueWidth;
             this.resetTextColor();
             var actorparam = this._actor.param(paramId);
-
+            actorparam = parseFloat(parseFloat(actorparam).toFixed(4));
             actorparam = DreamX.ShowParam.percentParamText(paramId, actorparam);
 
             this.drawText(actorparam, x, y, this._paramValueWidth, 'right');
@@ -730,7 +760,7 @@ DreamX.ShowParam = DreamX.ShowParam || {};
             var newValue = this._tempActor.param(paramId);
             var diffvalue = newValue - this._actor.param(paramId);
             var actorparam = Yanfly.Util.toGroup(newValue);
-
+            actorparam = parseFloat(parseFloat(actorparam).toFixed(4));
             actorparam = DreamX.ShowParam.percentParamText(paramId, actorparam);
 
             this.changeTextColor(this.paramchangeTextColor(diffvalue));
@@ -766,11 +796,15 @@ DreamX.ShowParam = DreamX.ShowParam || {};
                 this.changeTextColor(this.paramchangeTextColor(paramValue));
 
                 var text = Yanfly.Util.toGroup(paramValue);
-                if (paramValue >= 0)
+                if (paramValue >= 0) {
                     text = '+' + text;
-                if (text === '+0')
-                    this.changePaintOpacity(false);
+                }
 
+                if (text === '+0') {
+                    this.changePaintOpacity(false);
+                }
+
+                text = parseFloat(parseFloat(text).toFixed(4));
                 text = DreamX.ShowParam.percentParamText(param, text);
                 this.drawText(text, dx, rect.y, dw, 'right');
                 this.changePaintOpacity(true);
@@ -863,6 +897,7 @@ DreamX.ShowParam = DreamX.ShowParam || {};
             } else {
                 var text = Yanfly.Util.toGroup(this._actor._preVictoryParams[index]);
             }
+            text = parseFloat(parseFloat(text).toFixed(4));
             text = DreamX.ShowParam.percentParamText(index, text);
 
             this.drawText(text, x, y, this._paramValueWidth, 'right');
@@ -880,6 +915,7 @@ DreamX.ShowParam = DreamX.ShowParam || {};
                 var diffvalue = newValue - this._actor._preVictoryParams[index];
             }
             var text = Yanfly.Util.toGroup(newValue);
+            text = parseFloat(parseFloat(text).toFixed(4));
             text = DreamX.ShowParam.percentParamText(index, text);
             this.changeTextColor(this.paramchangeTextColor(diffvalue));
             this.drawText(text, x, y, this._paramValueWidth, 'right');
