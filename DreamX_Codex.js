@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.0
+ * @plugindesc v1.1
  * @author DreamX
  * 
  * @param --Json Options--
@@ -842,7 +842,11 @@ Window_CodexHelp.prototype.setText = function (data) {
     }
 
     if (eval(data.pictureUnderContents)) {
-        this.addChildAt(this._picture, this.children.indexOf(this._windowContentsSprite));
+        var picIndex = this.children.indexOf(this._picture);
+        var contentsIndex = this.children.indexOf(this._windowContentsSprite);
+        if (picIndex > contentsIndex) {
+            this.addChildAt(this._picture, this.children.indexOf(this._windowContentsSprite));
+        }
     } else {
         this.addChild(this._picture);
     }
