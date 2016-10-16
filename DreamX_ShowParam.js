@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v0.4
+ * @plugindesc v0.4a
  * 
  * @param --Status Menu Core--
  *
@@ -50,6 +50,12 @@
  * @param Level Up Parameters (Victory Aftermath)
  * @desc Parameters to show when equipping in this order. Default: lvl 0 1 2 3 4 5 6 7
  * @default lvl 0 1 2 3 4 5 6 7
+ * 
+ * @param --In Battle Status--
+ *
+ * @param In Battle Status Parameters
+ * @desc Parameters to show in battle status in this order. Default: 2 3 4 5 6 7
+ * @default 2 3 4 5 6 7
  *
  * @param --Text Manager--
  *
@@ -196,6 +202,7 @@ DreamX.ShowParam = DreamX.ShowParam || {};
 
     var paramShopInfoParams = String(parameters['Shop Info Parameters']).split(" ");
     var paramShopStatusParams = String(parameters['Shop Status Parameters']).split(" ");
+    var paramInBattleStatusParams = String(parameters['In Battle Status Parameters']).split(" ");
 
     var paramHitName = String(parameters['hit Name']);
     var paramEvaName = String(parameters['eva Name']);
@@ -644,6 +651,48 @@ DreamX.ShowParam = DreamX.ShowParam || {};
         }
         return 0;
     };
+
+    if (Imported.YEP_X_InBattleStatus) {
+        Window_InBattleStatus.prototype.DXParams = function () {
+            return DreamX.ShowParam.DXParams(paramInBattleStatusParams);
+        };
+
+        Window_InBattleStatus.prototype.refresh = function () {
+            this.contents.clear();
+            if (!this._battler)
+                return;
+            var x = this.standardPadding() + eval(Yanfly.Param.IBSStatusListWidth);
+            this.drawActorFace(this._battler, x, 0, Window_Base._faceWidth);
+            var x2 = x + Window_Base._faceWidth + this.standardPadding();
+            var w = this.contents.width - x2;
+            this.drawActorSimpleStatus(this._battler, x2, 0, w);
+            w = this.contents.width - x;
+            var y = Math.ceil(this.lineHeight() * 4.5);
+            var h = this.contents.height - y;
+            var params = this.DXParams();
+
+            if (h >= this.lineHeight() * 6) {
+                for (var i = 0; i < params.length; ++i) {
+                    var param = params[i];
+                    this.drawParam(param, x, y, w, this.lineHeight());
+                    y += this.lineHeight();
+                }
+            } else {
+                w = Math.floor(w / 2);
+                x2 = x;
+                for (var i = 0; i < params.length; ++i) {
+                    var param = params[i];
+                    this.drawParam(param, x2, y, w, this.lineHeight());
+                    if (i % 2 === 0) {
+                        x2 += w;
+                    } else {
+                        x2 = x;
+                        y += this.lineHeight();
+                    }
+                }
+            }
+        };
+    }
 
     if (Imported.YEP_ShopMenuCore) {
         Window_ShopInfo.prototype.DXParams = function () {
