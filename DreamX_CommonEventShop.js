@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.3a
+ * @plugindesc v1.4
  * @author DreamX
  * 
  * @param Default Cost
@@ -546,7 +546,7 @@ Window_CommonEventShopBuy.prototype.drawItemName = function (item, x, y, width) 
     }
     var iconBoxWidth = Window_Base._iconWidth + 4;
     this.drawIcon(item.iconIndex, x + 2, y + 2);
-    this.drawText(item.name, x + iconBoxWidth, y, width - iconBoxWidth);
+    this.drawTextEx(item.name, x + iconBoxWidth, y, width - iconBoxWidth);
 };
 
 function Window_CommonEventShopCommand() {
@@ -623,6 +623,18 @@ function Window_CommonEventShopNumber() {
 Window_CommonEventShopNumber.prototype = Object.create(Window_ShopNumber.prototype);
 Window_CommonEventShopNumber.prototype.constructor = Window_CommonEventShopNumber;
 
+Window_CommonEventShopNumber.prototype.refresh = function() {
+    this.contents.clear();
+    this.drawItemName(this._item, 0, this.itemY());
+//    this.drawMultiplicationSign();
+//    this.drawNumber();
+    this.drawTotalPrice();
+};
+
+Window_CommonEventShopNumber.prototype.cursorWidth = function() {
+    return 0;
+};
+
 Window_CommonEventShopNumber.prototype.createButtons = function () {
     var bitmap = ImageManager.loadSystem('ButtonSet');
     var buttonWidth = 48;
@@ -648,7 +660,7 @@ Window_CommonEventShopNumber.prototype.drawItemName = function (item, x, y, widt
         var iconBoxWidth = Window_Base._iconWidth + 4;
         this.resetTextColor();
         this.drawIcon(item.iconIndex, x + 2, y + 2);
-        this.drawText(item.name, x + iconBoxWidth, y, width - iconBoxWidth);
+        this.drawTextEx(item.name, x + iconBoxWidth, y, width - iconBoxWidth);
     }
 };
 
