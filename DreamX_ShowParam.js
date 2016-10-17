@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v0.4a
+ * @plugindesc v0.4b
  * 
  * @param --Status Menu Core--
  *
@@ -692,6 +692,26 @@ DreamX.ShowParam = DreamX.ShowParam || {};
                 }
             }
         };
+
+        Window_InBattleStatus.prototype.drawParam = function (paramId, dx, dy, dw, dh) {
+            this.drawDarkRect(dx, dy, dw, dh);
+            var level = this._battler._buffs[paramId];
+            var icon = this._battler.buffIconIndex(level, paramId);
+            this.drawIcon(icon, dx + 2, dy + 2);
+            dx += Window_Base._iconWidth + 4;
+            dw -= Window_Base._iconWidth + 4 + this.textPadding() + 2;
+            this.changeTextColor(this.systemColor());
+            this.drawText(TextManager.param(paramId), dx, dy, dw);
+            var value = this._battler.param(paramId);
+            this.changeTextColor(this.paramchangeTextColor(level));
+
+            var text = Yanfly.Util.toGroup(value);
+            text = parseFloat(parseFloat(text).toFixed(4));
+            text = DreamX.ShowParam.percentParamText(paramId, text);
+
+            this.drawText(text, dx, dy, dw, 'right');
+        };
+
     }
 
     if (Imported.YEP_ShopMenuCore) {
