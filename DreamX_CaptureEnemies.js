@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.8a Capture enemies 
+ * @plugindesc v1.8b Capture enemies 
  * 
  * <DreamX Capture Enemies>
  * @author DreamX
@@ -514,7 +514,7 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         CapturedEnemy.baseActorId = actorId;
 
         // give a new starting level
-        CapturedEnemy.initialLevel = level;
+        CapturedEnemy.initialLevel = parseInt(level);
 
         DataManager._capturedActors.push(CapturedEnemy);
         $dataActors.push(CapturedEnemy);
