@@ -628,6 +628,10 @@
  * @desc Eval. Animations on actors in frontview appear above battle hud instead of below. Default: false
  * @default false
  * 
+ * @param Prevent Frontview Sprite Move
+ * @desc Eval. Prevents this plugin from moving the frontview sprites, enabling you to use the settings from other plugins. Default: false
+ * @default false
+ * 
  * @param Frontview Actor Sprite X
  * @desc Eval. Actor Sprite X in Frontview. Affects where animations on actor are. Default: statusWindow.x + statusWindow.standardPadding() + rect.x + (rect.width / 2)
  * @default statusWindow.x + statusWindow.standardPadding() + rect.x + (rect.width / 2)
@@ -799,6 +803,7 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     var paramIconsHeight = String(parameters['Icons Height']);
 
     var paramActorCommandCloseSelect = String(parameters['Actor Command Close When Selecting']);
+    var paramFrontViewSpriteMovePrevent = String(parameters['Prevent Frontview Sprite Move']);
 
 
 
@@ -1905,23 +1910,18 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     //==========================================================================
     // Spriteset_Battle
     //==========================================================================
-    DreamX.Ext_BattleStatusCore.Spriteset_Battle_createActors = Spriteset_Battle.prototype.createActors;
-    Spriteset_Battle.prototype.createActors = function () {
-        DreamX.Ext_BattleStatusCore.Spriteset_Battle_createActors.call(this);
+    DreamX.Ext_BattleStatusCore.Scene_Base_createWindowLayer = Scene_Base.prototype.createWindowLayer;
+    Scene_Base.prototype.createWindowLayer = function () {
+        DreamX.Ext_BattleStatusCore.Scene_Base_createWindowLayer.call(this);
         if (!$gameSystem.DXIsAboveBattleStatus()) {
             return;
         }
 
-        var sprites = this._actorSprites;
-
-        if (!sprites) {
-            return;
-        }
-
         var scene = SceneManager._scene;
-        var spriteset = this;
+        var spriteset = scene._spriteset;
+        var sprites = spriteset._actorSprites;
+
         sprites.forEach(function (sprite) {
-            spriteset._battleField.removeChild(sprite);
             scene.addChild(sprite);
         });
     };
@@ -1929,7 +1929,7 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     DreamX.Ext_BattleStatusCore.Spriteset_Battle_updateActors = Spriteset_Battle.prototype.updateActors;
     Spriteset_Battle.prototype.updateActors = function () {
         DreamX.Ext_BattleStatusCore.Spriteset_Battle_updateActors.call(this);
-        if ($gameSystem.isSideView()) {
+        if ($gameSystem.isSideView() || eval(paramFrontViewSpriteMovePrevent)) {
             return;
         }
         for (var i = 0; i < this._actorSprites.length; i++) {
@@ -1969,4 +1969,5 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     Sprite_StateIconActorStatus.prototype.battler = function () {
         return this._battler;
     };
+
 })();
