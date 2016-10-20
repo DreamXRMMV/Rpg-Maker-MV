@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.5
+ * @plugindesc v1.5a
  * @author DreamX
  *
  * @param --General Status--
@@ -1920,6 +1920,10 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         var scene = SceneManager._scene;
         var spriteset = scene._spriteset;
         var sprites = spriteset._actorSprites;
+        
+        if (!sprites) {
+            return;
+        }
 
         sprites.forEach(function (sprite) {
             scene.addChild(sprite);
