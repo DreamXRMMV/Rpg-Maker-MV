@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.5a
+ * @plugindesc v1.5b
  * @author DreamX
  *
  * @param --General Status--
@@ -1911,7 +1911,7 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     // Spriteset_Battle
     //==========================================================================
     DreamX.Ext_BattleStatusCore.Scene_Base_createWindowLayer = Scene_Base.prototype.createWindowLayer;
-    Scene_Base.prototype.createWindowLayer = function () {
+    Scene_Battle.prototype.createWindowLayer = function () {
         DreamX.Ext_BattleStatusCore.Scene_Base_createWindowLayer.call(this);
         if (!$gameSystem.DXIsAboveBattleStatus()) {
             return;
