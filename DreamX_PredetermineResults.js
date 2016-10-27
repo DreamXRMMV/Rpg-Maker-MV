@@ -31,7 +31,6 @@ DreamX.CalcResultBeforeAnim = DreamX.CalcResultBeforeAnim || {};
 
     DreamX.CalcResultBeforeAnim.Game_Battler_result = Game_Battler.prototype.result;
     Game_Battler.prototype.result = function () {
-        DreamX.CalcResultBeforeAnim.Game_Battler_result.call(this);
         if (!this._result) {
             return {};
         }
