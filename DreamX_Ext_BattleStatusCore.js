@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.5b
+ * @plugindesc v1.6
  * @author DreamX
  *
  * @param --General Status--
@@ -71,7 +71,35 @@
  * @param Flash Current Actor Rect
  * @desc Whether to have a flashing cursor on rect of current actor. Default: false
  * @default false
- *
+ * 
+ * @param Battle Status Dim Window
+ * @desc Whether to have a dim window. Good idea to use 0 for opacity parameter if true. Default: false
+ * @default false
+ * 
+ * @param Allow Switch Actor With Directional Buttons
+ * @desc Allows switching actors in default battle system with directional buttons. Default: true
+ * @default true
+ 
+ * @param Allow Left To Party Command
+ * @desc Allows pressing left to go to party command. Default: true
+ * @default true
+ * 
+ * @param Allow Cancel To Party Command
+ * @desc Allows pressing cancel to go to party command. Default: true
+ * @default true
+ * 
+ * @param Allow Cancel Actor Command
+ * @desc Allows canceling actor command with cancel. Default: true
+ * @default true
+ * 
+ * @param Allow Right To Actor Command
+ * @desc Allows switching to actor command with right button. Default: true
+ * @default true
+ * 
+ * @param Allow Right To Confirm Turn
+ * @desc Allows confirming turns when pressing right. Default: true
+ * @default true
+ * 
  * @param --Status Faces--
  *
  * @param Draw Face
@@ -417,6 +445,10 @@
  * @param Party Command Opacity
  * @desc Eval. Default: 255
  * @default 255
+ * 
+ * @param Party Command Dim Window
+ * @desc Whether to have a dim window. Good idea to use 0 for opacity parameter if true. Default: false
+ * @default false
  *
  * @param --Actor Command Window--
  *
@@ -463,6 +495,10 @@
  * @param Actor Command Opacity
  * @desc Eval. Default: 255
  * @default 255
+ * 
+ * @param Actor Command Dim Window
+ * @desc Whether to have a dim window. Good idea to use 0 for opacity parameter if true. Default: false
+ * @default false
  *
  * @param --Battle Skill Window--
  *
@@ -501,6 +537,10 @@
  * @param Battle Skill Opacity
  * @desc Eval. Default: 255
  * @default 255
+ * 
+ * @param Battle Skill Dim Window
+ * @desc Whether to have a dim window. Good idea to use 0 for opacity parameter if true. Default: false
+ * @default false
  *
  * @param --Battle Item Window--
  *
@@ -539,6 +579,10 @@
  * @param Battle Item Opacity
  * @desc Eval. Default: 255
  * @default 255
+ * 
+ * @param Battle Item Dim Window
+ * @desc Whether to have a dim window. Good idea to use 0 for opacity parameter if true. Default: false
+ * @default false
  *
  * @param --Help Window--
  *
@@ -561,6 +605,10 @@
  * @param Help Window Opacity
  * @desc Eval. Default: 255
  * @default 255
+ * 
+ * @param Help Window Dim Window
+ * @desc Whether to have a dim window. Good idea to use 0 for opacity parameter if true. Default: false
+ * @default false
  *
  * @param --Battle Log Window--
  *
@@ -586,6 +634,10 @@
  * 
  * @param Battle Log Window Opacity
  * @desc Eval. Default: 0
+ * @default 0
+ * 
+ * @param Battle Log Window Background Type
+ * @desc 0 - default window, 1 - dimmer, 2 - none Default: 0
  * @default 0
  *
  * @param --Battler Picture--
@@ -813,6 +865,14 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
 
     var paramDXStyle = eval(String(parameters['DreamX Setup Suggestion']));
 
+
+    var paramBattleStatusDim = String(parameters['Battle Status Dim Window']);
+    var paramPartyCommandDim = String(parameters['Party Command Dim Window']);
+    var paramActorCommandDim = String(parameters['Actor Command Dim Window']);
+    var paramBattleSkillDim = String(parameters['Battle Skill Dim Window']);
+    var paramBattleItemDim = String(parameters['Battle Item Dim Window']);
+    var paramHelpDim = String(parameters['Help Window Dim Window']);
+
     var paramActorCommandX = String(parameters['Actor Command X']);
     var paramActorCommandY = String(parameters['Actor Command Y']);
     var paramActorCommandW = String(parameters['Actor Command Width']);
@@ -911,6 +971,19 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     var paramCenterFrontViewSprites = eval(parameters['Center Animations and Popups On Face']);
     var paramCenterFrontViewSpritesOnBPic = eval(parameters['Center Animations and Popups On Battler Pic']);
 
+
+    var paramBattlerPicY = String(parameters['Battler Picture Y']);
+
+    var paramDirButtonSwitchActor = String(parameters['Allow Switch Actor With Directional Buttons']);
+    var paramPressCancelToPartyCommand = String(parameters['Allow Cancel To Party Command']);
+    var paramPressCancelToCancelActorCommand = String(parameters['Allow Cancel Actor Command']);
+    var paramLeftPartyCommand = String(parameters['Allow Left To Party Command']);
+    var paramRightConfirmTurn = String(parameters['Allow Right To Confirm Turn']);
+    var paramRightActorCommand = String(parameters['Allow Right To Actor Command']);
+
+
+
+
     if (paramDXStyle) {
         paramDrawFaceX = "rect.x";
         paramDrawFaceWidth = "144";
@@ -979,6 +1052,9 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         }
         if (eval(paramRollingStates)) {
             this.createRollingStates();
+        }
+        if (eval(paramBattleStatusDim)) {
+            this.showBackgroundDimmer();
         }
     };
 
@@ -1138,7 +1214,7 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         this._enableYBuffer = false;
     };
 
-    Window_Base.prototype.drawCurrentAndMax2 = function (current, max, x, y,
+    Window_BattleStatus.prototype.drawCurrentAndMax2 = function (current, max, x, y,
             width, color1, color2, alignment) {
         var labelWidth = this.textWidth('HP');
         var valueWidth = this.textWidth(Yanfly.Util.toGroup(max));
@@ -1309,6 +1385,8 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         }
     };
 
+
+
     //==========================================================================
     // Window_BattleStatus - DreamX Setup
     //==========================================================================
@@ -1368,6 +1446,14 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     //==========================================================================
     // Window_BattleSkill
     //==========================================================================
+    DreamX.Ext_BattleStatusCore.Window_BattleSkill_initialize = Window_BattleSkill.prototype.initialize;
+    Window_BattleSkill.prototype.initialize = function (x, y, width, height) {
+        DreamX.Ext_BattleStatusCore.Window_BattleSkill_initialize.call(this, x, y, width, height);
+        if (eval(paramBattleSkillDim)) {
+            this.showBackgroundDimmer();
+        }
+    };
+
     Window_BattleSkill.prototype.maxRows = function () {
         return eval(paramBattleSkillRows);
     };
@@ -1387,6 +1473,14 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     //==========================================================================
     // Window_BattleItem
     //==========================================================================
+    DreamX.Ext_BattleStatusCore.Window_BattleItem_initialize = Window_BattleItem.prototype.initialize;
+    Window_BattleItem.prototype.initialize = function (x, y, width, height) {
+        DreamX.Ext_BattleStatusCore.Window_BattleItem_initialize.call(this, x, y, width, height);
+        if (eval(paramBattleItemDim)) {
+            this.showBackgroundDimmer();
+        }
+    };
+
     Window_BattleItem.prototype.maxRows = function () {
         return eval(paramBattleItemRows);
     };
@@ -1446,30 +1540,15 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     Window_ActorCommand.prototype.initialize = function () {
         DreamX.Ext_BattleStatusCore.Window_ActorCommand_initialize.call(this);
         this.opacity = eval(paramActorCommandOpacity);
+        if (eval(paramActorCommandDim)) {
+            this.showBackgroundDimmer();
+        }
     };
 
     DreamX.Ext_BattleStatusCore.Window_ActorCommand_update = Window_ActorCommand.prototype.update;
     Window_ActorCommand.prototype.update = function () {
         DreamX.Ext_BattleStatusCore.Window_ActorCommand_update.call(this);
         this.updatePosition();
-    };
-
-    DreamX.Ext_BattleStatusCore.Scene_Battle_selectEnemySelection = Scene_Battle.prototype.selectEnemySelection;
-    Scene_Battle.prototype.selectEnemySelection = function () {
-        DreamX.Ext_BattleStatusCore.Scene_Battle_selectEnemySelection.call(this);
-        if (!eval(paramActorCommandCloseSelect)) {
-            return;
-        }
-        this._actorCommandWindow.close();
-    };
-
-    DreamX.Ext_BattleStatusCore.Scene_Battle_onEnemyCancel = Scene_Battle.prototype.onEnemyCancel;
-    Scene_Battle.prototype.onEnemyCancel = function () {
-        DreamX.Ext_BattleStatusCore.Scene_Battle_onEnemyCancel.call(this);
-        if (!eval(paramActorCommandCloseSelect)) {
-            return;
-        }
-        this._actorCommandWindow.open();
     };
 
     Window_ActorCommand.prototype.leoX = function (index) {
@@ -1545,6 +1624,9 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         this.x = eval(paramPartyCommandX);
         this.y = eval(paramPartyCommandY);
         this.opacity = eval(paramPartyCommandOpacity);
+        if (eval(paramPartyCommandDim)) {
+            this.showBackgroundDimmer();
+        }
     };
 
     Window_PartyCommand.prototype.windowWidth = function () {
@@ -1669,6 +1751,72 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
     //==========================================================================
     // Scene_Battle
     //==========================================================================
+    DreamX.Ext_BattleStatusCore.Window_Selectable_processCancel = Window_Selectable.prototype.processCancel;
+    Window_ActorCommand.prototype.processCancel = function () {
+        if (!eval(paramPressCancelToPartyCommand) && BattleManager._actorIndex <= 0) {
+            return;
+        }
+        if (!eval(paramPressCancelToCancelActorCommand) && BattleManager._actorIndex > 0) {
+            return;
+        }
+        DreamX.Ext_BattleStatusCore.Window_Selectable_processCancel.call(this);
+    };
+
+    DreamX.Ext_BattleStatusCore.Window_ActorCommand_processLeft = Window_ActorCommand.prototype.processLeft;
+    Window_ActorCommand.prototype.processLeft = function () {
+
+        if (!eval(paramLeftPartyCommand) && BattleManager._actorIndex <= 0) {
+            return;
+        }
+        if (!eval(paramDirButtonSwitchActor) && BattleManager._actorIndex > 0) {
+            return;
+        }
+        DreamX.Ext_BattleStatusCore.Window_ActorCommand_processLeft.call(this);
+    };
+
+    DreamX.Ext_BattleStatusCore.Window_ActorCommand_processRight = Window_ActorCommand.prototype.processRight;
+    Window_ActorCommand.prototype.processRight = function () {
+        var nextActors = $gameParty.members().slice(BattleManager._actorIndex + 1);
+        var hasNextActorThatCanInput = nextActors.some(function (member) {
+            return member.canInput();
+        });
+
+        if (!eval(paramRightConfirmTurn) && !hasNextActorThatCanInput) {
+            return false;
+        }
+        if (!eval(paramDirButtonSwitchActor) && hasNextActorThatCanInput) {
+            return false;
+        }
+
+        DreamX.Ext_BattleStatusCore.Window_ActorCommand_processRight.call(this);
+    };
+
+    DreamX.Ext_BattleStatusCore.Window_PartyCommand_processRight = Window_PartyCommand.prototype.processRight;
+    Window_PartyCommand.prototype.processRight = function () {
+        if (!eval(paramRightActorCommand)) {
+            return;
+        }
+        DreamX.Ext_BattleStatusCore.Window_PartyCommand_processRight.call(this);
+    };
+
+    DreamX.Ext_BattleStatusCore.Scene_Battle_selectEnemySelection = Scene_Battle.prototype.selectEnemySelection;
+    Scene_Battle.prototype.selectEnemySelection = function () {
+        DreamX.Ext_BattleStatusCore.Scene_Battle_selectEnemySelection.call(this);
+        if (!eval(paramActorCommandCloseSelect)) {
+            return;
+        }
+        this._actorCommandWindow.close();
+    };
+
+    DreamX.Ext_BattleStatusCore.Scene_Battle_onEnemyCancel = Scene_Battle.prototype.onEnemyCancel;
+    Scene_Battle.prototype.onEnemyCancel = function () {
+        DreamX.Ext_BattleStatusCore.Scene_Battle_onEnemyCancel.call(this);
+        if (!eval(paramActorCommandCloseSelect)) {
+            return;
+        }
+        this._actorCommandWindow.open();
+    };
+
     Scene_Battle.prototype.updateWindowPositions = function () {
         var statusX = 0;
         if (BattleManager.isInputting()) {
@@ -1721,17 +1869,10 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         this._helpWindow.height = eval(paramHelpH);
         this._helpWindow.opacity = eval(paramHelpOpacity);
         this._helpWindow.createContents();
+        if (eval(paramHelpDim)) {
+            this._helpWindow.showBackgroundDimmer();
+        }
     };
-
-//    DreamX.Ext_BattleStatusCore.Scene_Battle_createDisplayObjects = Scene_Battle.prototype.createDisplayObjects;
-//    Scene_Battle.prototype.createDisplayObjects = function () {
-//        DreamX.Ext_BattleStatusCore.Scene_Battle_createDisplayObjects.call(this);
-//        var actorSprites = this._spriteset._actorSprites;
-//        for (var i = 0; i < actorSprites.length; i++) {
-//            var sprite = actorSprites[i];
-//            this.addChild(sprite);
-//        };
-//    };
 
     //==========================================================================
     // Sprite_CurrentBattler
@@ -1920,7 +2061,7 @@ DreamX.Ext_BattleStatusCore = DreamX.Ext_BattleStatusCore || {};
         var scene = SceneManager._scene;
         var spriteset = scene._spriteset;
         var sprites = spriteset._actorSprites;
-        
+
         if (!sprites) {
             return;
         }
