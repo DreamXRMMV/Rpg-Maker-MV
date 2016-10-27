@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.0 - Utility plugin for plugins that need to have action 
+ * @plugindesc v1.0a - Utility plugin for plugins that need to have action 
  * results available earlier. 
  * @author DreamX
  * @help
@@ -28,6 +28,15 @@ var DreamX = DreamX || {};
 DreamX.CalcResultBeforeAnim = DreamX.CalcResultBeforeAnim || {};
 
 (function () {
+
+    DreamX.CalcResultBeforeAnim.Game_Battler_result = Game_Battler.prototype.result;
+    Game_Battler.prototype.result = function () {
+        DreamX.CalcResultBeforeAnim.Game_Battler_result.call(this);
+        if (!this._result) {
+            return {};
+        }
+        return DreamX.CalcResultBeforeAnim.Game_Battler_result.call(this);
+    };
 
     DreamX.CalcResultBeforeAnim.DataManager_loadDatabase = DataManager.loadDatabase;
     DataManager.loadDatabase = function () {
@@ -66,6 +75,10 @@ DreamX.CalcResultBeforeAnim = DreamX.CalcResultBeforeAnim || {};
     Game_Action.prototype.apply = function (target) {
         target._result = target._preCalculatedResult;
         var result = target.result();
+
+        if (!result) {
+            return;
+        }
 
         if (result.isHit()) {
 
