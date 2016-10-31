@@ -111,16 +111,17 @@ DreamX.GoldVariance.Game_Enemy_gold = Game_Enemy.prototype.gold;
 Game_Enemy.prototype.gold = function () {
     var dataEnemy = this.enemy();
     var gold = DreamX.Param.GoldVarAddBase ? dataEnemy.gold : 0;
+
     var diceRoll = Math.randomInt(100) + 1;
-    
+
     for (var i = 0; i < dataEnemy.goldVarianceChoices.length; i++) {
         var choice = dataEnemy.goldVarianceChoices[i];
 
         if (choice.percent >= diceRoll) {
-            gold += choice.min + Math.randomInt(choice.min - choice.max + 1);
+            var goldChoice = choice.min + Math.randomInt(choice.max - choice.min + 1);
+            gold += goldChoice;
             break;
-        }
-        else {
+        } else {
             diceRoll -= choice.percent;
         }
     }
