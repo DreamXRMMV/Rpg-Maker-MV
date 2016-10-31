@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.1 Adds permadeath.
+ * @plugindesc v1.2 Adds permadeath.
  * @author DreamX
  * 
  * @param Permadeath Switch
@@ -9,6 +9,10 @@
  * @param Disable Leader Permadeath
  * @desc Default: false
  * @default false
+ * 
+ * @param Permadeath Actor Boolean
+ * @desc Sets this variable in the actor object to true when they have died permanently Default: _permaDied
+ * @default _permaDied
  * 
  * @help
  * ============================================================================
@@ -24,6 +28,9 @@
  * variable that when greater than 0, disables permadeath for the actor. 
  * This variable decrements each time the battler dies unless permadeath is 
  * disabled for them otherwise.
+ * 
+ * Use <PermadeathIndicatorSwitch: x> with x as the switch id to specify a 
+ * switch that will be turned on when an actor has permanently died.
  * ============================================================================
  * Terms Of Use
  * ============================================================================
@@ -44,6 +51,7 @@ DreamX.Permadeath = DreamX.Permadeath || {};
     var parameters = PluginManager.parameters('DreamX_Permadeath');
     var paramPermadeathSwitchId = parseInt(parameters['Permadeath Switch']);
     var paramDisableLeaderPermadeath = eval(parameters['Disable Leader Permadeath']);
+    var paramPermadeathActorObjectVar = String(parameters['Permadeath Actor Boolean']);
 
     BattleManager.checkPermadeath = function () {
         if (this._canLose || !paramPermadeathSwitchId
@@ -91,6 +99,12 @@ DreamX.Permadeath = DreamX.Permadeath || {};
 
             var id = battler.actorId();
             $gameParty.removeActor(id);
+            
+            var permadeathIndicatorSwitch = dataBattler.meta.PermadeathIndicatorSwitch;
+            if (permadeathIndicatorSwitch) {
+                $gameSwitches.setValue(parseInt(permadeathIndicatorSwitch.trim()), true);
+            }
+            $gameActors.actor(id)[paramPermadeathActorObjectVar] = true;
         }
     };
 
