@@ -561,6 +561,9 @@ DreamX.RandomEnemyTraits = DreamX.RandomEnemyTraits || {};
         if (Imported.YEP_X_VisualHpGauge) {
             DataManager.processVHGNotetags(processArray);
         }
+        if (Imported.DreamX_GoldVariance) {
+            DataManager.processDatasetGoldVarianceTags(processArray);
+        }
     };
 
     DreamX.RandomEnemyTraits.Game_Enemy_setup = Game_Enemy.prototype.setup;

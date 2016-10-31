@@ -1,6 +1,11 @@
 /*:
- * @plugindesc v1.0 Adds gold variance.
+ * @plugindesc v1.1 Adds gold variance.
  * @author DreamX
+ * 
+ * @param Add Base Gold
+ * @desc Add base (database) gold to randomly chosen value. Default: false
+ * @default false
+ * 
  * @help
  
  If the enemy does not have any correct gold notetags, the
@@ -23,13 +28,8 @@
  <Gold: 50% 1000-1000>
  <Gold: 51% 2000-2000>
  
- In this example, the second notetag will be ignored. In other words, 
- do not exceed 100% in sum with your notetag percents. 
- 
- It is fine, however, not to reach 100% in percent sums. If the sum 
- of the percents is not 100%, there is a chance that the player may 
- not receive any gold. The chance of not receiving gold would be 
- 100% minus the sum of the percents.
+ It is up to make sure that the percents, when added up, are equal to or less 
+ than 100%.
  * ============================================================================
  * Terms Of Use
  * ============================================================================
@@ -44,71 +44,86 @@
 var Imported = Imported || {};
 Imported.DreamX_GoldVariance = true;
 var DreamX = DreamX || {};
+
 DreamX.GoldVariance = DreamX.GoldVariance || {};
 
-(function () {
+DreamX.Parameters = PluginManager.parameters('DreamX_GoldVariance');
+DreamX.Param = DreamX.Param || {};
 
-    DreamX.GoldVariance.Game_Enemy_gold = Game_Enemy.prototype.gold;
-    Game_Enemy.prototype.gold = function () {
-        var variantGoldReward = DreamX.GoldVariance.getGold(this.enemy())
-        if (variantGoldReward !== -1) {
-            return variantGoldReward;
+DreamX.Param.GoldVarAddBase = eval(DreamX.Parameters['Add Base Gold']);
+
+DreamX.GoldVariance.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
+DataManager.isDatabaseLoaded = function () {
+    if (!DreamX.GoldVariance.DataManager_isDatabaseLoaded.call(this))
+        return false;
+    if (!DreamX._loaded_GoldVariance) {
+        this.processDatasetGoldVarianceTags($dataEnemies);
+        Yanfly._loaded_GoldVariance = true;
+    }
+    return true;
+};
+
+DataManager.processElementGoldVarianceTags = function (enemy) {
+    for (var i = 0; i < enemy.goldVarianceChoiceLines.length; i++) {
+        var line = enemy.goldVarianceChoiceLines[i];
+        var lineSplit = line.split(" ");
+
+        var percent = parseInt(lineSplit[0].split("%")[0]);
+        var min = parseInt(lineSplit[1].split("-")[0]);
+        var max = parseInt(lineSplit[1].split("-")[1]);
+
+        enemy.goldVarianceChoices.push({min: min, max: max, percent: percent});
+    }
+
+    enemy.goldVarianceChoices.sort(function (a, b) {
+        // lowest to highest
+        if (a.percent === b.percent) {
+            return Math.randomInt(2) === 0;
+        }
+        return a.percent - b.percent;
+    });
+};
+
+DataManager.processDatasetGoldVarianceTags = function (data) {
+    for (var i = 0; i < data.length; i++) {
+        var enemy = data[i];
+        if (!enemy)
+            continue;
+        enemy.goldVarianceChoiceLines = [];
+        enemy.goldVarianceChoices = [];
+
+        var notedata = enemy.note.split(/[\r\n]+/);
+        for (var j = 0; j < notedata.length; j++) {
+            var line = notedata[j];
+
+            if (line.match(/<(?:Gold):(.*)>/i)) {
+                var goldData = String(RegExp.$1).trim().toLowerCase();
+                enemy.goldVarianceChoiceLines.push(goldData);
+            }
+        }
+
+        this.processElementGoldVarianceTags(enemy);
+    }
+};
+
+
+DreamX.GoldVariance.Game_Enemy_gold = Game_Enemy.prototype.gold;
+Game_Enemy.prototype.gold = function () {
+    var dataEnemy = this.enemy();
+    var gold = DreamX.Param.GoldVarAddBase ? dataEnemy.gold : 0;
+    var diceRoll = Math.randomInt(100) + 1;
+    
+    for (var i = 0; i < dataEnemy.goldVarianceChoices.length; i++) {
+        var choice = dataEnemy.goldVarianceChoices[i];
+
+        if (choice.percent >= diceRoll) {
+            gold += choice.min + Math.randomInt(choice.min - choice.max + 1);
+            break;
         }
         else {
-            return DreamX.GoldVariance.Game_Enemy_gold.call(this);
+            diceRoll -= choice.percent;
         }
-    };
+    }
 
-    DreamX.GoldVariance.getGold = function (enemy) {
-        var correctGoldTags = enemy.note.split("\n").filter(function (note) {
-            return note.match("\<Gold: [0-9]{1,}% [0-9]{1,}-[0-9]{1,}\>");
-        });
-
-        if (correctGoldTags.length <= 0) {
-            return -1;
-        }
-
-        var goldSlots = [];
-        var totalPercentage = 0;
-        correctGoldTags.forEach(function (tag) {
-            var percentage = parseInt(tag.split(" ")[1].split("%")[0]);
-            addPercentage = totalPercentage;
-            if (addPercentage + percentage <= 100) {
-                totalPercentage += percentage;
-                percentage += addPercentage;
-                var low = tag.split(" ")[2].split("-")[0];
-                var high = tag.split(" ")[2].split("-")[1].split("\>")[0];
-                if (parseInt(high) >= parseInt(low)) {
-                    goldSlots.push({percentage: percentage, low: low, high: high});
-                }
-
-            }
-        });
-
-        if (goldSlots.length <= 0) {
-            return -1;
-        }
-
-        var diceRoll = Math.floor((Math.random() * 100) + 1);
-        var gotGoldPrize = false;
-        var prizeIndex;
-
-        if (diceRoll <= goldSlots[goldSlots.length - 1].percentage) {
-            for (i = 0; i < goldSlots.length && !gotGoldPrize; i++) {
-                if (goldSlots[i].percentage >= diceRoll) {
-                    prizeIndex = i;
-                    gotGoldPrize = true;
-                }
-            }
-        }
-
-        if (!gotGoldPrize) {
-            return 0;
-        }
-        if (goldSlots[prizeIndex].high === goldSlots[prizeIndex].low)
-            return goldSlots[prizeIndex].low;
-        return Math.floor((Math.random() * goldSlots[prizeIndex].high)
-                + goldSlots[prizeIndex].low);
-    };
-
-})();
+    return gold;
+};
