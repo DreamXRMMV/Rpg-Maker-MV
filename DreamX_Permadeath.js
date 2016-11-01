@@ -63,6 +63,9 @@ DreamX.Permadeath = DreamX.Permadeath || {};
         }
 
         var leader = $gameParty.leader();
+
+        var actorsToRemove = [];
+
         for (var i = 0; i < $gameParty.battleMembers().length; i++) {
             var battler = $gameParty.battleMembers()[i];
 
@@ -96,16 +99,20 @@ DreamX.Permadeath = DreamX.Permadeath || {};
                     continue;
                 }
             }
+            actorsToRemove.push(battler);
+        }
 
-            var id = battler.actorId();
+        actorsToRemove.forEach(function (actor) {
+            var id = actor.actorId();
+            var dataBattler = actor.actor();
             $gameParty.removeActor(id);
-            
+
             var permadeathIndicatorSwitch = dataBattler.meta.PermadeathIndicatorSwitch;
             if (permadeathIndicatorSwitch) {
                 $gameSwitches.setValue(parseInt(permadeathIndicatorSwitch.trim()), true);
             }
             $gameActors.actor(id)[paramPermadeathActorObjectVar] = true;
-        }
+        });
     };
 
     DreamX.Permadeath.BattleManager_updateBattleEnd = BattleManager.updateBattleEnd;
