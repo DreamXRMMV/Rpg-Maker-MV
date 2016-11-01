@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.2 Adds permadeath.
+ * @plugindesc v1.3 Adds permadeath.
  * @author DreamX
  * 
  * @param Permadeath Switch
