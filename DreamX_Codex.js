@@ -780,7 +780,11 @@ Window_CodexHelp.prototype.initialize = function () {
     this._windowFrameSprite.alpha = eval(DreamX.Param.CodexPrimWindowFrameAlpha);
 
     this._picture = new Sprite();
+
     this.addChild(this._picture);
+
+    this._video = new PIXI.Sprite();
+    this.addChild(this._video);
 };
 
 Window_CodexHelp.prototype.contentsWidth = function () {
@@ -829,6 +833,7 @@ Window_CodexHelp.prototype.setText = function (data) {
     var pictureAnchorX = eval(data.pictureAnchorX || 0);
     var pictureAnchorY = eval(data.pictureAnchorY || 0);
     var contentsWidthEval = eval(data.contentsWidth || DreamX.Param.CodexPrimWindowContentsWidth);
+    var videoName = data.videoName || "";
 
     eval(data.script);
 
@@ -859,8 +864,25 @@ Window_CodexHelp.prototype.setText = function (data) {
     this._picture.x = pictureX;
     this._picture.y = pictureY;
 
+
+    if (videoName) {
+        var url = 'movies/' + videoName + '.webm';
+        var texture = PIXI.Texture.fromVideo(url);
+        var source = texture.baseTexture.source;
+
+        source.loop = eval(data.videoLoop) || false;
+        source.onloadeddata = this.onLoadVideo.bind(this, texture);
+    } else {
+        this._video.visible = false;
+    }
+
     this._text = text;
     this.refresh();
+};
+
+Window_CodexHelp.prototype.onLoadVideo = function (texture) {
+    this._video.visible = true;
+    this._video.texture = texture;
 };
 
 Window_CodexHelp.prototype.refresh = function () {
@@ -902,7 +924,7 @@ Window_CodexSecondaryHelp.prototype.initialize = function () {
     }
 };
 
-Window_Help.prototype.setText = function (data) {
+Window_CodexSecondaryHelp.prototype.setText = function (data) {
     var text = data.textSecondary || '';
 
     if (eval(data.textSecondaryEval)) {
