@@ -193,7 +193,7 @@
  * How To Use
  * ============================================================================
  * The button index in the parameters refers to the spot in the image 
- * that the button graphic should look like.
+ * that the button graphic should look like. The image should be in system folder
  * 
  * The default parameter values were intended for use with Yanfly Equip/Status/Skill 
  * Core menus, but can be changed to fit other configurations.
