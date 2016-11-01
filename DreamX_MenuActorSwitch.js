@@ -303,11 +303,11 @@ Scene_MenuBase.prototype.switchActorButtonFunction = function (left) {
 };
 
 Scene_MenuBase.prototype.onSwitchActorButtonLeft = function () {
-    this.nextActor();
+    this.previousActor();
 };
 
 Scene_MenuBase.prototype.onSwitchActorButtonRight = function () {
-    this.previousActor();
+    this.nextActor();
 };
 
 DreamX.MenuActorSwitch.Scene_Status_create = Scene_Status.prototype.create;
