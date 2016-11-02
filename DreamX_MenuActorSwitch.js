@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.0
+ * @plugindesc v1.1
  * @author DreamX
  * 
  * @param --Status Buttons--
