@@ -193,7 +193,7 @@
  * How To Use
  * ============================================================================
  * The button index in the parameters refers to the spot in the image 
- * that the button graphic should look like. The image should be in system folder
+ * that the button graphic should look like.
  * 
  * The default parameter values were intended for use with Yanfly Equip/Status/Skill 
  * Core menus, but can be changed to fit other configurations.
@@ -304,11 +304,17 @@ Scene_MenuBase.prototype.switchActorButtonFunction = function (left) {
 
 Scene_MenuBase.prototype.onSwitchActorButtonLeft = function () {
     this.previousActor();
+    this.switchActorCleanUp();
 };
 
 Scene_MenuBase.prototype.onSwitchActorButtonRight = function () {
     this.nextActor();
+    this.switchActorCleanUp();
 };
+
+Scene_MenuBase.prototype.switchActorCleanUp = function () {
+};
+
 
 DreamX.MenuActorSwitch.Scene_Status_create = Scene_Status.prototype.create;
 Scene_Status.prototype.create = function () {
@@ -344,6 +350,15 @@ Scene_Status.prototype.switchActorButtonY = function (left) {
     return left ? DreamX.Param.StatusSwitchLeftY : DreamX.Param.StatusSwitchRightY;
 };
 
+Scene_Equip.prototype.switchActorCleanUp = function () {
+    this._windowLayer.children.forEach(function (child) {
+        if (child instanceof Window_Selectable && !(child instanceof Window_EquipCommand)) {
+            child.processCancel();
+        }
+    });
+    this._commandWindow.activate();
+};
+
 DreamX.MenuActorSwitch.Scene_Equip_create = Scene_Equip.prototype.create;
 Scene_Equip.prototype.create = function () {
     DreamX.MenuActorSwitch.Scene_Equip_create.call(this);
@@ -376,6 +391,15 @@ Scene_Equip.prototype.switchActorButtonX = function (left) {
 
 Scene_Equip.prototype.switchActorButtonY = function (left) {
     return left ? DreamX.Param.EquipSwitchLeftY : DreamX.Param.EquipSwitchRightY;
+};
+
+Scene_Skill.prototype.switchActorCleanUp = function () {
+    this._windowLayer.children.forEach(function (child) {
+        if (child instanceof Window_Selectable && !(child instanceof Window_SkillType)) {
+            child.processCancel();
+        }
+    });
+    this._skillTypeWindow.activate();
 };
 
 DreamX.MenuActorSwitch.Scene_Skill_create = Scene_Skill.prototype.create;
