@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.1
+ * @plugindesc v1.2
  * @author DreamX
  * 
  * @param --Status Buttons--
@@ -128,6 +128,10 @@
  * 
  * @param --Skill Buttons--
  *  
+ * @param Hide When Skill Actor Select
+ * @desc Hide buttons when selecting an actor for a skill activation. Default: true
+ * @default true
+ * 
  * @param -Skill Left Button-
  * 
  * @param Skill Left Button Image
@@ -271,6 +275,9 @@ DreamX.Param.SkillSwitchRightX = String(DreamX.Parameters['Skill Right Button X'
 DreamX.Param.SkillSwitchRightY = String(DreamX.Parameters['Skill Right Button Y']);
 DreamX.Param.SkillSwitchRightImage = String(DreamX.Parameters['Skill Right Button Image']);
 
+
+DreamX.Param.SkillHideWhenActivateSelect = String(DreamX.Parameters['Hide When Skill Actor Select']);
+
 Scene_MenuBase.prototype.createSwitchButtons = function () {
     this.addSwitchButton(true);
     this.addSwitchButton(false);
@@ -287,7 +294,7 @@ Scene_MenuBase.prototype.addSwitchButton = function (left) {
     var buttonFunction = this.switchActorButtonFunction(left);
     var bitmap = ImageManager.loadSystem(imageName);
 
-    var button = new Sprite_Button();
+    var button = new Sprite_SwitchActorButton(this);
     button.x = x;
     button.y = y;
 
@@ -356,7 +363,11 @@ Scene_Equip.prototype.switchActorCleanUp = function () {
             child.processCancel();
         }
     });
-    this._commandWindow.activate();
+    this._windowLayer.children.forEach(function (child) {
+        if (child instanceof Window_Selectable && !(child instanceof Window_EquipCommand)) {
+            child.deactivate();
+        }
+    });
 };
 
 DreamX.MenuActorSwitch.Scene_Equip_create = Scene_Equip.prototype.create;
@@ -393,13 +404,29 @@ Scene_Equip.prototype.switchActorButtonY = function (left) {
     return left ? DreamX.Param.EquipSwitchLeftY : DreamX.Param.EquipSwitchRightY;
 };
 
+//-----------------------------------------------------------------------------
+// Scene_Skill
+//
+// The scene class of the skill screen.
+
+//DreamX.MenuActorSwitch.Scene_Skill_createSkillTypeWindow = Scene_Skill.prototype.createSkillTypeWindow;
+//Scene_Skill.prototype.createSkillTypeWindow = function () {
+//    DreamX.MenuActorSwitch.Scene_Skill_createSkillTypeWindow.call(this);
+//    this._skillTypeWindow.setHandler('right', this.nextActor.bind(this));
+//    this._skillTypeWindow.setHandler('left', this.previousActor.bind(this));
+//};
+
 Scene_Skill.prototype.switchActorCleanUp = function () {
     this._windowLayer.children.forEach(function (child) {
         if (child instanceof Window_Selectable && !(child instanceof Window_SkillType)) {
             child.processCancel();
         }
     });
-    this._skillTypeWindow.activate();
+    this._windowLayer.children.forEach(function (child) {
+        if (child instanceof Window_Selectable && !(child instanceof Window_SkillType)) {
+            child.deactivate();
+        }
+    });
 };
 
 DreamX.MenuActorSwitch.Scene_Skill_create = Scene_Skill.prototype.create;
@@ -434,4 +461,36 @@ Scene_Skill.prototype.switchActorButtonX = function (left) {
 
 Scene_Skill.prototype.switchActorButtonY = function (left) {
     return left ? DreamX.Param.SkillSwitchLeftY : DreamX.Param.SkillSwitchRightY;
+};
+
+//-----------------------------------------------------------------------------
+// Sprite_SwitchActorButton
+//
+// The sprite for displaying a button.
+
+function Sprite_SwitchActorButton() {
+    this.initialize.apply(this, arguments);
+}
+
+Sprite_SwitchActorButton.prototype = Object.create(Sprite_Button.prototype);
+Sprite_SwitchActorButton.prototype.constructor = Sprite_SwitchActorButton;
+
+Sprite_SwitchActorButton.prototype.initialize = function (scene) {
+    Sprite_Button.prototype.initialize.call(this);
+    this._scene = scene;
+};
+
+Sprite_SwitchActorButton.prototype.update = function () {
+    Sprite_Button.prototype.update.call(this);
+    this.updateButtonVisibility();
+};
+
+Sprite_SwitchActorButton.prototype.updateButtonVisibility = function () {
+    if (!eval(DreamX.Param.SkillHideWhenActivateSelect)) {
+        return;
+    }
+    if (this._scene instanceof Scene_Skill) {
+        this.visible = !this._scene._actorWindow.active;
+        this.active = !this._scene._actorWindow.active;
+    }
 };
