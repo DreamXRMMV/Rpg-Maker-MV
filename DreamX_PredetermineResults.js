@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.0a - Utility plugin for plugins that need to have action 
+ * @plugindesc v1.0b - Utility plugin for plugins that need to have action 
  * results available earlier. 
  * @author DreamX
  * @help
@@ -28,15 +28,6 @@ var DreamX = DreamX || {};
 DreamX.CalcResultBeforeAnim = DreamX.CalcResultBeforeAnim || {};
 
 (function () {
-
-    DreamX.CalcResultBeforeAnim.Game_Battler_result = Game_Battler.prototype.result;
-    Game_Battler.prototype.result = function () {
-        if (!this._result) {
-            return {};
-        }
-        return DreamX.CalcResultBeforeAnim.Game_Battler_result.call(this);
-    };
-
     DreamX.CalcResultBeforeAnim.DataManager_loadDatabase = DataManager.loadDatabase;
     DataManager.loadDatabase = function () {
         DreamX.CalcResultBeforeAnim.DataManager_loadDatabase.call(this);
@@ -46,12 +37,9 @@ DreamX.CalcResultBeforeAnim = DreamX.CalcResultBeforeAnim || {};
         }
     };
 
-    DreamX.CalcResultBeforeAnim.BattleManager_startAction = BattleManager.startAction;
-    BattleManager.startAction = function () {
-        var subject = this._subject;
-        var action = subject.currentAction();
-        var targets = action.makeTargets();
-
+    DreamX.CalcResultBeforeAnim.Window_BattleLog_startAction = Window_BattleLog.prototype.startAction;
+    Window_BattleLog.prototype.startAction = function (subject, action, targets) {
+        DreamX.CalcResultBeforeAnim.Window_BattleLog_startAction.call(this, subject, action, targets);
         targets.forEach(function (target) {
             target._preCalculatedResult = new Game_ActionResult();
             var result = target._preCalculatedResult;
@@ -68,21 +56,16 @@ DreamX.CalcResultBeforeAnim = DreamX.CalcResultBeforeAnim || {};
             result.weak = action.calcElementRate(target) > 1;
             result.resist = action.calcElementRate(target) < 1;
         });
-        DreamX.CalcResultBeforeAnim.BattleManager_startAction.call(this);
     };
 
     Game_Action.prototype.apply = function (target) {
-        target._result = target._preCalculatedResult;
-        var result = target.result();
+        this.subject()._result = null;
+        this.subject()._result = new Game_ActionResult();
 
-        if (!result) {
-            return;
-        }
-
+        var result = target._preCalculatedResult;
+       
         if (result.isHit()) {
-
             if (this.item().damage.type > 0) {
-
                 this.executeDamage(target, result.predeterminedDamage);
             }
             this.item().effects.forEach(function (effect) {
@@ -98,7 +81,7 @@ DreamX.CalcResultBeforeAnim = DreamX.CalcResultBeforeAnim || {};
                 this.subject().startDamagePopup();
         }
         target._preCalculatedResult = undefined;
-        this.subject().clearResult();
+
     };
 
 })();
