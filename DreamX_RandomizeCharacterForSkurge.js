@@ -54,7 +54,24 @@ DreamX.RandomizeCharacter = DreamX.RandomizeCharacter || {};
 
         var number = Math.floor(Math.random() * paramMax) + 1;
         var index = Math.floor(Math.random() * 8);
-        this.setImage(race + number, index);
+
+        this._randomlyChosenCharacterName = race + number;
+        this._randomlyChosenCharacterIndex = index;
+
+        this.setImage(this._randomlyChosenCharacterName, this._randomlyChosenCharacterIndex);
+    };
+
+    DreamX.RandomizeCharacter.Game_Event_setupPageSettings = Game_Event.prototype.setupPageSettings;
+    Game_Event.prototype.setupPageSettings = function () {
+        var originalDirection = this.direction();
+        DreamX.RandomizeCharacter.Game_Event_setupPageSettings.call(this);
+        var char = this._randomlyChosenCharacterName;
+        var index = this._randomlyChosenCharacterIndex;
+
+        if (char && index !== undefined) {
+            this.setImage(this._randomlyChosenCharacterName, this._randomlyChosenCharacterIndex);
+            //this.setDirection(originalDirection);
+        }
     };
 
     if (Imported.Galv_EventSpawner) {
