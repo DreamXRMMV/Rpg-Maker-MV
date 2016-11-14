@@ -36,11 +36,11 @@
  * @desc Whether to give exp from enemies that were captured. Default: false
  * @default false
  * 
- * @param Duplicate Limit
+ * @param Capture Limit
  * @desc Limit of duplicates of captured enemy 0 - infinite Default: 0
  * @default 0
  * 
- * @param Duplicate Limit Message
+ * @param Capture Limit Message
  * @desc The message to display if player tries to capture an enemy whose limit was reached Default: The limit for %1 has been reached!
  * @default The limit for %1 enemy has been reached!
  * 
@@ -165,9 +165,9 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
             || 0);
     var parameterStartingId = parseInt(parameters['Starting ID']
             || 0);
-    var parameterDuplicateLimit = parseInt(parameters['Duplicate Limit']
+    var parameterDuplicateLimit = parseInt(parameters['Capture Limit']
             || 0);
-    var parameterDuplicateLimitMessage = String(parameters['Duplicate Limit Message']);
+    var parameterDuplicateLimitMessage = String(parameters['Capture Limit Message']);
 
     DreamX.CaptureEnemy.Game_Interpreter_pluginCommand =
             Game_Interpreter.prototype.pluginCommand;
