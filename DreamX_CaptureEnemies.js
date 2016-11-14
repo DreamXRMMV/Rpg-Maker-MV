@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.8b Capture enemies 
+ * @plugindesc v1.10
  * 
  * <DreamX Capture Enemies>
  * @author DreamX
@@ -36,9 +36,16 @@
  * @desc Whether to give exp from enemies that were captured. Default: false
  * @default false
  * 
+ * @param Duplicate Limit
+ * @desc Limit of duplicates of captured enemy 0 - infinite Default: 0
+ * @default 0
+ * 
+ * @param Duplicate Limit Message
+ * @desc The message to display if player tries to capture an enemy whose limit was reached Default: The limit for %1 has been reached!
+ * @default The limit for %1 enemy has been reached!
+ * 
  * @param Level Up Instead of Duplicates
- * @desc Whether to level up a captured enemy instead of creating a duplicate 
- * when capturing the same type. Default: false
+ * @desc Whether to level up a captured enemy when limit is reached. Default: false
  * @default false
  * 
  * @param Use Standard Level Up Message
@@ -71,8 +78,8 @@
  
  Put <capture_actor_id:x> into the notetag of an enemy, with x as the actor id.
  
- Put <capture:1> or <captureRate:x> into the notetag of a skill or item to 
- enable capture. <capture:1> guarantees capture while <captureRate:x> adds 
+ Put <capture> or <captureRate:x> into the notetag of a skill or item to 
+ enable capture. <capture> guarantees capture while <captureRate:x> adds 
  x to the chance of capture.
  
  Put <captureRate:x> in the notetag of an actor to add x to the chance of 
@@ -158,6 +165,9 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
             || 0);
     var parameterStartingId = parseInt(parameters['Starting ID']
             || 0);
+    var parameterDuplicateLimit = parseInt(parameters['Duplicate Limit']
+            || 0);
+    var parameterDuplicateLimitMessage = String(parameters['Duplicate Limit Message']);
 
     DreamX.CaptureEnemy.Game_Interpreter_pluginCommand =
             Game_Interpreter.prototype.pluginCommand;
@@ -259,7 +269,7 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         var partyMember = $gameParty.members().filter(function (member) {
             return member.baseActorId() === baseId;
         });
-        
+
         if (!partyMember[0]) {
             return;
         }
@@ -277,7 +287,7 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         DreamX.CaptureEnemy.performCollapse.call(this);
         var enemyName = this.originalName();
         var troopName = $gameTroop.troop().name;
-        var actorId = this.enemy().meta.capture_actor_id;
+        var actorId = parseInt(this.enemy().meta.capture_actor_id);
         var actor = $dataActors[actorId];
         if (!actor) {
             return;
@@ -347,28 +357,11 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         return true;
     };
 
-    DreamX.CaptureEnemy.actorAlreadyExists = function (actorId) {
-        var tempMemberExists;
-        var partyMemberExists;
-
-        partyMemberExists = $gameParty.allMembers().some(function (actor) {
-            return (actor.actorId() === actorId) || actor.baseActorId() === actorId;
-        });
-        if ($gameTemp._tempCaptureIDs) {
-            tempMemberExists = $gameTemp._tempCaptureIDs.some(function (id) {
-                return id === actorId;
-            });
-
-        }
-
-        return tempMemberExists === true || partyMemberExists === true;
-    };
-
-    DreamX.CaptureEnemy.shouldLevelUpAnActor = function (actorId) {
-        if (paramLevelUpNoDuplicate !== true) {
-            return false;
-        }
-        return this.actorAlreadyExists(actorId);
+    DreamX.CaptureEnemy.numActorDuplicates = function (actorId) {
+        var allActors = $gameActors._data.concat($gameTemp._tempCaptureIDs);
+        return allActors.filter(function (actor) {
+            return actor && actor.actorId() === actorId;
+        }).length;
     };
 
     DreamX.CaptureEnemy.levelUpDuplicateActors = function (actorId) {
@@ -379,36 +372,67 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
                 actor.changeExp(newExp, paramDefaultLevelUpMsg);
             }
         }
-
     };
 
-    DreamX.CaptureEnemy.Game_Action_applyItemUserEffect = Game_Action.prototype.applyItemUserEffect;
-    Game_Action.prototype.applyItemUserEffect = function (target) {
-        DreamX.CaptureEnemy.Game_Action_applyItemUserEffect.call(this, target);
-        if (!target.isEnemy())
-            return;
-        var item = this.item();
-        var dataEnemyMeta = $dataEnemies[target.enemyId()].meta;
+    Game_Action.prototype.handleCaptureSuccess = function (target, dataEnemyMeta, baseActorId, numDuplicates) {
+        var newActorLevel = 1;
 
-        // if the item or target isn't configured correctly, return
-        if (DreamX.CaptureEnemy.ItemTargetConfiguredProperly(item, dataEnemyMeta) === false) {
-            return;
+        if (parameterDuplicateLimit > 0 && numDuplicates >= parameterDuplicateLimit && paramLevelUpNoDuplicate) {
+            target._wasLevelUpCaptured = true;
+        } else {
+            if (target.level && target.level >= 1) {
+                level = target.level;
+            }
+            DreamX.CaptureEnemy.captureEnemy(baseActorId, newActorLevel);
+            target._wasCaptured = true;
         }
 
-        if (!$dataActors[dataEnemyMeta.capture_actor_id]) {
-            return;
+        if (paramCaptureCountVariable >= 1) {
+            var oldCaptureCount = $gameVariables.value(paramCaptureCountVariable);
+            $gameVariables.setValue(paramCaptureCountVariable,
+                    oldCaptureCount + 1);
         }
 
-        this.makeSuccess(target);
+        if (parseInt(dataEnemyMeta.capturedSwitch)) {
+            var capturedSwitchId = parseInt(dataEnemyMeta.capturedSwitch);
+            if (capturedSwitchId >= 1) {
+                $gameSwitches.setValue(capturedSwitchId, true);
+            }
+        }
 
-        var newActorId = dataEnemyMeta.capture_actor_id;
+        if (parseInt(dataEnemyMeta.capturedVariable)) {
+            var capturedVariableId = parseInt(dataEnemyMeta.capturedVariable);
+            if (capturedVariableId >= 1) {
+                var oldVarValue = $gameVariables.value(capturedVariableId);
+                $gameVariables.setValue(capturedVariableId,
+                        oldVarValue + 1);
+            }
+        }
+
+        if (parameterCaptureAnim >= 1) {
+            target.startAnimation(parameterCaptureAnim, false, 0);
+        }
+
+        target.die();
+    };
+
+    Game_Action.prototype.handleCaptureAttempt = function (target, dataEnemyMeta) {
+        var baseActorId = parseInt(dataEnemyMeta.capture_actor_id);
         var targetName = target.originalName();
         var troopName = $gameTroop.troop().name;
         var actorName = $dataActors[dataEnemyMeta.capture_actor_id].name;
+        
+        // record duplicates (number of times enemy has been captured as a copy)
+        var numDuplicates = DreamX.CaptureEnemy.numActorDuplicates(baseActorId);
+        // if number of duplicates exceeds limit and won't cause a level up
+        if (parameterDuplicateLimit > 0 && numDuplicates >= parameterDuplicateLimit && !paramLevelUpNoDuplicate) {
+            DreamX.CaptureEnemy.displayMessage(parameterDuplicateLimitMessage.format(targetName, troopName, actorName));
+            return;
+        }
 
-        switch (DreamX.CaptureEnemy.CalculateResult(item, target)) {
+        switch (DreamX.CaptureEnemy.CalculateResult(this.item(), target)) {
             case "BattleCaptureDisabled":
-                DreamX.CaptureEnemy.displayMessage(parameterCannotCaptureMsg.format(targetName, troopName, actorName));
+                DreamX.CaptureEnemy.displayMessage();
                 break;
             case "CaptureMissed":
                 if (parameterCaptureFailAnim >= 1) {
@@ -417,48 +441,34 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
                 DreamX.CaptureEnemy.displayMessage(parameterCaptureFailedMsg.format(targetName, troopName, actorName));
                 break;
             case "CaptureSuccess":
-                if (paramCaptureCountVariable >= 1) {
-                    var oldCaptureCount = $gameVariables.value(paramCaptureCountVariable);
-                    $gameVariables.setValue(paramCaptureCountVariable,
-                            oldCaptureCount + 1);
-                }
-
-                if (parseInt(dataEnemyMeta.capturedSwitch)) {
-                    var capturedSwitchId = parseInt(dataEnemyMeta.capturedSwitch);
-                    if (capturedSwitchId >= 1) {
-                        $gameSwitches.setValue(capturedSwitchId, true);
-                    }
-                }
-
-                if (parseInt(dataEnemyMeta.capturedVariable)) {
-                    var capturedVariableId = parseInt(dataEnemyMeta.capturedVariable);
-                    if (capturedVariableId >= 1) {
-                        var oldVarValue = $gameVariables.value(capturedVariableId);
-                        $gameVariables.setValue(capturedVariableId,
-                                oldVarValue + 1);
-                    }
-                }
-
-                if (DreamX.CaptureEnemy.shouldLevelUpAnActor(newActorId)) {
-
-                    target._wasLevelUpCaptured = true;
-                } else {
-
-                    var level = 1;
-                    if (target.level && target.level >= 1) {
-                        level = target.level;
-                    }
-                    DreamX.CaptureEnemy.captureEnemy(newActorId, level);
-                    target._wasCaptured = true;
-                }
-
-                if (parameterCaptureAnim >= 1) {
-                    target.startAnimation(parameterCaptureAnim, false, 0);
-                }
-
-                target.die();
+                this.handleCaptureSuccess(target, dataEnemyMeta, baseActorId, numDuplicates);
                 break;
         }
+    };
+
+    DreamX.CaptureEnemy.Game_Action_applyItemUserEffect = Game_Action.prototype.applyItemUserEffect;
+    Game_Action.prototype.applyItemUserEffect = function (target) {
+        DreamX.CaptureEnemy.Game_Action_applyItemUserEffect.call(this, target);
+        this.makeSuccess(target);
+
+        // if target is not enemy
+        if (!target.isEnemy())
+            return;
+
+        var item = this.item();
+        var dataEnemyMeta = $dataEnemies[target.enemyId()].meta;
+
+        // if no notetag for corresponding actor
+        if (!$dataActors[dataEnemyMeta.capture_actor_id]) {
+            return;
+        }
+
+        // if the item or target isn't configured correctly, return
+        if (DreamX.CaptureEnemy.ItemTargetConfiguredProperly(item, dataEnemyMeta) === false) {
+            return;
+        }
+
+        this.handleCaptureAttempt(target, dataEnemyMeta);
     };
 
     DreamX.CaptureEnemy.displayMessage = function (message) {
