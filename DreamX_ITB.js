@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.17 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
+ * @plugindesc v1.18 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
  *
  * <DreamX ITB>
  * @author DreamX
@@ -252,6 +252,9 @@
  * How To Use
  * ============================================================================
  Set the battle type to itb in Yanfly's Battle Engine Core.
+ 
+ You MUST turn Dynamic Actions off if you're using YEP Battle AI Core!
+
  Use <free_itb_action> as a skill/item notetag to prevent
  it from consuming an action for the battler - they will be able to act
  again after it is used.
