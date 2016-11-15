@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.10a
+ * @plugindesc v1.10b
  * 
  * <DreamX Capture Enemies>
  * @author DreamX
@@ -362,7 +362,7 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         var tempCaptureIdsLength = 0;
 
         var gameActorsLength = $gameActors._data.filter(function (actor) {
-            return actor && actor.actorId() === actorId;
+            return actor && (actor.actorId() === actorId || actor._baseActorId === actorId);
         }).length;
 
         if ($gameTemp._tempCaptureIDs) {
