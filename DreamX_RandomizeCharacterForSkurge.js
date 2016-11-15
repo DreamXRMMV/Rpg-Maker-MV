@@ -1,5 +1,5 @@
 /*:
- * @plugindesc
+ * @plugindesc v1.03
  * @author DreamX
  * 
  * @param Races
@@ -43,7 +43,11 @@ DreamX.RandomizeCharacter = DreamX.RandomizeCharacter || {};
         if (!this.event().meta.RandomizeCharacter) {
             return;
         }
+        
+        this.randomizeEventRace();
+    };
 
+    Game_Event.prototype.randomizeEventRace = function () {
         var races = paramRaces;
         var race = races[Math.floor(Math.random() * races.length)];
 
