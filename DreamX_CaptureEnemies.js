@@ -299,10 +299,6 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         gameActor = gameActor[0];
 
         if (this._wasCaptured) {
-            if (!$gameTemp._tempCaptureIDs) {
-                $gameTemp._tempCaptureIDs = [];
-            }
-            $gameTemp._tempCaptureIDs.push(actorId);
             DreamX.CaptureEnemy.displayMessage(parameterCaptureSuccessMsg.format(enemyName, troopName, actorName));
         }
         if (this._wasLevelUpCaptured) {
@@ -359,19 +355,19 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
 
     DreamX.CaptureEnemy.numActorDuplicates = function (actorId) {
         var allActors = $gameActors._data.concat($gameTemp._tempCaptureIDs);
-        var tempCaptureIdsLength = 0;
+        var enemiesCapturedThisBattle = 0;
 
         var gameActorsLength = $gameActors._data.filter(function (actor) {
             return actor && (actor.actorId() === actorId || actor._baseActorId === actorId);
         }).length;
 
-        if ($gameTemp._tempCaptureIDs) {
-            tempCaptureIdsLength = $gameTemp._tempCaptureIDs.filter(function (tempActorId) {
-                return tempActorId === actorId;
+        if (BattleManager._capturedEnemies) {
+            enemiesCapturedThisBattle = BattleManager._capturedEnemies.filter(function (enemy) {
+                return enemy.baseId === actorId;
             }).length;
         }
 
-        return gameActorsLength + tempCaptureIdsLength;
+        return gameActorsLength + enemiesCapturedThisBattle;
     };
 
     DreamX.CaptureEnemy.levelUpDuplicateActors = function (actorId) {
@@ -542,7 +538,7 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         $gameActors.actor(CapturedEnemy.id).setup(CapturedEnemy.id);
 
         if ($gameParty.inBattle() && paramAddInBattle === false) {
-            BattleManager._capturedEnemies.push(CapturedEnemy.id);
+            BattleManager._capturedEnemies.push({newId: CapturedEnemy.id, baseId: actorId});
         } else {
             $gameParty.addActor(CapturedEnemy.id);
         }
@@ -559,7 +555,7 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         DreamX.CaptureEnemy.BattleManager_updateBattleEnd.call(this);
         if (paramAddInBattle === false) {
             for (var i = 0; i < this._capturedEnemies.length; i++) {
-                $gameParty.addActor(this._capturedEnemies[i]);
+                $gameParty.addActor(this._capturedEnemies[i].newId);
             }
         }
         this._capturedEnemies = [];
