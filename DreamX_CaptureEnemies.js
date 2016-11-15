@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.10
+ * @plugindesc v1.10a
  * 
  * <DreamX Capture Enemies>
  * @author DreamX
@@ -359,9 +359,19 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
 
     DreamX.CaptureEnemy.numActorDuplicates = function (actorId) {
         var allActors = $gameActors._data.concat($gameTemp._tempCaptureIDs);
-        return allActors.filter(function (actor) {
+        var tempCaptureIdsLength = 0;
+
+        var gameActorsLength = $gameActors._data.filter(function (actor) {
             return actor && actor.actorId() === actorId;
         }).length;
+
+        if ($gameTemp._tempCaptureIDs) {
+            tempCaptureIdsLength = $gameTemp._tempCaptureIDs.filter(function (tempActorId) {
+                return tempActorId === actorId;
+            }).length;
+        }
+
+        return gameActorsLength + tempCaptureIdsLength;
     };
 
     DreamX.CaptureEnemy.levelUpDuplicateActors = function (actorId) {
@@ -421,7 +431,7 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
         var targetName = target.originalName();
         var troopName = $gameTroop.troop().name;
         var actorName = $dataActors[dataEnemyMeta.capture_actor_id].name;
-        
+
         // record duplicates (number of times enemy has been captured as a copy)
         var numDuplicates = DreamX.CaptureEnemy.numActorDuplicates(baseActorId);
         // if number of duplicates exceeds limit and won't cause a level up
