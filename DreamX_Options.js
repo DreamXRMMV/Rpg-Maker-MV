@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.8 Options for the option menu
+ * @plugindesc v1.9 Options for the option menu
  * @author DreamX
  * 
  * @param --General Options--
@@ -105,7 +105,15 @@
  * @desc Text for fullscreen option.
  * @default Fullscreen
  * 
+ * @param Resize Everything
+ * @desc WIP, currently does not work. default: false
+ * @default false
+ * 
  * @param --Default Options--
+ * 
+ * @param Default Options First
+ * @desc Show default options first Default: true
+ * @default true
  * 
  * @param Show Always Dash
  * @desc Whether to show always dash option. Default: true
@@ -274,6 +282,8 @@
  * Thanks to Yanfly for resolution changing snippet from YEP Core Engine.
  */
 
+
+
 var Imported = Imported || {};
 Imported.DreamX_Options = true;
 
@@ -319,6 +329,10 @@ DreamX.Options = DreamX.Options || {};
     var paramShowSeVolume = eval(parameters['Show SE Volume']);
 
     var paramCommonEvent = String(parameters['Common Event']);
+    //var paramResizeAll = eval(parameters['Resize Everything']);
+    var paramResizeAll = false;
+
+    var paramDefOptionsFirst = eval(parameters['Default Options First']);
 
     DreamX.Options.Scene_Boot_isReady = Scene_Boot.prototype.isReady;
     Scene_Boot.prototype.isReady = function () {
@@ -405,7 +419,6 @@ DreamX.Options = DreamX.Options || {};
             this.addWindow(this._helpWindow);
             this._optionsWindow.setHelpText(0);
         }
-
     };
 
     DreamX.Options.Scene_Options_terminate = Scene_Options.prototype.terminate;
@@ -414,6 +427,7 @@ DreamX.Options = DreamX.Options || {};
         if (paramCommonEvent) {
             $gameTemp.reserveCommonEvent(paramCommonEvent);
         }
+
     };
 
     DreamX.Options.Window_Options_select = Window_Options.prototype.select;
@@ -493,16 +507,26 @@ DreamX.Options = DreamX.Options || {};
 
     DreamX.Options.Window_Options_makeCommandList = Window_Options.prototype.makeCommandList;
     Window_Options.prototype.makeCommandList = function () {
+        if (!paramDefOptionsFirst) {
+            this.addCustomOptions();
+        }
         DreamX.Options.Window_Options_makeCommandList.call(this);
         this.removeDefaultOptions();
 
+        if (paramDefOptionsFirst) {
+            this.addCustomOptions();
+        }
+
+        this.updateLocks();
+    };
+
+    Window_Options.prototype.addCustomOptions = function () {
         if (Imported.YEP_CoreEngine) {
             this.addVideoOptions();
         }
 
         this.addSwitchOptions();
         this.addVariableOptions();
-        this.updateLocks();
     };
 
     Window_Options.prototype.updateLocks = function () {
@@ -635,20 +659,6 @@ DreamX.Options = DreamX.Options || {};
         return eval(paramStatusWidth);
     };
 
-//    DreamX.Options.Graphics_requestFullScreen = Graphics._requestFullScreen;
-//    Graphics._requestFullScreen = function () {
-//        DreamX.Options.Graphics_requestFullScreen.call(this);
-//        ConfigManager.fullscreen = true;
-//        ConfigManager.save();
-//    };
-//
-//    DreamX.Options.Graphics_cancelFullScreen = Graphics._cancelFullScreen;
-//    Graphics._cancelFullScreen = function () {
-//        DreamX.Options.Graphics_cancelFullScreen.call(this);
-//        ConfigManager.fullscreen = false;
-//        ConfigManager.save();
-//    };
-
     Window_Options.prototype.getVariableId = function (symbol) {
         if (symbol.indexOf("variable_") === -1) {
             return -1;
@@ -684,8 +694,10 @@ DreamX.Options = DreamX.Options || {};
         }
 
         if (symbol === 'fullscreen') {
-            if (this.getConfigValue(symbol) !== value) {
-                Graphics._switchFullScreen();
+            if (value) {
+                Graphics._requestFullScreen();
+            } else {
+                Graphics._cancelFullScreen();
             }
         }
         DreamX.Options.Window_Options_changeValue.call(this, symbol, value);
@@ -875,6 +887,29 @@ DreamX.Options = DreamX.Options || {};
 //=============================================================================
     ConfigManager.fullscreen = false;
 
+    DreamX.Options.Graphics_requestFullScreen = Graphics._requestFullScreen;
+    Graphics._requestFullScreen = function () {
+        DreamX.Options.Graphics_requestFullScreen.call(this);
+        this._syncFullScreenOption(true);
+    };
+
+    DreamX.Options.Graphics_cancelFullScreen = Graphics._cancelFullScreen;
+    Graphics._cancelFullScreen = function () {
+        DreamX.Options.Graphics_cancelFullScreen.call(this);
+        this._syncFullScreenOption(false);
+    };
+
+    Graphics._syncFullScreenOption = function (value) {
+        ConfigManager.fullscreen = value;
+        ConfigManager.save();
+
+        var scene = SceneManager._scene;
+        if (scene instanceof Scene_Options && paramFullscreenOption) {
+            var window = scene._optionsWindow;
+            window.redrawItem(window.findSymbol('fullscreen'));
+        }
+    };
+
     Window_Options.prototype.addVideoOptions = function () {
         var sizes = DreamX.Options.videoSettingsSizes;
         if (sizes && sizes.length >= 1 && paramResolutionOption) {
@@ -889,17 +924,59 @@ DreamX.Options = DreamX.Options || {};
         DreamX.Options.SceneManager_run = SceneManager.run;
         SceneManager.run = function (sceneClass) {
             ConfigManager.loadResolution();
-            if (!ConfigManager.resolution || !Utils.isNwjs()) {
-                DreamX.Options.SceneManager_run.call(this, sceneClass);
-            } else {
-                this.changeResolution();
-            }
-            Yanfly.Core.SceneManager_run.call(this, sceneClass);
+            this.setSceneWidthHeight();
+            DreamX.Options.SceneManager_run.call(this, sceneClass);
             if (ConfigManager.fullscreen) {
                 Graphics._requestFullScreen();
             }
         };
     }
+
+    DreamX.Options.Scene_Boot_start = Scene_Boot.prototype.start;
+    Scene_Boot.prototype.start = function () {
+        DreamX.Options.Scene_Boot_start.call(this);
+        this.resizeAll();
+    };
+
+    Scene_Boot.prototype.resizeAll = function () {
+        if (!ConfigManager.resolution) {
+            return;
+        }
+        if (!paramResizeAll) {
+            return;
+        }
+
+        var split = ConfigManager.resolution.split(" ");
+        var w = parseInt(split[0]);
+        var h = parseInt(split[1]);
+
+
+        window.resizeTo(w + (window.outerWidth - window.innerWidth), h + (window.outerHeight - window.innerHeight));
+        setTimeout(function () {
+            Graphics._canvas.style.width = w + "px";
+            Graphics._canvas.style.height = h + "px";
+        }, 500);
+
+    };
+    SceneManager.setSceneWidthHeight = function () {
+        if (!ConfigManager.resolution) {
+            return;
+        }
+        if (paramResizeAll) {
+            return;
+        }
+        var split = ConfigManager.resolution.split(" ");
+        var w = parseInt(split[0]);
+        var h = parseInt(split[1]);
+
+        SceneManager._screenWidth = w;
+        SceneManager._boxWidth = w;
+        Yanfly.Param.ScreenWidth = w;
+
+        SceneManager._screenHeight = h;
+        SceneManager._boxHeight = h;
+        Yanfly.Param.ScreenHeight = h;
+    };
 
     ConfigManager.loadResolution = function () {
         var json;
@@ -940,31 +1017,6 @@ DreamX.Options = DreamX.Options || {};
             return ConfigManager.resolution;
         }
         return Graphics.boxWidth + " " + Graphics.boxHeight;
-    };
-
-    SceneManager.changeResolution = function () {
-        if (!ConfigManager.resolution) {
-            return;
-        }
-        var split = ConfigManager.resolution.split(" ");
-        var w = parseInt(split[0]);
-        var h = parseInt(split[1]);
-
-        Graphics.boxWidth = w;
-        Graphics.boxHeight = h;
-        SceneManager._screenWidth = w;
-        SceneManager._screenHeight = h;
-        SceneManager._boxWidth = w;
-        SceneManager._boxHeight = h;
-
-        var resizeWidth = Graphics.boxWidth - window.innerWidth;
-        var resizeHeight = Graphics.boxHeight - window.innerHeight;
-        window.moveBy(-1 * resizeWidth / 2, -1 * resizeHeight / 2);
-
-        window.resizeBy(resizeWidth, resizeHeight);
-
-        if (eval(Yanfly.Param.OpenConsole))
-            this.openConsole();
     };
 
     DreamX.Options.Scene_Title_start = Scene_Title.prototype.start;
