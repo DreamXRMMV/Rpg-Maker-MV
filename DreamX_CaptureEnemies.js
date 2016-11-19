@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.10b
+ * @plugindesc v1.10c
  * 
  * <DreamX Capture Enemies>
  * @author DreamX
@@ -387,7 +387,7 @@ DreamX.CaptureEnemy = DreamX.CaptureEnemy || {};
             target._wasLevelUpCaptured = true;
         } else {
             if (target.level && target.level >= 1) {
-                level = target.level;
+                newActorLevel = target.level;
             }
             DreamX.CaptureEnemy.captureEnemy(baseActorId, newActorLevel);
             target._wasCaptured = true;
