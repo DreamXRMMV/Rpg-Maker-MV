@@ -1,5 +1,5 @@
 /*:
- * @plugindesc v1.18 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
+ * @plugindesc v1.19 Battlers perform actions instantly in an order decided by their agility. A turn ends after each battler acts.
  *
  * <DreamX ITB>
  * @author DreamX
@@ -254,7 +254,7 @@
  Set the battle type to itb in Yanfly's Battle Engine Core.
  
  You MUST turn Dynamic Actions off if you're using YEP Battle AI Core!
-
+ 
  Use <free_itb_action> as a skill/item notetag to prevent
  it from consuming an action for the battler - they will be able to act
  again after it is used.
@@ -594,10 +594,14 @@ DreamX.ITB = DreamX.ITB || {};
 
     // Resets the ITB action variables for the battler.
     Game_Battler.prototype.resetActionNum = function () {
-        this._ITBActions = 0;
+        this.clearITBActions();
         this._previousTraitITBActions = 0;
         this._extraActionsFromWeakness = 0;
         this._weaknessHitMap = new Map();
+    };
+
+    Game_Battler.prototype.clearITBActions = function () {
+        this._ITBActions = 0;
     };
 
     // Decides whether to add ITB actions from traits.
@@ -784,7 +788,8 @@ DreamX.ITB = DreamX.ITB || {};
             this.startTurn();
             return;
         }
-        firstBattler = this._ITBBattlers[0];
+
+        var firstBattler = this._ITBBattlers[0];
 
         if (firstBattler.numITBActions() >= 1) {
             firstBattler.addITBActions(-1);
@@ -1257,6 +1262,19 @@ DreamX.ITB = DreamX.ITB || {};
 //=============================================================================
 // Game_Action
 //=============================================================================
+    DreamX.ITB.BattleManager_startAction = BattleManager.startAction;
+    BattleManager.startAction = function () {
+        var subject = this._subject;
+        var action = subject.currentAction();
+        if (action) {
+            var item = action.item();
+            if (item.meta.free_itb_action) {
+                subject.addITBActions(1);
+            }
+        }
+        DreamX.ITB.BattleManager_startAction.call(this);
+    };
+
     // action is "free" if free_itb_action notetag present
     DreamX.ITB.Game_Action_apply = Game_Action.prototype.apply;
     Game_Action.prototype.apply = function (target) {
@@ -1266,20 +1284,15 @@ DreamX.ITB = DreamX.ITB || {};
             return;
         }
         var item = this.item();
-        if (item.meta.free_itb_action) {
-            this.subject().addITBActions(1);
-        }
         if (item.meta.reAddBattler) {
             BattleManager.addBattler(target);
         }
     };
 
-    // extra actions for hitting enemy weakness
-    DreamX.ITB.Game_Action_makeDamageValue = Game_Action.prototype.makeDamageValue;
-    Game_Action.prototype.makeDamageValue = function (target, critical) {
-        // if param set to 0, it's disabled
-        if (BattleManager.isITB() && eval(paramMaxElementExtraActions) !== 0) {
-            var user = this.subject();
+    Game_Action.prototype.handleElementalExtraActions = function (user, target) {
+        var addedExtraFromElemental = false;
+
+        if (eval(paramMaxElementExtraActions) !== 0) {
             var dataTarget = target.isEnemy() ? $dataEnemies[target.enemyId()] :
                     $dataActors[target.actorId()];
 
@@ -1311,8 +1324,28 @@ DreamX.ITB = DreamX.ITB || {};
                 if (parseInt(weaknessStateID) >= 1) {
                     target.addState(weaknessStateID);
                 }
+
+                addedExtraFromElemental = true;
             }
         }
+
+        return addedExtraFromElemental;
+    };
+
+    // extra actions for hitting enemy weakness
+    DreamX.ITB.Game_Action_makeDamageValue = Game_Action.prototype.makeDamageValue;
+    Game_Action.prototype.makeDamageValue = function (target, critical) {
+        // if param set to 0, it's disabled
+        if (BattleManager.isITB()) {
+            var user = this.subject();
+
+            var addedExtraFromElemental = this.handleElementalExtraActions(user, target);
+
+            if (critical) {
+//                user.extraElementalWeaknessAction();
+            }
+        }
+
         return DreamX.ITB.Game_Action_makeDamageValue.call(this, target, critical);
     };
 
