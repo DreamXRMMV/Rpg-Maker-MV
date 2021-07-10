@@ -189,11 +189,23 @@ DreamX.ChoiceHelp = DreamX.ChoiceHelp || {};
                         if (helpRegExp.test(param)) {
                             var splitParam = param.split(helpRegExp);
                             choiceHelps[choicesDetected - 1] = splitParam[1];
+                            var aditionalTextCommand = this._list[this._index + i + 1 + j + 1];
+                            for (var k = 1; aditionalTextCommand && aditionalTextCommand.code == 408; k++) {
+                                choiceHelps[choicesDetected - 1] += '\n';
+                                choiceHelps[choicesDetected - 1] += aditionalTextCommand.parameters[0];
+                                aditionalTextCommand = this._list[this._index + i + 1 + j + k + 1];
+                            }
                         }
 
                         if (msgRegExp.test(param)) {
                             var splitParam = param.split(msgRegExp);
                             choiceMessages[choicesDetected - 1] = splitParam[1];
+                            var aditionalTextCommand = this._list[this._index + i + 1 + j + 1];
+                            for (var k = 1; aditionalTextCommand && aditionalTextCommand.code == 408; k++) {
+                                choiceHelps[choicesDetected - 1] += '\n';
+                                choiceHelps[choicesDetected - 1] += aditionalTextCommand.parameters[0];
+                                aditionalTextCommand = this._list[this._index + i + 1 + j + k + 1];
+                            }
                         }
                         if (faceRegExp.test(param)) {
                             var splitParam = param.split(faceRegExp)[1].split(" ");
